@@ -150,10 +150,20 @@
       estado('carregando', e => { e.querySelector('#e-status').textContent = 'Abrindo a mesa…'; });
       try {
         SV.me = { uid: u.uid, nome: u.displayName || u.email || 'Sem nome', foto: u.photoURL || '', email: u.email || '' };
-        const ms = (await SV.db.get('mesa/mestres')) || {};
+        /* o banco às vezes demora a conectar com a sessão guardada: espera um pouco, renova o login e tenta de novo */
+        const ler = async path => {
+          for (let i = 0; i < 4; i++) {
+            const r = await Promise.race([SV.db.get(path).then(v => ({ v })), new Promise(ok => setTimeout(() => ok(null), 6000))]);
+            if (r) return r.v;
+            estado('carregando', e => { e.querySelector('#e-status').textContent = 'A conexão está lenta, tentando de novo…'; });
+            try { await u.getIdToken(true); rt.goOffline(); rt.goOnline(); } catch {}
+          }
+          throw new Error('network: o banco não respondeu');
+        };
+        const ms = (await ler('mesa/mestres')) || {};
         SV.mestres = ms;
         SV.isGM = ms[u.uid] === true;
-        const ban = SV.isGM ? null : await SV.db.get('mesa/banidos/' + u.uid).catch(() => null);
+        const ban = SV.isGM ? null : await ler('mesa/banidos/' + u.uid).catch(() => null);
         if (ban === true) { estado('banido'); $('#e-sair2').onclick = () => auth.signOut(); return; }
         SV.db.update('users/' + u.uid, { nome: SV.me.nome, foto: SV.me.foto, visto: Date.now() }).catch(() => {});
         const vai = () => { iniciou = true; $('#entrada').hidden = true; pronto(); };
