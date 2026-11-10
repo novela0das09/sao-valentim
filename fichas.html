@@ -13,7 +13,7 @@
 :root {
   --bg: #0a0808; --panel: #131010; --panel-2: #1a1515; --line: #2c2222; --line-2: #3d2c2c;
   --paper: #ece4d8; --paper-2: #b9aea2; --muted: #857a72;
-  --blood: #b3191f; --red: #e2373d; --red-soft: rgba(226, 55, 61, 0.14);
+  --blood: #b3191f; --on-blood: #ffffff; --red: #e2373d; --red-soft: rgba(226, 55, 61, 0.14);
   --ok: #7fbf6a; --bad: #e2373d; --gold: #e1b45a;
   --f-display: 'IM Fell English SC', 'Times New Roman', serif;
   --f-body: 'Barlow', 'Segoe UI', system-ui, sans-serif;
@@ -23,7 +23,7 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--paper); font: 15px/1.45 var(--f-body); }
-body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.5; background: radial-gradient(ellipse at 50% 0%, rgba(179, 25, 31, 0.10), transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(179, 25, 31, 0.06), transparent 50%); z-index: 0; }
+body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.5; background: radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--blood) 10%, transparent), transparent 60%), radial-gradient(ellipse at 100% 100%, color-mix(in srgb, var(--blood) 6%, transparent), transparent 50%); z-index: 0; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
@@ -39,7 +39,7 @@ button { cursor: pointer; }
 .cena .pill b { color: var(--paper); font-variant-numeric: tabular-nums; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 12px; border-radius: 3px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--paper); font-weight: 600; font-size: 13.5px; line-height: 1.1; }
 .btn:hover { border-color: var(--red); }
-.btn.red { background: var(--blood); border-color: var(--blood); color: #fff; }
+.btn.red { background: var(--blood); border-color: var(--blood); color: var(--on-blood); }
 .btn.red:hover { background: var(--red); }
 .btn.ghost { background: transparent; }
 .btn.sm { padding: 5px 9px; font-size: 12.5px; }
@@ -66,7 +66,7 @@ button { cursor: pointer; }
 .ficha { grid-template-columns: minmax(0, 1fr); padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; align-content: start; }
 .cab { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 18px; align-items: start; }
 .retrato { position: relative; aspect-ratio: 4 / 5; max-width: 100%; border: 1px solid var(--line-2); background: radial-gradient(ellipse at 50% 30%, #2a1c1c, #0d0909 75%); overflow: hidden; }
-.retrato::after { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(226, 55, 61, 0.35); pointer-events: none; }
+.retrato::after { content: ""; position: absolute; inset: 6px; border: 1px solid color-mix(in srgb, var(--red) 35%, transparent); pointer-events: none; }
 .retrato img { width: 100%; height: 100%; object-fit: cover; display: block; filter: contrast(1.05) saturate(0.85); }
 .retrato .ini { position: absolute; inset: 0; display: grid; place-items: center; font: 54px/1 var(--f-display); color: rgba(236, 228, 216, 0.4); }
 .retrato label { position: absolute; left: 8px; right: 8px; bottom: 8px; text-align: center; font-size: 12px; padding: 5px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--line-2); cursor: pointer; color: var(--paper-2); }
@@ -79,7 +79,7 @@ button { cursor: pointer; }
 .tag { max-width: 100%; }
 .tag select, .tag input { min-width: 0; background: var(--panel-2); border: 1px solid var(--line); padding: 3px 4px; font-size: 13px; text-transform: none; letter-spacing: 0; color: var(--paper); max-width: 190px; }
 .tag input { width: 52px; }
-.tag.perfil { background: var(--blood); border-color: var(--blood); color: #fff; }
+.tag.perfil { background: var(--blood); border-color: var(--blood); color: var(--on-blood); }
 .tag.perfil select { background: rgba(0, 0, 0, 0.25); border-color: rgba(255, 255, 255, 0.25); color: #fff; }
 .recursos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .rec { padding: 10px 12px; border: 1px solid var(--line-2); background: var(--panel); display: grid; gap: 8px; }
@@ -91,14 +91,14 @@ button { cursor: pointer; }
 .rec-h .sp { flex: 1; }
 .caixas { display: flex; flex-wrap: wrap; gap: 3px; }
 .caixa { width: 13px; height: 13px; border: 1.5px solid var(--paper-2); background: transparent; padding: 0; }
-.caixa.on { background: var(--paper); border-color: var(--paper); }
-.rec.pd .caixa.on { background: #c9c3d8; border-color: #c9c3d8; }
+.caixa.on { background: var(--red); border-color: var(--red); }
+.rec.pd .caixa.on { background: color-mix(in srgb, var(--red) 45%, #c9c3d8); border-color: color-mix(in srgb, var(--red) 45%, #c9c3d8); }
 .alerta { font-size: 12.5px; color: var(--red); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .mini { display: inline-grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-2); background: var(--panel-2); padding: 0; font-weight: 700; }
 .mini:hover { border-color: var(--red); }
 
 /* fita vermelha dos títulos */
-.fita { display: inline-block; margin: 0 0 10px; padding: 3px 18px 4px 12px; font: 18px/1.1 var(--f-display); color: #fff; background: var(--blood); clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); letter-spacing: 0.03em; }
+.fita { display: inline-block; margin: 0 0 10px; padding: 3px 18px 4px 12px; font: 18px/1.1 var(--f-display); color: var(--on-blood); background: var(--blood); clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%); letter-spacing: 0.03em; }
 .bloco { min-width: 0; }
 .duas { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 22px; align-items: start; }
 .pilha { display: grid; gap: 20px; min-width: 0; align-content: start; }
@@ -142,7 +142,7 @@ button { cursor: pointer; }
 .card-b strong { color: var(--paper); }
 .barra { display: flex; gap: 5px; align-items: center; }
 .barra i { width: 26px; height: 12px; border: 1.5px solid var(--red); transform: skewX(-18deg); }
-.barra i.on { background: var(--red); box-shadow: 0 0 10px rgba(226, 55, 61, 0.6); }
+.barra i.on { background: var(--red); box-shadow: 0 0 10px color-mix(in srgb, var(--red) 60%, transparent); }
 .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .add-hab { display: flex; gap: 6px; }
 .add-hab select { flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--line-2); padding: 6px; }
@@ -174,7 +174,7 @@ textarea.notas { width: 100%; min-height: 120px; resize: vertical; background: v
 .formula { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px; background: #0d0a0a; border: 1px dashed var(--line-2); min-height: 52px; }
 .formula .mais { color: var(--muted); font-weight: 700; }
 .formula .ext { position: relative; }
-.formula .ext button { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; border: 0; background: var(--blood); color: #fff; font-size: 11px; line-height: 16px; padding: 0; }
+.formula .ext button { position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; border: 0; background: var(--blood); color: var(--on-blood); font-size: 11px; line-height: 16px; padding: 0; }
 .formula .cnt { margin-left: auto; font-size: 12px; color: var(--muted); }
 .passos { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 12.5px; color: var(--muted); }
 .passos .par { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
@@ -187,14 +187,14 @@ textarea.notas { width: 100%; min-height: 120px; resize: vertical; background: v
 .rolar { width: 100%; padding: 11px; font: 20px/1 var(--f-display); letter-spacing: 0.04em; }
 .res { border: 1px solid var(--line-2); background: var(--panel); padding: 12px; display: grid; gap: 10px; }
 .res.ok { border-color: rgba(127, 191, 106, 0.55); }
-.res.bad { border-color: rgba(226, 55, 61, 0.6); }
+.res.bad { border-color: color-mix(in srgb, var(--red) 60%, transparent); }
 .res.crit { border-color: var(--gold); box-shadow: 0 0 24px rgba(225, 180, 90, 0.18); }
 .res-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .res-h .tot { font: 46px/1 var(--f-display); color: var(--paper); font-variant-numeric: tabular-nums; }
 .res-h .vs { color: var(--muted); font-size: 14px; }
 .veredito { font: 18px/1 var(--f-display); letter-spacing: 0.04em; padding: 4px 10px; }
 .veredito.ok { color: #0a0808; background: var(--ok); }
-.veredito.bad { color: #fff; background: var(--blood); }
+.veredito.bad { color: var(--on-blood); background: var(--blood); }
 .veredito.crit { color: #0a0808; background: var(--gold); }
 .res-dados { display: flex; gap: 8px; flex-wrap: wrap; }
 .res-dados button { background: none; border: 0; padding: 0; position: relative; }
@@ -202,7 +202,7 @@ textarea.notas { width: 100%; min-height: 120px; resize: vertical; background: v
 .res-dados button.troca::after { content: "↻"; position: absolute; top: -4px; right: -4px; font-size: 13px; color: var(--gold); }
 .rarb { display: flex; gap: 14px; font-size: 13px; color: var(--muted); }
 .rarb b { color: var(--paper); font-size: 16px; }
-.dano { padding: 8px 10px; background: var(--red-soft); border: 1px solid rgba(226, 55, 61, 0.35); font-size: 14px; }
+.dano { padding: 8px 10px; background: var(--red-soft); border: 1px solid color-mix(in srgb, var(--red) 35%, transparent); font-size: 14px; }
 .dano b { font: 22px/1 var(--f-display); color: var(--red); }
 .res-msg { font-size: 13.5px; color: var(--paper-2); }
 .tabela-fc { font-size: 13px; padding: 8px 10px; background: #0d0a0a; border: 1px solid var(--line-2); }
@@ -248,7 +248,7 @@ textarea.notas { width: 100%; min-height: 120px; resize: vertical; background: v
 /* modos: fichas | criar personagem | como jogar */
 .modos { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--line-2); border-radius: 4px; background: var(--panel); }
 .modos button { border: 0; background: none; color: var(--paper-2); padding: 6px 11px; border-radius: 3px; font-weight: 600; font-size: 13px; }
-.modos button.on { background: var(--blood); color: #fff; }
+.modos button.on { background: var(--blood); color: var(--on-blood); }
 .modos button:hover:not(.on) { color: var(--paper); background: var(--panel-2); }
 .app:not([data-modo="jogar"]) #guia, .app:not([data-modo="criar"]) #criar { display: none; }
 @media (min-width: 921px) {
@@ -281,7 +281,7 @@ button.pill:hover { border-color: var(--red); }
 /* guia: como é jogar */
 .guia { padding-block: 18px 70px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); align-content: start; gap: 16px; grid-template-columns: minmax(0, 860px); justify-content: center; display: grid; }
 .guia-top { display: grid; gap: 10px; }
-.guia h1 { margin: 0; font: 36px/1.05 var(--f-display); color: var(--red); text-shadow: 0 2px 18px rgba(179, 25, 31, 0.35); }
+.guia h1 { margin: 0; font: 36px/1.05 var(--f-display); color: var(--red); text-shadow: 0 2px 18px color-mix(in srgb, var(--blood) 35%, transparent); }
 .guia .lead { margin: 0; color: var(--paper-2); max-width: 66ch; }
 .quem-joga { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .quem-joga select { background: var(--panel-2); border: 1px solid var(--line-2); padding: 6px; color: var(--paper); }
@@ -327,7 +327,7 @@ button.pill:hover { border-color: var(--red); }
 .criar { padding-block: 18px 70px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); align-content: start; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px 26px; width: 100%; max-width: 1180px; margin: 0 auto; display: grid; }
 .cr-trilha { grid-column: 1 / -1; display: flex; gap: 4px; flex-wrap: wrap; }
 .cr-trilha button { border: 1px solid var(--line-2); background: var(--panel); color: var(--muted); padding: 6px 10px; font-size: 12.5px; font-weight: 600; }
-.cr-trilha button.on { border-color: var(--blood); color: #fff; background: var(--blood); }
+.cr-trilha button.on { border-color: var(--blood); color: var(--on-blood); background: var(--blood); }
 .cr-trilha button.feito { color: var(--paper); }
 .cr-trilha button:disabled { opacity: 0.45; cursor: not-allowed; }
 .cr-corpo { display: grid; gap: 14px; min-width: 0; align-content: start; }
@@ -337,7 +337,7 @@ button.pill:hover { border-color: var(--red); }
 .opc { text-align: left; display: grid; gap: 6px; align-content: start; padding: 12px; border: 1px solid var(--line-2); background: var(--panel); color: var(--paper-2); font-size: 13.5px; }
 .opc b { font: 21px/1.1 var(--f-display); color: var(--paper); font-weight: normal; }
 .opc:hover { border-color: var(--red); }
-.opc.on { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red), 0 0 22px rgba(179, 25, 31, 0.22); background: var(--panel-2); }
+.opc.on { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red), 0 0 22px color-mix(in srgb, var(--blood) 22%, transparent); background: var(--panel-2); }
 .opc.on b { color: var(--red); }
 .opc .hab { font-size: 12.5px; border-top: 1px dashed var(--line-2); padding-top: 6px; }
 .opc strong { color: var(--paper); }
@@ -370,7 +370,7 @@ button.pill:hover { border-color: var(--red); }
 .app[data-modo="criar"] .cena { display: none; }
 @media (max-width: 560px) { .brand span { display: none; } }
 /* auditoria: estados críticos, selos de regra, regras e progressão */
-@keyframes pulsa { 0%, 100% { box-shadow: inset 0 0 0 1px var(--red), 0 0 0 rgba(226, 55, 61, 0); } 50% { box-shadow: inset 0 0 0 1px var(--red), 0 0 18px rgba(226, 55, 61, 0.35); } }
+@keyframes pulsa { 0%, 100% { box-shadow: inset 0 0 0 1px var(--red), 0 0 0 color-mix(in srgb, var(--red) 0%, transparent); } 50% { box-shadow: inset 0 0 0 1px var(--red), 0 0 18px color-mix(in srgb, var(--red) 35%, transparent); } }
 .rec.critico { border-color: var(--red); animation: pulsa 2.2s ease-in-out infinite; }
 .rec.zerado { border-color: var(--red); background: linear-gradient(180deg, color-mix(in srgb, var(--blood) 18%, transparent), var(--panel)); }
 @media (prefers-reduced-motion: reduce) { .rec.critico { animation: none; box-shadow: inset 0 0 0 1px var(--red); } }
@@ -378,7 +378,7 @@ button.pill:hover { border-color: var(--red); }
 .selo { display: inline-block; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 6px; border-radius: 2px; border: 1px solid; white-space: nowrap; }
 .selo.ok { color: var(--ok); border-color: rgba(127, 191, 106, 0.5); }
 .selo.nc { color: var(--gold); border-color: rgba(225, 180, 90, 0.5); }
-.badge-est { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; font-size: 12px; border: 1px solid var(--red); color: #fff; background: rgba(179, 25, 31, 0.55); }
+.badge-est { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; font-size: 12px; border: 1px solid var(--red); color: var(--on-blood); background: color-mix(in srgb, var(--blood) 55%, transparent); }
 .hab-meta { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; font-size: 12.5px; }
 .hab-meta dt { color: var(--muted); } .hab-meta dd { margin: 0; color: var(--paper-2); }
 .card-h .disp { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 6px; background: rgba(0, 0, 0, 0.3); color: #d9f2cf; }
@@ -416,6 +416,19 @@ button.pill:hover { border-color: var(--red); }
 .casa { border-left: 3px solid var(--gold); }
 .card.rit .card-h { background: linear-gradient(90deg, #2a1f1c, #171212); border-left: 4px solid var(--el, var(--gold)); }
 .card.rit .card-h small { color: var(--el, var(--gold)); }
+
+/* tema: foco, campos e seleção acompanham a cor */
+input:focus, select:focus, textarea:focus { border-color: var(--red); outline: none; box-shadow: 0 0 0 1px var(--red-soft); }
+:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+select, input, textarea { accent-color: var(--blood); }
+::selection { background: var(--blood); color: var(--on-blood); }
+.cards-voc { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.card.voc.custom { border-color: var(--line-2); }
+.voc-desc { display: block; color: var(--paper-2); font-size: 12.5px; }
+.voc-lim { display: block; color: var(--red); font-size: 12px; }
+.form-voc { display: grid; gap: 10px; }
+.campo-voc { display: grid; gap: 4px; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+.campo-voc input, .campo-voc select, .campo-voc textarea { background: var(--bg); border: 1px solid var(--line-2); color: var(--paper); padding: 7px 9px; font: 14px var(--f-body); }
 
 /* ---------- dentro do site ---------- */
 .na-mesa .brand { display: none; }
@@ -465,7 +478,7 @@ const PER_ATR = Object.fromEntries([...PER.map(p => [p[0], p[2]]), ...APT.map(a 
 const NIVEL_PER = { d4: 'destreinado', d6: 'treinado', d8: 'especialista', d10: 'mestre', d12: 'grão-mestre' };
 const NIVEL_ATR = { d4: 'abaixo da média', d6: 'média humana', d8: 'acima da média', d10: 'muito acima da média', d12: 'ápice humano', d20: 'sobre-humano' };
 const PERFIS = { executor: ['Executor', 'Age primeiro e insiste quando falha.', ['impeto']], analista: ['Analista', 'Observa, se prepara e busca precisão.', ['avaliacao']], vigilante: ['Vigilante', 'Fica atento, reage rápido e cuida dos outros.', ['prontidao']] };
-const OCUP = { 'Artista': 'foco-emocional', 'Cientista': 'foco-mental', 'Operário': 'esforco-e-suor', 'Professor': 'mentoria', 'Profissional de escritório': 'conhecimento-tecnico', 'Policial': 'linha-de-tiro', 'Militar': 'para-bellum', 'Médico': 'tecnica-medicinal' };
+/* OCUP e OC_PER agora saem do catálogo de vocações (vocacoes.js, logo abaixo das habilidades) */
 /* habilidades (texto resumido com as nossas palavras) */
 const HAB = {
   impeto: { nome: 'Ímpeto', origem: 'Perfil · Executor', txt: 'Barra com <strong>cinco espaços</strong>. Cada teste em que você falha enche um espaço, e a barra <strong>esvazia no fim da cena</strong>. Como ação livre, gaste <strong>1 espaço</strong> para <strong>+d4</strong> num teste, <strong>3 espaços</strong> para subir um atributo em um passo até o fim da cena, ou <strong>3 espaços</strong> para uma ação extra num conflito.' },
@@ -583,6 +596,134 @@ const HAB_META = {
 };
 const fnv = v => typeof v === 'function' ? v() : v;
 const metaHab = k => { const m = Object.assign({ cat: HAB[k]?.custom ? HAB[k].cat || 'Personalizada' : 'Habilidade', momento: '—', limite: '—', duracao: '—', req: '', conf: HAB[k]?.custom ? 'mestre' : 'alpha' }, HAB_META[k] || {}, HAB[k]?.custom ? { momento: HAB[k].momento || '—', limite: HAB[k].limite || '—', duracao: HAB[k].duracao || '—', req: HAB[k].req || '' } : {}); for (const q of Object.keys(m)) m[q] = fnv(m[q]); return m; };
+/* ===================== vocações: as do beta + as da casa + as que o mestre cadastrar =====================
+   Régua (as 8 do beta): cada vocação dá UMA habilidade. Ou +d4 num atributo inteiro por 2 PD, ou +1 passo numa
+   perícia, ou um uso estreito forte (+d10 por 4 PD só com arma de fogo), ou um efeito pequeno e constante (+1 PV por cura).
+   As novas seguem a mesma régua: +d6 por 2 PD num par estreito de perícias, ou um efeito 1×/cena, ou um passivo pequeno.
+   Algumas têm limitação, que paga um benefício um pouco mais largo. */
+const VOC_BASE = {
+  'Artista': { hab: 'foco-emocional', beta: true, desc: 'Músico, ator, pintor, tatuador. Vive do que sente e faz os outros sentirem.' },
+  'Cientista': { hab: 'foco-mental', beta: true, desc: 'Pesquisador, técnico de laboratório, estudante de pós. Pensa antes de agir, às vezes demais.' },
+  'Operário': { hab: 'esforco-e-suor', beta: true, per: 'fisico', desc: 'Pedreiro, peão de obra, metalúrgico. O corpo é a ferramenta de trabalho.' },
+  'Professor': { hab: 'mentoria', beta: true, desc: 'Dá aula na escola estadual ou no cursinho. Sabe explicar e sabe ouvir.' },
+  'Profissional de escritório': { hab: 'conhecimento-tecnico', beta: true, per: 'mente', desc: 'Contador, analista, auxiliar administrativo. Planilha, papel e paciência.' },
+  'Policial': { hab: 'linha-de-tiro', beta: true, desc: 'Brigada Militar, Polícia Civil ou guarda municipal. Treinado com arma de fogo.' },
+  'Militar': { hab: 'para-bellum', beta: true, desc: 'Serviu no Exército ou ainda serve. Disciplina e pontaria.' },
+  'Médico': { hab: 'tecnica-medicinal', beta: true, desc: 'Clínico do posto, residente, médico de plantão. Sabe o que um corpo aguenta.' },
+  'Jornalista': { hab: 'faro-de-pauta', desc: 'Repórter de jornal regional, rádio AM ou portal de notícias. Pergunta o que ninguém quer responder.', lim: 'Quem percebe a pergunta a mais fica desconfiado de você pelo resto da cena.' },
+  'Enfermeiro': { hab: 'plantao', desc: 'Técnico de enfermagem, socorrista do SAMU, cuidador. Já viu gente morrer e continuou trabalhando.' },
+  'Mecânico': { hab: 'gambiarra', desc: 'Oficina na beira da estrada, eletricista, técnico de manutenção. Conserta com o que tiver.' },
+  'Vigia': { hab: 'ronda', desc: 'Segurança de obra, porteiro da noite, vigilante de banco. Passa a madrugada acordado e atento.' },
+  'Caminhoneiro': { hab: 'noites-em-claro', desc: 'Motorista de caminhão, de ônibus de linha ou de ambulância. Conhece as estradas e o sono.' },
+  'Colono': { hab: 'gente-do-mato', desc: 'Agricultor, peão de estância, caçador. Cresceu no interior e conhece a mata e os bichos.', lim: 'Cidade grande, papelada e computador não são com você: −1 passo em Aptidão (Burocracia).' },
+  'Fotógrafo': { hab: 'olho-de-lente', desc: 'Fotógrafo de casamento, cinegrafista, documentarista. O que passa pela lente fica guardado.' },
+  'Religioso': { hab: 'palavra-de-conforto', desc: 'Padre, pastor, freira, catequista, ministro da eucaristia. As pessoas confiam em você.' },
+  'Benzedeira': { hab: 'benzimento', desc: 'Benze cobreiro, mau-olhado e susto, como a avó ensinou. Sabedoria popular, não ocultismo.', req: 'Combine a origem com o mestre.', lim: 'Benzimento não é ritual: não serve contra o que exige ritual, e só funciona em quem aceita ser benzido.' },
+  'Advogado': { hab: 'papelada', desc: 'Advogado, despachante, oficial de cartório. Sabe que todo papel guarda alguma coisa.' },
+  'Atleta': { hab: 'folego', desc: 'Jogador de futebol de várzea, corredor, professor de educação física. O corpo responde rápido.' },
+  'Comerciante': { hab: 'freguesia', desc: 'Dono de bar, bodegueiro, feirante. Conhece todo mundo pelo nome e pelo fiado.' },
+  'Técnico de informática': { hab: 'recuperar-dados', desc: 'Conserta computador e celular, monta rede, mexe em servidor. Nada se apaga de verdade.' },
+  'Detetive': { hab: 'campana', desc: 'Investigador particular, agente de seguros, ex-policial. Segue gente por profissão.' },
+  'Sobrevivente': { hab: 'ja-vi-pior', desc: 'Passou por algo que não tem explicação e sobreviveu. Não conta para ninguém.', req: 'Combine com o mestre o que aconteceu.', lim: 'Pesadelos: começa com 2 PD máximos a menos.' },
+};
+const V_ = (voc, o) => Object.assign({ origem: 'Vocação · ' + voc, casa: true }, o);
+const HAB_VOC = {
+  'faro-de-pauta': V_('Jornalista', { nome: 'Faro de Pauta', gasto: { pd: 0, cena: true, msg: 'fez a pergunta a mais' }, cat: 'Investigação', momento: 'Conversando com alguém', limite: '1 por cena', duracao: 'Instantânea', txt: 'Uma vez por cena, numa conversa, faça <strong>uma pergunta a mais</strong>. O mestre responde com algo verdadeiro que a pessoa sabe, mesmo que ela não queira contar. Ela percebe que falou demais.' }),
+  plantao: V_('Enfermeiro', { nome: 'Plantão', gasto: { pd: 0, cena: true, msg: 'estabilizou alguém como ação livre' }, cat: 'Cuidado', momento: 'Com alguém caído', limite: '1 por cena', duracao: 'Instantânea', txt: 'Uma vez por cena, estabilizar alguém caído é <strong>ação livre</strong>. Medicina sem kit não sofre redução de passo.' }),
+  gambiarra: V_('Mecânico', { nome: 'Gambiarra', gasto: { pd: 0, cena: true, msg: 'improvisou um conserto' }, cat: 'Recurso', momento: 'Fora de combate', limite: '1 por cena', duracao: 'Até o fim da cena', txt: 'Uma vez por cena, conserte ou improvise algo simples (lanterna, rádio, carro, tranca, gerador) <strong>sem ferramenta</strong> e sem redução de passo. A gambiarra dura até o fim da cena.' }),
+  ronda: V_('Vigia', { nome: 'Ronda', cat: 'Passiva', momento: 'De guarda', limite: '—', duracao: 'Permanente', txt: 'Enquanto você estiver <strong>de guarda</strong>, ninguém do grupo é pego de surpresa: todos agem normalmente na primeira rodada de uma emboscada.' }),
+  'noites-em-claro': V_('Caminhoneiro', { nome: 'Noites em Claro', custo: '2 PD', dado: { d: 'd6', pd: 2, per: 'vigor' }, cat: 'Dado extra', momento: 'Contra cansaço, sono e frio', limite: 'Livre (custa PD)', duracao: 'Um teste', txt: 'Em testes de <strong>Vigor</strong> contra cansaço, sono, frio ou fome, gaste <strong>2 PD</strong> para receber <strong>+d6</strong>. Ninguém dirige 14 horas seguidas à toa.' }),
+  'gente-do-mato': V_('Colono', { nome: 'Gente do Mato', custo: '2 PD', dado: { d: 'd6', pd: 2, pers: ['sobrevivencia', 'animais'] }, cat: 'Dado extra', momento: 'No campo ou na mata', limite: 'Livre (custa PD)', duracao: 'Um teste', txt: 'Em <strong>Sobrevivência</strong> ou <strong>Animais</strong>, gaste <strong>2 PD</strong> para receber <strong>+d6</strong>. Na mata, você nunca se perde de dia.' }),
+  'olho-de-lente': V_('Fotógrafo', { nome: 'Olho de Lente', cat: 'Investigação', momento: 'Depois de fotografar ou filmar', limite: '1 por ponto de interesse', duracao: 'Permanente', txt: 'O que você fotografa ou filma pode ser <strong>examinado de novo depois</strong>, pela imagem, mesmo longe do lugar: faça um novo teste por ponto de interesse.' }),
+  'palavra-de-conforto': V_('Religioso', { nome: 'Palavra de Conforto', gasto: { pd: 0, cena: true, msg: 'confortou um aliado: ele recupera d4 PD' }, cat: 'Apoio', momento: 'No seu turno', limite: '1 por cena', duracao: 'Instantânea', txt: 'Uma vez por cena, gaste uma ação falando com um aliado: ele recupera <strong>d4 PD</strong>.' }),
+  benzimento: V_('Benzedeira', { nome: 'Benzimento', gasto: { pd: 0, cena: true, msg: 'benzeu alguém: +d6 no próximo teste de medo' }, cat: 'Apoio', momento: 'Fora de combate', limite: '1 por sessão', duracao: 'Até usar', txt: 'Uma vez por sessão, benza alguém (pode ser você). No próximo teste de <strong>medo</strong> ou contra um efeito paranormal na mente, ele rola <strong>+d6</strong>.' }),
+  papelada: V_('Advogado', { nome: 'Papelada', custo: '2 PD', dado: { d: 'd6', pd: 2, pers: ['apt:burocracia', 'persuasao'] }, cat: 'Dado extra', momento: 'Com documentos ou autoridades', limite: 'Livre (custa PD)', duracao: 'Um teste', txt: 'Em <strong>Aptidão (Burocracia)</strong>, ou em <strong>Persuasão</strong> com autoridades e empresas, gaste <strong>2 PD</strong> para receber <strong>+d6</strong>.' }),
+  folego: V_('Atleta', { nome: 'Fôlego', custo: '2 PD', dado: { d: 'd6', pd: 2, pers: ['atletismo', 'acrobacia'] }, cat: 'Dado extra', momento: 'Antes de rolar', limite: 'Livre (custa PD)', duracao: 'Um teste', txt: 'Em <strong>Atletismo</strong> ou <strong>Acrobacia</strong>, gaste <strong>2 PD</strong> para receber <strong>+d6</strong>.' }),
+  freguesia: V_('Comerciante', { nome: 'Freguesia', gasto: { pd: 0, cena: true, msg: 'cobrou um favor de um freguês' }, cat: 'Recurso', momento: 'No começo da sessão', limite: '1 por sessão', duracao: 'Uma sessão', txt: 'No começo de cada sessão, escolha um morador: ele te deve um <strong>favor</strong> (uma informação, um empréstimo, um lugar para dormir). O mestre diz o que ele pode dar.' }),
+  'recuperar-dados': V_('Técnico de informática', { nome: 'Recuperar Dados', gasto: { pd: 0, cena: true, msg: 'tentou recuperar dados apagados' }, cat: 'Investigação', momento: 'Com um aparelho em mãos', limite: '1 por cena', duracao: 'Instantânea', txt: 'Uma vez por cena, recupere algo de um celular quebrado, HD, câmera ou computador: teste de <strong>Pesquisar DT 7</strong>. O mestre diz o que sobrou.' }),
+  campana: V_('Detetive', { nome: 'Campana', custo: '2 PD', dado: { d: 'd6', pd: 2, pers: ['furtividade', 'percepcao'] }, cat: 'Dado extra', momento: 'Seguindo ou vigiando alguém', limite: 'Livre (custa PD)', duracao: 'Um teste', txt: 'Para <strong>seguir ou vigiar</strong> alguém sem ser visto, em Furtividade ou Percepção, gaste <strong>2 PD</strong> para receber <strong>+d6</strong>.' }),
+  'ja-vi-pior': V_('Sobrevivente', { nome: 'Já Vi Coisa Pior', dado: { d: 'd6', pd: 0, per: 'disciplina' }, cat: 'Dado extra', momento: 'No primeiro teste de medo de cada cena', limite: '1 por cena', duracao: 'Um teste', txt: 'No <strong>primeiro teste de medo</strong> de cada cena, receba <strong>+d6</strong> sem custo. O preço: pesadelos, <strong>2 PD máximos a menos</strong> (já descontado na criação).' }),
+};
+Object.assign(HAB, HAB_VOC);
+for (const [k, x] of Object.entries(HAB_VOC)) HAB_META[k] = { cat: x.cat, momento: x.momento, limite: x.limite, duracao: x.duracao, conf: 'casa' };
+/* catálogo vivo: base + as cadastradas pelo mestre (S.vocCustom), sem tocar em vários arquivos */
+let OCUP = {}, OC_PER = {}, VOC = {};
+function refazVoc() {
+  VOC = {};
+  for (const [n, v] of Object.entries(VOC_BASE)) VOC[n] = Object.assign({ nome: n }, v);
+  let custom = {}; try { custom = (S && S.vocCustom) || {}; } catch (e) { custom = {}; }
+  for (const [n, v] of Object.entries(custom)) {
+    if (!v || v.removida) { delete VOC[n]; continue; }
+    const hk = v.hab || ('voc-' + n.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-'));
+    if (!v.hab && v.habNome) { HAB[hk] = { nome: v.habNome, origem: 'Vocação · ' + n, custo: v.habCusto || '', txt: SEGURO(v.habTxt || ''), casa: true }; HAB_META[hk] = { cat: 'Criada pelo mestre', momento: '—', limite: v.habLimite || '—', duracao: '—', conf: 'mestre' }; }
+    VOC[n] = { nome: n, hab: HAB[hk] ? hk : null, per: v.per || '', desc: v.desc || '', lim: v.lim || '', req: v.req || '', custom: true };
+  }
+  OCUP = Object.fromEntries(Object.entries(VOC).map(([n, v]) => [n, v.hab]));
+  OC_PER = Object.fromEntries(Object.entries(VOC).filter(([, v]) => v.per).map(([n, v]) => [n, v.per]));
+}
+/* texto de habilidade criada pelo mestre: só negrito e itálico passam */
+const SEGURO = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+refazVoc();
+function blocoVocacoes() {
+  S.vocCustom ||= {};
+  const ed = UIS.vocEd || null;
+  const lista = Object.values(VOC).sort((a, b) => (a.beta ? 0 : a.custom ? 2 : 1) - (b.beta ? 0 : b.custom ? 2 : 1) || a.nome.localeCompare(b.nome));
+  const card = v => {
+    const x = v.hab && HAB[v.hab];
+    return h('div', { class: 'card voc' + (v.custom ? ' custom' : '') }, h('div', { class: 'card-h' }, h('b', null, v.nome), h('span', { class: 'sp' }), h('small', null, v.beta ? 'beta' : v.custom ? 'do mestre' : 'da casa'),
+        v.custom ? h('button', { class: 'mini', type: 'button', 'aria-label': 'Editar ' + v.nome, style: { width: 'auto', padding: '0 8px', height: '22px', fontSize: '11px' }, onclick: () => { const c = S.vocCustom[v.nome] || {}; UIS.vocEd = Object.assign({ antigo: v.nome, nome: v.nome }, c); renderRegras(); } }, 'Editar') : null),
+      h('div', { class: 'card-b' }, v.desc ? h('p', null, v.desc) : null,
+        x ? h('p', null, h('strong', null, x.nome + (x.custo ? ' (' + x.custo + ')' : '') + ': '), h('span', { html: x.txt })) : h('p', { class: 'nota-proto' }, 'Sem habilidade escolhida.'),
+        v.per ? h('p', { class: 'nota-proto' }, 'Na criação: +1 passo numa perícia ' + (v.per === 'fisico' ? 'física' : 'mental') + ' à escolha.') : null,
+        v.req ? h('p', { class: 'nota-proto' }, 'Requisito: ' + v.req) : null,
+        v.lim ? h('p', { class: 'nota-proto', style: { color: 'var(--red)' } }, 'Limitação: ' + v.lim) : null));
+  };
+  const campo = (rot, el) => h('label', { class: 'campo-voc' }, h('span', null, rot), el);
+  const form = ed ? (() => {
+    const habs = Object.entries(HAB).filter(([, x]) => !x.trilha).sort((a, b) => a[1].nome.localeCompare(b[1].nome));
+    return h('div', { class: 'card' }, h('div', { class: 'card-h' }, h('b', null, ed.antigo ? 'Editar vocação' : 'Nova vocação')),
+      h('form', { class: 'card-b form-voc', onsubmit: e => {
+        e.preventDefault();
+        const fd = new FormData(e.target), nome = String(fd.get('nome') || '').trim().slice(0, 40);
+        if (!nome) { toast('Dê um nome à vocação.'); return; }
+        if (VOC_BASE[nome] && !ed.antigo) { toast('Já existe uma vocação com esse nome.'); return; }
+        const hab = String(fd.get('hab') || '');
+        const v = { desc: String(fd.get('desc') || '').slice(0, 400), per: String(fd.get('per') || ''), lim: String(fd.get('lim') || '').slice(0, 300), req: String(fd.get('req') || '').slice(0, 200) };
+        if (hab === '__nova') Object.assign(v, { habNome: String(fd.get('habNome') || '').trim().slice(0, 40) || nome, habCusto: String(fd.get('habCusto') || '').slice(0, 20), habTxt: String(fd.get('habTxt') || '').slice(0, 600) });
+        else if (hab) v.hab = hab;
+        if (ed.antigo && ed.antigo !== nome) delete S.vocCustom[ed.antigo];
+        S.vocCustom[nome] = v; UIS.vocEd = null; refazVoc(); salvar(); renderTudo(); toast('Vocação ' + nome + ' salva.');
+      } },
+        campo('Nome', h('input', { name: 'nome', value: ed.nome || '', maxlength: 40, required: true })),
+        campo('Descrição', h('textarea', { name: 'desc', rows: 2, maxlength: 400 }, ed.desc || '')),
+        campo('Habilidade', h('select', { name: 'hab', onchange: e => { UIS.vocEd = Object.assign(ed, { hab: e.target.value }); $('#voc-nova').hidden = e.target.value !== '__nova'; } },
+          h('option', { value: '__nova', selected: (!ed.hab || ed.hab === '__nova') || null }, 'Criar uma habilidade nova'),
+          habs.map(([k, x]) => h('option', { value: k, selected: ed.hab === k || null }, x.nome + ' (' + x.origem + ')')))),
+        h('div', { id: 'voc-nova', hidden: !!(ed.hab && ed.hab !== '__nova') || null },
+          campo('Nome da habilidade', h('input', { name: 'habNome', value: ed.habNome || '', maxlength: 40 })),
+          campo('Custo', h('input', { name: 'habCusto', value: ed.habCusto || '', maxlength: 20, placeholder: 'ex.: 2 PD' })),
+          campo('Efeito (use **negrito**)', h('textarea', { name: 'habTxt', rows: 3, maxlength: 600 }, ed.habTxt || ''))),
+        campo('Perícia extra na criação', h('select', { name: 'per' }, [['', 'Nenhuma'], ['fisico', '+1 passo numa perícia física'], ['mente', '+1 passo numa perícia mental']].map(([v, n]) => h('option', { value: v, selected: (ed.per || '') === v || null }, n)))),
+        campo('Requisito', h('input', { name: 'req', value: ed.req || '', maxlength: 200 })),
+        campo('Limitação', h('input', { name: 'lim', value: ed.lim || '', maxlength: 300 })),
+        h('p', { class: 'nota-proto' }, 'Régua: uma habilidade só, no tamanho das do beta (+d4 num atributo por 2 PD, +d6 em duas perícias por 2 PD, ou um efeito 1×/cena). Benefício maior pede uma limitação.'),
+        h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'submit' }, 'Salvar vocação'),
+          h('button', { class: 'btn sm', type: 'button', onclick: () => { UIS.vocEd = null; renderRegras(); } }, 'Cancelar'),
+          ed.antigo ? h('button', { class: 'btn sm', type: 'button', onclick: e => {
+            if (e.currentTarget.dataset.certeza) { delete S.vocCustom[ed.antigo]; UIS.vocEd = null; refazVoc(); salvar(); renderTudo(); toast('Vocação removida. Fichas que já usam continuam com o nome.'); }
+            else { e.currentTarget.dataset.certeza = '1'; e.currentTarget.textContent = 'Toque de novo para remover'; }
+          } }, 'Remover') : null)));
+  })() : null;
+  const podeEditar = typeof PONTE === 'undefined' || !PONTE || PONTE.isGM();
+  return [h('h2', null, 'Vocações'),
+    h('p', { class: 'lead', style: { fontSize: '14px' } }, Object.keys(VOC).length + ' vocações: 8 do beta, ' + Object.keys(VOC_BASE).filter(n => !VOC_BASE[n].beta).length + ' da casa e as que o mestre cadastrar. Cada uma dá uma habilidade no tamanho das do beta; as mais largas vêm com limitação.'),
+    podeEditar && !ed ? h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', onclick: () => { UIS.vocEd = { nome: '' }; renderRegras(); } }, '+ Cadastrar vocação')) : null,
+    form,
+    h('div', { class: 'cards cards-voc' }, lista.map(card))];
+}
+/* a página de Regras roda os testes automáticos com fichas de exemplo; depois, volta o tema da ficha aberta */
+{ const renderRegras0 = renderRegras; renderRegras = function () { renderRegras0(); try { pintarFicha(F()); } catch (e) {} }; }
+
 /* ===================== poderes por trilha, NEX e rituais (regras da casa de São Valentim) =====================
    Escala do OP2: dado amplo (atributo) = +d4 por 2 PD; perícia = +d6 por 2 PD; caso estreito = +d8 por 3 PD.
    Paranormais (✶) pedem NEX e cobram Transcender: no nível em que escolhe, não ganha o +1 PD máximo. */
@@ -836,11 +977,11 @@ const ARMAS_2016 = [
   { nome: 'Rifle de caça', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 4, alcance: 'longo', mun: 5, munMax: 5 },
   { nome: 'Sinalizador', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 2, alcance: 'curto', mun: 1, munMax: 1 },
 ];
-const rl = (nome, pts) => ({ id: 'r' + Math.random().toString(36).slice(2, 8), nome, pts });
+const rl = (nome, pts) => ({ id: 'r' + Math.random().toString(36).slice(2, 8), nome, pts, desc: '', fid: '', log: [] });
 
 
 /* ===================== personagens de exemplo (prontos do playtest) ===================== */
-const P = (o) => Object.assign({ id: 'f' + Math.random().toString(36).slice(2, 9), tipo: 'sobrevivente', nivel: 2, nex: 0, retrato: '', armadura: { v: 0, m: 0 }, evol: [], nl: 0, cor: '', red: {}, boost: {}, pavorD: null, relUsos: {}, feri: 0, trau: 0, impeto: 0, banco: 0, armas: [], itens: [], ferr: {}, notas: '', usos: {}, rel: [], insp: [], superou: false }, o);
+const P = (o) => Object.assign({ id: 'f' + Math.random().toString(36).slice(2, 9), tipo: 'sobrevivente', nivel: 2, nex: 0, retrato: '', armadura: { v: 0, m: 0 }, evol: [], nl: 0, cor: '', rit: [], red: {}, boost: {}, pavorD: null, relUsos: {}, feri: 0, trau: 0, impeto: 0, banco: 0, armas: [], itens: [], ferr: {}, notas: '', usos: {}, rel: [], insp: [], superou: false }, o);
 const per = (o = {}) => Object.fromEntries(PER.map(([k]) => [k, o[k] || 'd4']));
 const apt = (o = {}) => Object.fromEntries(APT.map(([k]) => [k, o[k] || 'd4']));
 const ferrAgente = () => Object.fromEntries(Object.entries(FERR).map(([k, [, c]]) => [k, c]));
@@ -884,9 +1025,10 @@ function normaliza(f) {
   f.papel ||= 'pj'; f.dono ??= ''; f.visivel = !!f.visivel;
 }
 for (const f of S.fichas) normaliza(f);
-if (PONTE && PONTE.regras()) { try { const R = JSON.parse(PONTE.regras()); if (R.regras) S.regras = R.regras; if (R.habCustom) S.habCustom = R.habCustom; } catch (e) {} }
+if (PONTE && PONTE.regras()) { try { const R = JSON.parse(PONTE.regras()); if (R.regras) S.regras = R.regras; if (R.habCustom) S.habCustom = R.habCustom; if (R.vocCustom) S.vocCustom = R.vocCustom; } catch (e) {} }
 S.regras ||= { versao: 'beta', modernos: true, custom: novaPersonalizada() }; S.regras.custom ||= novaPersonalizada(); S.regras.casa ||= CASA_PADRAO(); if ((S.regras.casa.v || 0) < 3) { S.regras.casa.beneficios = CASA_PADRAO().beneficios; S.regras.casa.v = 3; } S.habCustom ||= {};
 for (const [k, x] of Object.entries(S.habCustom)) HAB[k] = x;
+S.vocCustom ||= {}; refazVoc();
 aplicarVersao();
 S.cena ||= { rodada: 0, sobre: false }; S.cena.fase ||= 0; S.hist ||= []; if (S.cena.pavor) { for (const f of S.fichas) f.pavorD ||= 'd6'; S.cena.pavor = false; }
 
@@ -1007,22 +1149,46 @@ function blocoRecurso(f, k) {
 /* cor escolhida para cada ficha: muda o vermelho da ficha aberta inteira */
 const CORES = [['#b3191f', 'Sangue'], ['#c2410c', 'Brasa'], ['#b7791f', 'Âmbar'], ['#4d7c0f', 'Musgo'], ['#0f766e', 'Lodo'], ['#1d4ed8', 'Azul'], ['#6d28d9', 'Roxo'], ['#be185d', 'Rosa'], ['#57534e', 'Cinza']];
 const clara = (hex, k) => { const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * k)); return '#' + c.map(v => v.toString(16).padStart(2, '0')).join(''); };
-function pintarFicha(f) {
-  const el = $('#ficha'), cor = /^#[0-9a-f]{6}$/i.test(f.cor || '') ? f.cor : '#b3191f';
-  el.style.setProperty('--blood', cor); el.style.setProperty('--red', clara(cor, 0.22)); el.style.setProperty('--red-soft', cor + '24');
+function pintarFicha(f) { aplicarTema(f && f.cor); }
+/* a cor da ficha vira o tema da página inteira: principal, clara (texto e detalhe, sempre legível no fundo escuro),
+   suave, tinta sobre o botão, e um toque da cor nos painéis e nas linhas. Estados (ok, erro, ouro) não mudam. */
+const hexRgb = h2 => { const n = parseInt(h2.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+const rgbHex = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+const mistura = (a, b, k) => { const x = hexRgb(a), y = hexRgb(b); return rgbHex(x.map((v, i) => v + (y[i] - v) * k)); };
+const luz = h2 => { const [r, g, b] = hexRgb(h2).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contraste = (a, b) => { const x = luz(a), y = luz(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+function temaDe(cor) {
+  /* cor escura demais some no fundo: clareia só o necessário para o botão aparecer */
+  for (let kb = 0.05; contraste(cor, '#0a0808') < 2 && kb < 0.7; kb += 0.05) cor = clara(cor, 0.05);
+  let k = 0.22, red = clara(cor, k);
+  while (contraste(red, '#1a1515') < 4.5 && k < 0.95) { k += 0.07; red = clara(cor, k); }
+  const on = contraste('#ffffff', cor) >= contraste('#140f0f', cor) ? '#ffffff' : '#140f0f';
+  return { '--blood': cor, '--red': red, '--red-soft': cor + '24', '--on-blood': on,
+    '--bg': mistura('#0a0808', cor, 0.03), '--panel': mistura('#131010', cor, 0.05), '--panel-2': mistura('#1a1515', cor, 0.07),
+    '--line': mistura('#2c2222', cor, 0.14), '--line-2': mistura('#3d2c2c', cor, 0.24) };
 }
+let temaAtual = '';
+function aplicarTema(cor) {
+  cor = /^#[0-9a-f]{6}$/i.test(cor || '') ? cor.toLowerCase() : '#b3191f';
+  if (cor === temaAtual) return;
+  temaAtual = cor;
+  const st = document.documentElement.style;
+  for (const [k2, v] of Object.entries(temaDe(cor))) st.setProperty(k2, v);
+  try { localStorage.setItem('svtema', cor); } catch (e) {}
+}
+try { const c0 = localStorage.getItem('svtema'); if (c0) setTimeout(() => aplicarTema(c0), 0); } catch (e) {}
 function seletorCor(f) {
   const set = c => { f.cor = c; salvar(); renderFicha(); renderLista(); };
   return h('div', { class: 'cores', role: 'group', 'aria-label': 'Cor da ficha' }, h('span', { style: { fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' } }, 'Cor'),
     CORES.map(([c, n]) => h('button', { type: 'button', class: (f.cor || '#b3191f') === c ? 'on' : '', title: n, 'aria-label': 'Cor ' + n, style: { background: c }, onclick: () => set(c) })),
-    h('input', { type: 'color', id: 'f-cor', value: f.cor || '#b3191f', title: 'Outra cor', 'aria-label': 'Escolher outra cor', onchange: e => set(e.target.value) }));
+    h('input', { type: 'color', id: 'f-cor', value: f.cor || '#b3191f', title: 'Outra cor', 'aria-label': 'Escolher outra cor', oninput: e => aplicarTema(e.target.value), onchange: e => set(e.target.value) }));
 }
 function renderFicha() {
   const f = F(); if (!f) return;
   pintarFicha(f);
   const set = (k, v) => { f[k] = v; salvar(); };
   const perfilSel = h('select', { id: 'f-perfil', 'aria-label': 'Perfil', onchange: e => { const old = PERFIS[f.perfil]?.[2] || []; f.hab = f.hab.filter(x => !old.includes(x)); f.perfil = e.target.value; for (const nv of PERFIS[f.perfil][2].slice().reverse()) if (!f.hab.includes(nv)) f.hab.unshift(nv); salvar(); renderTudo(); } }, Object.entries(PERFIS).map(([k, [n]]) => h('option', { value: k, selected: f.perfil === k || null }, n)));
-  const ocSel = h('select', { id: 'f-ocup', 'aria-label': 'Vocação', onchange: e => { const old = OCUP[f.ocupacao]; f.hab = f.hab.filter(x => x !== old); f.ocupacao = e.target.value; const nova = OCUP[f.ocupacao]; if (nova && !f.hab.includes(nova)) f.hab.push(nova); salvar(); renderTudo(); } }, Object.keys(OCUP).map(k => h('option', { value: k, selected: f.ocupacao === k || null }, k)));
+  const ocSel = h('select', { id: 'f-ocup', 'aria-label': 'Vocação', onchange: e => { const old = OCUP[f.ocupacao]; f.hab = f.hab.filter(x => x !== old); f.ocupacao = e.target.value; const nova = OCUP[f.ocupacao]; if (nova && !f.hab.includes(nova)) f.hab.push(nova); salvar(); renderTudo(); } }, [...new Set([...Object.keys(OCUP), f.ocupacao].filter(Boolean))].map(k => h('option', { value: k, selected: f.ocupacao === k || null }, k)));
   const foto = h('input', { type: 'file', accept: 'image/*', id: 'f-foto', hidden: true, onchange: e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) carregarRetrato(f, file); } });
   // cabeçalho
   const cab = h('div', { class: 'cab' },
@@ -1824,7 +1990,7 @@ function mgEquilibrio(f) {
   if (!m || m.fid !== f.id) return [intro, row(bt('Subir no telhado', () => { const x = { fid: f.id, a: rolar('d10'), b: rolar('d10'), rest: n, log: [], fim: null }; x.log.unshift('Mãos: ' + x.a + ' e ' + x.b + '.'); checa(x); UIS.mg.eq = x; renderGuia(); }, 'red'))];
   const ang = Math.max(-24, Math.min(24, (m.b - m.a) * 4));
   return [intro, h('div', { class: 'mg' },
-    h('div', { html: `<svg class="balanca" viewBox="0 0 300 76" role="img" aria-label="Equilíbrio: ${m.a} contra ${m.b}"><polygon points="150,44 137,72 163,72" fill="none" stroke="#857a72" stroke-width="2"/><g transform="rotate(${ang} 150 44)" style="transition: transform .4s"><line x1="34" y1="44" x2="266" y2="44" stroke="#b9aea2" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="30" r="14" fill="#b3191f"/><text x="34" y="35" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="13" fill="#fff">${m.a}</text><circle cx="266" cy="30" r="14" fill="#b3191f"/><text x="266" y="35" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="13" fill="#fff">${m.b}</text></g></svg>` }),
+    h('div', { html: `<svg class="balanca" viewBox="0 0 300 76" role="img" aria-label="Equilíbrio: ${m.a} contra ${m.b}"><polygon points="150,44 137,72 163,72" fill="none" stroke="#857a72" stroke-width="2"/><g transform="rotate(${ang} 150 44)" style="transition: transform .4s"><line x1="34" y1="44" x2="266" y2="44" stroke="#b9aea2" stroke-width="3" stroke-linecap="round"/><circle cx="34" cy="30" r="14" style="fill:var(--blood)"/><text x="34" y="35" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="13" fill="#fff">${m.a}</text><circle cx="266" cy="30" r="14" style="fill:var(--blood)"/><text x="266" y="35" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="13" fill="#fff">${m.b}</text></g></svg>` }),
     m.fim ? h('div', { class: 'fim ' + (m.fim === 'ok' ? 'ok' : 'bad') }, m.fim === 'ok' ? 'Equilibrou. Pode seguir pelo telhado.' : 'Perdeu o equilíbrio e caiu. Veja o dano em Quedas.')
       : h('div', { class: 'linha' }, bt('Rolar dado de equilíbrio (sobram ' + m.rest + ')', () => { const v = rolar('d4'); m.rest--; if (m.a < m.b) m.a += v; else m.b += v; m.log.unshift('d4: ' + v + ' → ' + m.a + ' e ' + m.b + '.'); checa(m); renderGuia(); }, 'red')),
     h('div', { class: 'log' }, m.log.map(t => h('div', null, t))),
@@ -1885,7 +2051,6 @@ function mgProcurar(f) {
 /* ===================== criar personagem, passo a passo ===================== */
 const CR_PASSOS = ['Conceito', 'Perfil', 'Vocação', 'Atributos', 'Perícias', 'Vida e laços', 'Revisão'];
 const crRegras = t => t === 'agente' ? { atr: 6, atrMax: 'd12', per: 16, perMax: 'd10' } : { atr: 5, atrMax: 'd10', per: 7, perMax: 'd8' };
-const OC_PER = { 'Operário': 'fisico', 'Profissional de escritório': 'mente' };
 const DESC_ATR = { fisico: 'força, coordenação, velocidade, fôlego', mente: 'raciocínio, estudo, percepção', emocao: 'vontade, presença, instinto' };
 const gastos = o => Object.values(o).reduce((a, d) => a + Math.max(0, ESCADA.indexOf(d)), 0);
 function crNovo() { return { passo: 0, nome: '', conceito: '', tipo: 'sobrevivente', perfil: '', ocupacao: '', ocPer: '', nivelHab: '', atr: { fisico: 'd4', mente: 'd4', emocao: 'd4' }, per: per(), apt: apt(), pvM: null, pdM: null, rel: [{ nome: '', pts: 2 }, { nome: '', pts: 1 }, { nome: '', pts: 0 }], itens: [] }; }
@@ -1917,7 +2082,7 @@ const CR_ETAPA = [
   (c) => [h('h2', null, 'Perfil'), h('p', { class: 'lead' }, 'O perfil é o seu jeito de encarar o perigo. Ele dá a primeira habilidade.'),
     h('div', { class: 'opcoes' }, Object.entries(PERFIS).map(([k, [n, t, habs]]) => opc(c.perfil === k, () => { c.perfil = k; renderCriar(); }, h('b', null, n), h('span', null, t), habs.map(habTxt))))],
   (c) => { const out = [h('h2', null, 'Vocação'), h('p', { class: 'lead' }, 'O que você tem tendência a fazer bem (o playtest beta trocou ocupação por vocação). Dá a segunda habilidade.'),
-      h('div', { class: 'opcoes' }, Object.entries(OCUP).map(([k, hk]) => opc(c.ocupacao === k, () => { c.ocupacao = k; c.ocPer = ''; renderCriar(); }, h('b', null, k), habTxt(hk))))];
+      h('div', { class: 'opcoes' }, Object.entries(OCUP).map(([k, hk]) => opc(c.ocupacao === k, () => { c.ocupacao = k; c.ocPer = ''; renderCriar(); }, h('b', null, k), VOC[k]?.desc ? h('small', { class: 'voc-desc' }, VOC[k].desc) : null, hk ? habTxt(hk) : null, VOC[k]?.lim ? h('small', { class: 'voc-lim' }, 'Limitação: ' + VOC[k].lim) : null, VOC[k]?.req ? h('small', { class: 'voc-desc' }, 'Requisito: ' + VOC[k].req) : null)))];
     if (OC_PER[c.ocupacao]) { const fis = OC_PER[c.ocupacao] === 'fisico', lista = fis ? perVis().filter(p => p[2] === 'fisico').map(p => [p[0], PER_N[p[0]]]) : [...perVis().filter(p => p[2] === 'mente').map(p => [p[0], PER_N[p[0]]]), ...APT.map(([k, n]) => ['apt:' + k, 'Aptidão (' + n + ')'])];
       out.push(h('label', { class: 'cr-campo' }, 'Qual perícia ' + (fis ? 'física' : 'mental') + ' sobe um passo?', h('select', { id: 'cr-ocper', onchange: e => { c.ocPer = e.target.value; renderCriar(); } }, h('option', { value: '' }, 'Escolha…'), lista.map(([k, n]) => h('option', { value: k, selected: c.ocPer === k || null }, n))))); }
     if (c.tipo === 'agente') out.push(h('div', { class: 'campo' }, 'Habilidade de nível (agentes)'), h('div', { class: 'opcoes' }, Object.entries(HAB).filter(([, x]) => x.origem === 'Nível').map(([k, x]) => opc(c.nivelHab === k, () => { c.nivelHab = k; renderCriar(); }, h('b', null, x.nome), h('span', { html: x.txt })))));
@@ -1970,6 +2135,7 @@ function crPreview(c) {
 function crCriar(c) {
   const { p, a } = crPerFinal(c), s = crSug(c), pv = c.pvM ?? s.pv, pd = c.pdM ?? s.pd, ag = c.tipo === 'agente';
   const f = P({ nome: c.nome.trim() || 'Sem nome', tipo: c.tipo, nivel: ag ? 6 : 1, perfil: c.perfil, ocupacao: c.ocupacao, atr: Object.assign({}, c.atr), per: p, apt: a, pv: { v: pv, m: pv }, pd: { v: pd, m: pd }, hab: crHabs(c), itens: c.itens.map(nome => ({ nome, qtd: 1 })), rel: c.rel.filter(r => r.nome.trim()).map(r => rl(r.nome.trim(), r.pts)), notas: c.conceito, ferr: ag ? ferrAgente() : {} });
+  if (VOC[f.ocupacao]?.hab === 'ja-vi-pior') { f.pd.m = Math.max(1, f.pd.m - 2); f.pd.v = Math.min(f.pd.v, f.pd.m); }
   S.fichas.push(f); S.sel = f.id; UIS.cr = null; UIS.edit = false; UIS.roll = null; UIS.res = null; salvar(); irModo('mesa'); toast(f.nome + ' entrou na lista de fichas.');
 }
 function renderCriar() {
@@ -2046,6 +2212,7 @@ function renderRegras() {
     h('h2', null, 'Perícias'), nomesL, visL,
     h('h2', null, 'Evolução por nível'), benL,
     cust ? h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { R0.custom = novaPersonalizada(); salvar(); aplicarVersao(); renderTudo(); } }, 'Recomeçar a personalizada do beta')) : null,
+    ...blocoVocacoes(),
     ...blocoCatalogo(),
     blocoCasa(),
     h('h2', null, 'Testes automáticos'), h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', onclick: () => { UIS.testes = rodarTestes(); renderRegras(); } }, 'Rodar os testes das regras')),
@@ -2125,7 +2292,7 @@ function ponteSalvar(ja) {
       for (const e of novas) PONTE.rolou(e);
       PONTE.salvar(S.fichas);
       for (const f of S.fichas) sincronizado[f.id] = JSON.stringify(f);
-      if (PONTE.isGM()) { const r = JSON.stringify({ regras: S.regras, habCustom: S.habCustom }); if (r !== ultimaRegra) { ultimaRegra = r; PONTE.salvarRegras(r); } }
+      if (PONTE.isGM()) { const r = JSON.stringify({ regras: S.regras, habCustom: S.habCustom, vocCustom: S.vocCustom || {} }); if (r !== ultimaRegra) { ultimaRegra = r; PONTE.salvarRegras(r); } }
     } catch (e) { console.warn('[fichas] ponte', e); }
   };
   if (ja) vai(); else ponteSalvar.t = setTimeout(vai, 250);
@@ -2202,6 +2369,7 @@ if (PONTE) {
   const renderFicha0 = renderFicha;
   renderFicha = function () {
     renderFicha0();
+    try { const fx = F(); if (fx && PONTE.tema && fx.dono && fx.dono === PONTE.me().uid) PONTE.tema(fx.cor); } catch (e) {}
     const f = F(); if (!f) return;
     const gm = PONTE.isGM(), noMapa = PONTE.temPeca(f.id);
     const mapa = h('button', { class: 'btn sm', type: 'button', onclick: () => { ponteSalvar(true); PONTE.porNoMapa(f.id); } }, noMapa ? 'Ver no mapa' : 'Pôr no mapa');
@@ -2225,7 +2393,7 @@ if (PONTE) {
   const off2 = PONTE.onRegras(r => {
     if (!r || r === ultimaRegra) return;
     ultimaRegra = r;
-    try { const R = JSON.parse(r); if (R.regras) S.regras = R.regras; S.habCustom = R.habCustom || {}; for (const [k, x] of Object.entries(S.habCustom)) HAB[k] = x; aplicarVersao(); salvarLocal(); renderTudo(); } catch (e) {}
+    try { const R = JSON.parse(r); if (R.regras) S.regras = R.regras; S.habCustom = R.habCustom || {}; for (const [k, x] of Object.entries(S.habCustom)) HAB[k] = x; S.vocCustom = R.vocCustom || {}; refazVoc(); aplicarVersao(); salvarLocal(); renderTudo(); } catch (e) {}
   });
   addEventListener('pagehide', () => { try { off(); off2(); } catch (e) {} });
   for (const f of S.fichas) sincronizado[f.id] = JSON.stringify(f);
