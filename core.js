@@ -140,10 +140,18 @@
     /* o Firebase guarda neste endereço (o mesmo do site da Névoa) a lembrança de um websocket que falhou
        e passa a usar long polling, que aqui leva meio minuto para conectar. Começa sempre pelo websocket. */
     try { localStorage.removeItem('firebase:previous_websocket_failure'); } catch {}
+    /* o banco responde pelo endereço principal e depois manda o navegador para um servidor interno
+       (s-gke-…firebaseio.com) que, em algumas redes, não conecta nunca. Apaga o servidor guardado e
+       prende a conexão no endereço principal, que sempre funcionou nos testes. */
+    try { localStorage.removeItem('firebase:host:' + new URL(CFG.databaseURL).host); } catch {}
     let app;
     try { app = firebase.apps.length ? firebase.app() : firebase.initializeApp(CFG); }
     catch (e) { estado('login'); erro(amigavel(e)); return; }
     const auth = firebase.auth(), rt = firebase.database();
+    try {
+      const ri = rt._delegate._repo.repoInfo_;
+      if (ri && '_host' in ri) Object.defineProperty(ri, 'internalHost', { get() { return ri._host; }, set() {}, configurable: true });
+    } catch (e) { console.warn('[SV] não deu para fixar o servidor do banco', e); }
     SV.db = bancoFirebase(rt);
     SV.auth = auth;
     let iniciou = false;
