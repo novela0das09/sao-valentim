@@ -1,0 +1,111 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "mesa": {
+      ".read": "auth != null",
+      "mestres": {
+        "$uid": {
+          ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && ((!root.child('mesa/mestres').exists() && $uid === auth.uid) || root.child('mesa/mestres/' + auth.uid).val() === true)",
+          ".validate": "newData.isBoolean() && newData.val() === true"
+        }
+      },
+      "travas": {
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "fichasOk": {
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "banidos": {
+        "$uid": {
+          ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+          ".validate": "newData.val() === true && root.child('mesa/mestres/' + $uid).val() !== true"
+        }
+      }
+    },
+    "users": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      "$uid": {
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && auth.uid === $uid"
+      }
+    },
+    "fichas": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      "$id": {
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && ((auth.uid === $id && (data.exists() || root.child('fichas_priv/' + $id).exists() || root.child('mesa/fichasOk/' + auth.uid).exists())) || root.child('mesa/mestres/' + auth.uid).val() === true)"
+      }
+    },
+    "fichas_priv": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true",
+      "$id": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && (auth.uid === $id || root.child('mesa/mestres/' + auth.uid).val() === true)",
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && ((auth.uid === $id && (data.exists() || root.child('fichas/' + $id).exists() || root.child('mesa/fichasOk/' + auth.uid).exists())) || root.child('mesa/mestres/' + auth.uid).val() === true)"
+      }
+    },
+    "live": {
+      "$topic": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && ($topic !== 'roll' || root.child('mesa/mestres/' + auth.uid).val() === true)",
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && ($topic === 'roll' || root.child('mesa/mestres/' + auth.uid).val() === true)"
+      }
+    },
+    "secret": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "maps": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "tokens": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true",
+      "$id": {
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/travas/pecas').val() !== true && newData.exists() && newData.child('o').val() === auth.uid && (!data.exists() || data.child('o').val() === auth.uid)"
+      }
+    },
+    "vtt": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "mural": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "sons": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "sons_arq": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "pedidos": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true",
+      "$uid": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && (auth.uid === $uid || root.child('mesa/mestres/' + auth.uid).val() === true)",
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && (auth.uid === $uid || root.child('mesa/mestres/' + auth.uid).val() === true)"
+      }
+    },
+    "call": {
+      "cfg": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "peers": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+        "$uid": {
+          ".write": "auth != null && ((auth.uid === $uid && (root.child('mesa/banidos/' + auth.uid).val() !== true || !newData.exists())) || root.child('mesa/mestres/' + auth.uid).val() === true)"
+        }
+      },
+      "sig": {
+        "$to": {
+          ".read": "auth != null && auth.uid === $to",
+          ".write": "auth != null && auth.uid === $to && !newData.exists()",
+          "$from": {
+            ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && (auth.uid === $from || (auth.uid === $to && !newData.exists()))"
+          }
+        }
+      }
+    }
+  }
+}
