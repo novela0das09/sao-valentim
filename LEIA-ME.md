@@ -1,53 +1,39 @@
-# São Valentim do Vale · como pôr o site no ar
+# São Valentim do Vale · mesa online
 
-> Este site é separado do Névoa Sobre Apogeu: use um projeto NOVO no Firebase e um repositório NOVO no GitHub. Assim uma mesa nunca enxerga as fichas, os mapas ou a call da outra.
+Site da campanha de Ordem Paranormal 2 (2016, Alto Uruguai). Separado do Névoa Sobre Apogeu: outro repositório, outro projeto no Firebase (`sao-valentim-op2`).
 
-O site é feito de 5 arquivos que ficam juntos na mesma pasta:
+Endereço: https://novela0das09.github.io/sao-valentim/
 
-| Arquivo | Para que serve |
+## O que tem
+
+- **Entrada**: crachá da equipe temporária da Usina Vale Alto. Login com Google.
+- **Mapa**: o vale em 3D, com Remanso debaixo da represa e o Sonho. Cada jogador arrasta a própria peça; o mestre move tudo, prende peças (cadeado) e esconde NPCs e ameaças. Água, Remanso, Sonho, noite, neblina e o vapor são do mestre e mudam para todos. Notas de lugar e pistas só aparecem para o mestre.
+- **Fichas**: as mesmas fichas do protótipo, salvas na mesa. O jogador vê e edita só as dele; o mestre vê todas, cria NPCs e inimigos, escolhe de quem é cada ficha e o que os jogadores podem ver.
+- **Mesa**: mural do mestre, pedidos ao mestre (só ele vê, e pode responder), rolagens de todos, NPCs apresentados, quem está online, e as regras da call.
+- **Sons**: ambientes em loop e efeitos que o mestre toca para todos; arquivos próprios até 3 MB.
+- **Call**: voz por proximidade usando as peças do mapa. O mestre ouve e é ouvido por todos.
+
+## Arquivos
+
+| Arquivo | O que é |
 |---|---|
-| `index.html` | A mesa inteira (mapa, fichas de Ordem Paranormal 2, call com proximidade, sons, mural, luz e clima) |
-| `fb-adapter.js` | Login com Google e ligação com o banco de dados |
-| `firebase-config.js` | **Você edita este**: a "chave" do seu projeto do Firebase |
-| `cidade.jpg` | A imagem da cidade (troque pelo mapa de verdade quando tiver) |
-| `database.rules.json` | As regras de quem pode mexer em quê (vai colado no Firebase) |
+| `index.html` | entrada e casca do site |
+| `config.js` | identificação do projeto no Firebase e do botão do Google |
+| `core.js` | banco (Firebase ou modo de teste) e login |
+| `app.js` | abas, mesa, sons, call e as pontes com o mapa e as fichas |
+| `voz.js`, `sons.js` | motor da call e dos sons |
+| `fichas.html` | as fichas (gerado do protótipo por `fazer_fichas.py`) |
+| `mapa.html`, `modelos.js`, `modelos/`, `texturas/` | o mapa 3D (gerado por `fazer_mapa.py`) |
+| `database.rules.json` | regras do Realtime Database (gerado por `fazer_regras.py`) |
 
-Tudo é gratuito (plano Spark do Firebase + GitHub Pages).
+## Regras do banco
 
----
+Cole o conteúdo de `database.rules.json` em Firebase → Realtime Database → Regras e publique. Sem isso o banco recusa as fichas, as peças e os pedidos.
 
-## 1. Criar o projeto no Firebase (uns 10 minutos)
+## Primeiro acesso
 
-1. Entre em **console.firebase.google.com** com uma conta do Google e clique em **Criar projeto**. Dê um nome (ex.: `sao-valentim-op2`). O Google Analytics pode ficar desligado.
-2. **Login com Google**: no menu da esquerda, *Criação* → **Authentication** → **Vamos começar** → aba *Método de login* → **Google** → ative, escolha o e-mail de suporte e **Salvar**.
-3. **Banco de dados**: *Criação* → **Realtime Database** → **Criar banco de dados** → local nos Estados Unidos → **Iniciar no modo bloqueado**.
-4. Ainda no Realtime Database, abra a aba **Regras**, apague tudo o que estiver lá, cole o conteúdo inteiro do arquivo `database.rules.json` e clique em **Publicar**.
-5. **Pegar a configuração**: clique na engrenagem ao lado de *Visão geral do projeto* → **Configurações do projeto** → lá embaixo, em *Seus apps*, clique no ícone **`</>`** (Web). Dê um apelido (ex.: `site`), **não** marque o Firebase Hosting, e clique em **Registrar app**.
-6. Vai aparecer um bloco `const firebaseConfig = { ... }`. Copie os valores para dentro do arquivo `firebase-config.js` (abre no Bloco de Notas), trocando cada `COLE_AQUI`.
-   - Se o `databaseURL` não aparecer no bloco, copie o endereço que aparece no topo da página do Realtime Database (algo como `https://sao-valentim-op2-default-rtdb.firebaseio.com`).
+A primeira pessoa que entrar escolhe "Eu sou o mestre". Depois disso, só um mestre pode tornar outra pessoa mestre (aba Mesa → Na mesa).
 
-> Esses valores não são senha: é normal eles ficarem visíveis no site. Quem protege a mesa são as regras do passo 4.
+## Testar sem internet
 
-## 2. Publicar o site
-
-**Jeito mais fácil:** conecte o seu GitHub ao Claude e mande o conteúdo do `firebase-config.js` no chat. O Claude cria o repositório e publica no GitHub Pages para você.
-
-**Fazendo sozinho no GitHub Pages:**
-1. Em **github.com**, crie um repositório público (ex.: `sao-valentim-op2`).
-2. Clique em **Add file → Upload files** e arraste os 5 arquivos. **Commit changes**.
-3. *Settings* → **Pages** → em *Branch*, escolha `main` e `/ (root)` → **Save**. Em 1–2 minutos o site fica em `https://SEU-USUARIO.github.io/sao-valentim/`.
-
-## 3. Autorizar o endereço do site no Firebase
-
-No Firebase: **Authentication** → aba **Configurações** → **Domínios autorizados** → **Adicionar domínio** → coloque `SEU-USUARIO.github.io` (sem `https://` e sem a barra). Sem isso, o botão *Entrar com Google* dá erro.
-
-## 4. Primeira vez na mesa
-
-- **O mestre entra primeiro.** Na primeira vez, o site pergunta quem é o mestre: ele toca em **Eu sou o mestre desta mesa**. Daí em diante só ele mexe no mapa, nas peças, no mural, na luz e nas notas.
-- **Os jogadores** entram pelo mesmo endereço, fazem login com o Google e tocam em **Fichas → Criar minha ficha**. Cada um só consegue editar a própria ficha; o mestre vê e edita todas.
-- As rolagens dos jogadores aparecem na tela do mestre na hora.
-- Se a pessoa errada virar mestre: ela abre o botão de conta (ícone de pessoas, no topo), toca em **Tornar mestre** na pessoa certa e depois em **Deixar de ser mestre**.
-
-## Mudanças depois
-
-Para mudar alguma coisa no site, é só pedir ao Claude. Ele edita os arquivos e, com o GitHub conectado, publica a nova versão no mesmo endereço. As fichas, mapas e o mural ficam guardados no Firebase e não se perdem quando o site é atualizado.
+Abra `index.html?local` num servidor local (`python3 -m http.server`). Cada aba do navegador vira uma pessoa; tudo fica guardado só nesse navegador.
