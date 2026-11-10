@@ -137,6 +137,9 @@
   SV.entrar = function (pronto) {
     estado('carregando');
     if (!SV.online) return entrarLocal(pronto);
+    /* o Firebase guarda neste endereço (o mesmo do site da Névoa) a lembrança de um websocket que falhou
+       e passa a usar long polling, que aqui leva meio minuto para conectar. Começa sempre pelo websocket. */
+    try { localStorage.removeItem('firebase:previous_websocket_failure'); } catch {}
     let app;
     try { app = firebase.apps.length ? firebase.app() : firebase.initializeApp(CFG); }
     catch (e) { estado('login'); erro(amigavel(e)); return; }
@@ -152,11 +155,11 @@
         SV.me = { uid: u.uid, nome: u.displayName || u.email || 'Sem nome', foto: u.photoURL || '', email: u.email || '' };
         /* o banco às vezes demora a conectar com a sessão guardada: espera um pouco, renova o login e tenta de novo */
         const ler = async path => {
-          for (let i = 0; i < 4; i++) {
-            const r = await Promise.race([SV.db.get(path).then(v => ({ v })), new Promise(ok => setTimeout(() => ok(null), 6000))]);
+          for (let i = 0; i < 6; i++) {
+            const r = await Promise.race([SV.db.get(path).then(v => ({ v })), new Promise(ok => setTimeout(() => ok(null), 8000))]);
             if (r) return r.v;
-            estado('carregando', e => { e.querySelector('#e-status').textContent = 'A conexão está lenta, tentando de novo…'; });
-            try { await u.getIdToken(true); rt.goOffline(); rt.goOnline(); } catch {}
+            estado('carregando', e => { e.querySelector('#e-status').textContent = 'A conexão está lenta, esperando o banco…'; });
+            if (i === 2) { try { await u.getIdToken(true); rt.goOffline(); rt.goOnline(); } catch {} }
           }
           throw new Error('network: o banco não respondeu');
         };
