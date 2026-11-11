@@ -103,6 +103,12 @@
           }
         }
       }
+    },
+    "notas": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && root.child('mesa/banidos/' + auth.uid).val() !== true"
+      }
     }
   }
 }

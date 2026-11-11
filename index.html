@@ -203,6 +203,32 @@ main { position: relative; min-height: 0; }
 .menu { position: fixed; z-index: 30; right: max(14px, env(safe-area-inset-right, 0px)); top: calc(max(8px, env(safe-area-inset-top, 0px)) + 52px); width: min(280px, calc(100vw - 28px)); padding: 12px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--panel); box-shadow: 0 20px 50px rgba(0, 0, 0, .6); display: flex; flex-direction: column; gap: 8px; }
 .menu .quem { display: flex; gap: 10px; align-items: center; }
 .menu .quem small { display: block; color: var(--muted); font-size: 12px; }
+/* anotações */
+.notas { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.n-lista { position: sticky; top: 0; max-height: calc(100dvh - 150px); }
+.n-lista > .btn { width: 100%; }
+.n-itens { display: grid; gap: 6px; overflow: auto; min-height: 0; margin: 0 -4px; padding: 0 4px 2px; }
+.n-it { display: grid; gap: 2px; width: 100%; text-align: left; padding: 9px 11px; border: 1px solid var(--line); border-left: 3px solid var(--line-2); border-radius: 4px; background: var(--bg-2); color: var(--paper); font: inherit; }
+.n-it:hover { border-color: var(--line-2); border-left-color: var(--red); }
+.n-it.on { background: var(--panel-2); border-color: var(--line-2); border-left-color: var(--red); }
+.n-it b, .n-it span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.n-it b { font: 600 14.5px/1.3 var(--f-body); }
+.n-it span { font-size: 13px; color: var(--paper-2); }
+.n-it small { font: 11px var(--f-type); color: var(--muted); letter-spacing: .04em; }
+.n-edit { gap: 10px; }
+.n-barra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 30px; }
+.n-meta { font: 11.5px var(--f-type); color: var(--muted); letter-spacing: .04em; }
+.n-status { margin-left: auto; font: 11.5px var(--f-type); color: var(--muted); letter-spacing: .04em; }
+.n-status.ok { color: var(--paper-2); }
+.n-acoes { display: inline-flex; gap: 6px; }
+.n-voltar { display: none; }
+.n-titulo { width: 100%; min-width: 0; padding: 4px 2px 8px; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--paper); font: 30px/1.15 var(--f-display); }
+.n-titulo:focus { outline: none; border-bottom-color: var(--red); }
+.n-titulo::placeholder, .n-texto::placeholder { color: var(--muted); }
+.n-texto { width: 100%; min-width: 0; height: max(340px, calc(100dvh - 330px)); padding: 6px 4px 6px 2px; border: 0; resize: vertical; background: transparent repeating-linear-gradient(to bottom, transparent 0 27px, color-mix(in srgb, var(--line-2) 70%, transparent) 27px 28px) 0 6px / 100% 28px local; color: var(--paper); font: 16px/28px var(--f-body); }
+.n-texto:focus { outline: none; }
+.n-vazia { display: grid; justify-items: start; gap: 12px; padding: 18px 2px 26px; }
+.n-vazia p { margin: 0; color: var(--paper-2); max-width: 46ch; }
 @media (max-width: 900px) { .mesa { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) {
   .marca span { display: none; } .marca b { font-size: 18px; }
@@ -211,6 +237,15 @@ main { position: relative; min-height: 0; }
   .papel { display: none; }
   .topo { gap: 8px; }
   .titulo-pg h1 { font-size: 32px; }
+  .notas { grid-template-columns: minmax(0, 1fr); }
+  .notas:not(.lendo) .n-edit { display: none; }
+  .notas.lendo .n-lista { display: none; }
+  .n-lista { position: static; max-height: none; }
+  .n-itens { overflow: visible; }
+  .n-voltar { display: inline-flex; }
+  .n-acoes { order: 1; margin-left: auto; } .n-meta { order: 2; } .n-status { order: 3; }
+  .n-titulo { font-size: 26px; }
+  .n-texto { height: max(300px, calc(100dvh - 300px)); }
 }
 @media (max-width: 520px) { .marca { display: none; } .abas { margin-left: 0; flex: 1; justify-content: space-between; } .abas button { flex: 1; justify-content: center; } .sp { display: none; } .e-topo { font-size: 10.5px; } .e-topo b { font-size: 11.5px; } }
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } .pad.on::after { animation: none; } }
@@ -258,7 +293,7 @@ main { position: relative; min-height: 0; }
       <div data-passo="local" hidden>
         <p>Modo de teste neste navegador. Abra outra aba para ser outra pessoa.</p>
         <label class="e-mini" for="e-lnome">Nome</label>
-        <input class="e-in" id="e-lnome" maxlength="30" placeholder="Como chamar você" autocomplete="off">
+        <input class="e-in" id="e-lnome" placeholder="Como chamar você" autocomplete="off">
         <div class="e-row"><button class="e-btn sangue" type="button" id="e-lgm">Entrar como mestre</button><button class="e-btn" type="button" id="e-lpj">Entrar como jogador</button></div>
       </div>
       <p class="e-erro" id="e-erro" hidden></p>
@@ -279,6 +314,7 @@ main { position: relative; min-height: 0; }
   <main>
     <section class="painel" id="p-mapa" role="tabpanel" aria-label="Mapa 3D"><div class="carregando-mapa">Enchendo o vale…</div><iframe id="f-mapa" title="Mapa 3D de São Valentim do Vale" allow="fullscreen; autoplay"></iframe></section>
     <section class="painel" id="p-fichas" role="tabpanel" aria-label="Fichas"><iframe id="f-fichas" title="Fichas de Ordem Paranormal 2"></iframe></section>
+    <section class="painel rolavel" id="p-notas" role="tabpanel" aria-label="Anotações"></section>
     <section class="painel rolavel" id="p-mesa" role="tabpanel" aria-label="Mesa"></section>
     <section class="painel rolavel" id="p-sons" role="tabpanel" aria-label="Sons"></section>
   </main>
@@ -294,6 +330,6 @@ main { position: relative; min-height: 0; }
 <script src="core.js?v=5"></script>
 <script src="voz.js?v=2"></script>
 <script src="sons.js?v=2"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

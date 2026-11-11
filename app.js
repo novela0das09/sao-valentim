@@ -22,6 +22,7 @@
     fichas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><circle cx="12" cy="9" r="2.6"/><path d="M8 16.5c.8-2 2.2-3 4-3s3.2 1 4 3"/></svg>',
     mesa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>',
     sons: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>',
+    notas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M9 3v18"/><path d="M12 8h4M12 12h4M12 16h3"/></svg>',
     mic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
     micOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 9V6a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 5 2.2M5 11a7 7 0 0 0 11.5 5.4M19 11a7 7 0 0 1-.6 2.8M12 18v3M3 3l18 18"/></svg>',
     fone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>'
@@ -125,8 +126,8 @@
     const out = {};
     for (const { f } of Object.values(D.fichas)) {
       if (!f || f.dono !== me || (f.papel || 'pj') !== 'pj') continue;
-      out[f.id] = { nome: String(f.nome || 'Sem nome').slice(0, 60), idade: String(f.idade || '').slice(0, 30), aparencia: String(f.aparencia || '').slice(0, 400),
-        resumo: String(f.resumo || '').slice(0, 400), retrato: f.retrato || '', cor: f.cor || '', criado: f.criado || 0 };
+      out[f.id] = { nome: String(f.nome || 'Sem nome'), idade: String(f.idade || ''), aparencia: String(f.aparencia || ''),
+        resumo: String(f.resumo || ''), retrato: f.retrato || '', cor: f.cor || '', criado: f.criado || 0 };
     }
     const j = JSON.stringify(out);
     if (j === perfisEnviados) return;
@@ -161,7 +162,7 @@
         if (enviado[f.id] === json) continue;
         if (!SV.isGM && f.dono !== me) continue;
         enviado[f.id] = json;
-        SV.db.set('fichas/' + f.id, { dono: f.dono || '', papel: f.papel, visivel: !!f.visivel, nome: String(f.nome || '').slice(0, 60), json, t: Date.now() })
+        SV.db.set('fichas/' + f.id, { dono: f.dono || '', papel: f.papel, visivel: !!f.visivel, nome: String(f.nome || ''), json, t: Date.now() })
           .catch(e => { delete enviado[f.id]; SV.toast('A ficha de ' + (f.nome || 'alguém') + ' não foi salva no banco (' + (e.code || e.message) + ').', 'err'); });
         D.fichas[f.id] = { meta: { dono: f.dono }, f: JSON.parse(json) };
         npcPublico(f); atualizaPecaDaFicha(f);
@@ -181,7 +182,7 @@
       if (!e) return;
       const f = lista().find(x => x.nome === e.quem);
       if (SV.isGM && f && f.papel !== 'pj' && !f.visivel) return; // rolagem secreta do mestre
-      const r = { quem: String(e.quem || '').slice(0, 60), o: String(e.o || '').slice(0, 120), tot: String(e.tot ?? '').slice(0, 12), v: e.v || '', vt: String(e.vt || '').slice(0, 60), det: String(e.det || '').slice(0, 200), t: e.t || Date.now(), por: SV.me.uid };
+      const r = { quem: String(e.quem || ''), o: String(e.o || ''), tot: String(e.tot ?? '').slice(0, 12), v: e.v || '', vt: String(e.vt || ''), det: String(e.det || ''), t: e.t || Date.now(), por: SV.me.uid };
       SV.db.push('rolagens/' + SV.me.uid, r).catch(() => {});
     },
     porNoMapa(fid) {
@@ -303,7 +304,7 @@
   /* ==========================================================
      abas
      ========================================================== */
-  const ABAS = [['mapa', 'Mapa', I.mapa], ['fichas', 'Fichas', I.fichas], ['mesa', 'Mesa', I.mesa], ['sons', 'Sons', I.sons]];
+  const ABAS = [['mapa', 'Mapa', I.mapa], ['fichas', 'Fichas', I.fichas], ['notas', 'Anotações', I.notas], ['mesa', 'Mesa', I.mesa], ['sons', 'Sons', I.sons]];
   let aba = 'mapa';
   const carregado = {};
   function irAba(a) {
@@ -315,10 +316,11 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=8' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=13' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=9' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=14' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
+    if (a === 'notas') abaNotas();
   }
   SV.irAba = irAba;
   function montaAbas() {
@@ -366,7 +368,7 @@
     /* mural */
     const mural = Object.entries(D.mural).filter(([id, m]) => id !== '__ok' && m && m.texto).sort((a, b) => b[1].t - a[1].t);
     const muralHTML = `<div class="cartao"><h2>Mural <small>${gm ? 'só o mestre escreve' : 'avisos do mestre'}</small></h2>
-      ${gm ? `<form class="compor" data-form="mural"><textarea name="t" rows="2" maxlength="600" placeholder="Escreva um aviso para todos (cena, horário da próxima sessão, regra da casa)…"></textarea><button class="btn red" type="submit">Pregar</button></form>` : ''}
+      ${gm ? `<form class="compor" data-form="mural"><textarea name="t" rows="2" placeholder="Escreva um aviso para todos (cena, horário da próxima sessão, regra da casa)…"></textarea><button class="btn red" type="submit">Pregar</button></form>` : ''}
       <div class="lista">${mural.length ? mural.map(([id, m], i) => `<div class="aviso" style="--rot:${(i % 2 ? .5 : -.4)}deg"><p>${esc(m.texto)}</p><small>${quando(m.t)}</small>${gm ? `<button class="x" type="button" data-tira="${esc(id)}" aria-label="Tirar aviso">×</button>` : ''}</div>`).join('') : '<p class="vazio">Nada pregado no mural ainda.</p>'}</div></div>`;
     /* rolagens */
     const rols = [];
@@ -383,12 +385,12 @@
       for (const [u, l] of Object.entries(D.pedidos)) if (u !== '__ok') for (const [id, p] of Object.entries(l || {})) if (p && p.t) ps.push(Object.assign({ id, u }, p));
       ps.sort((a, b) => (a.feito ? 1 : 0) - (b.feito ? 1 : 0) || b.t - a.t);
       pedHTML = `<div class="cartao"><h2>Pedidos ao mestre <small>${ps.filter(p => !p.feito).length} em aberto</small></h2><div class="lista">${ps.length ? ps.map(p => `<div class="ped${p.feito ? ' feito' : ''}">${avatar(p.u)}<div><p>${esc(p.texto)}</p><small>${esc(nomeDe(p.u))} · ${quando(p.t)}${p.resp ? ' · você respondeu: ' + esc(p.resp) : ''}</small>
-        ${p.feito ? '' : `<form class="compor" data-form="resp" data-u="${esc(p.u)}" data-id="${esc(p.id)}" style="margin-top:8px"><input class="campo" name="t" maxlength="300" placeholder="Responder (opcional)"><button class="btn sm red" type="submit">Feito</button></form>`}</div>
+        ${p.feito ? '' : `<form class="compor" data-form="resp" data-u="${esc(p.u)}" data-id="${esc(p.id)}" style="margin-top:8px"><input class="campo" name="t" placeholder="Responder (opcional)"><button class="btn sm red" type="submit">Feito</button></form>`}</div>
         <div class="acoes"><button class="btn sm" type="button" data-apaga-ped="${esc(p.u)}/${esc(p.id)}" aria-label="Apagar pedido">×</button></div></div>`).join('') : '<p class="vazio">Os jogadores pedem aqui: usar um item, rolar algo em segredo, uma dúvida de regra.</p>'}</div></div>`;
     } else {
       const ps = Object.entries(D.pedidos).filter(([id, p]) => id !== '__ok' && p && p.t).map(([id, p]) => Object.assign({ id }, p)).sort((a, b) => b.t - a.t);
       pedHTML = `<div class="cartao"><h2>Pedir ao mestre <small>só ele vê</small></h2>
-        <form class="compor" data-form="pedido"><textarea name="t" rows="2" maxlength="400" placeholder="Ex.: quero procurar pistas no porão sem os outros saberem."></textarea><button class="btn red" type="submit">Enviar</button></form>
+        <form class="compor" data-form="pedido"><textarea name="t" rows="2" placeholder="Ex.: quero procurar pistas no porão sem os outros saberem."></textarea><button class="btn red" type="submit">Enviar</button></form>
         <div class="lista">${ps.map(p => `<div class="ped${p.feito ? ' feito' : ''}">${avatar(SV.me.uid)}<div><p>${esc(p.texto)}</p><small>${quando(p.t)} · ${p.feito ? 'resolvido' : 'esperando o mestre'}</small>${p.resp ? `<p style="margin-top:6px;color:var(--gold)">Mestre: ${esc(p.resp)}</p>` : ''}</div><div class="acoes"><button class="btn sm" type="button" data-apaga-ped="${esc(SV.me.uid)}/${esc(p.id)}" aria-label="Apagar pedido">×</button></div></div>`).join('')}</div></div>`;
     }
     /* NPCs e inimigos conhecidos */
@@ -538,6 +540,199 @@
     setInterval(() => { if (!box.hidden && SV.voz.joined && document.activeElement.tagName !== 'INPUT') render.voz(); }, 1500);
   }
 
+
+  /* ==========================================================
+     anotações: cada pessoa tem o seu caderno (notas/<uid>), que só ela lê e escreve.
+     Uma cópia fica no navegador: abre na hora e nada se perde se a conexão cair.
+     ========================================================== */
+  const N = { lista: {}, aberta: null, busca: '', acesso: null, timers: {}, voo: {}, apagar: null, lendo: false, tApagar: 0 };
+  const chaveN = () => 'notas.' + SV.me.uid;
+  const guardaN = () => SV.ls.set(chaveN(), N.lista);
+  const vaziaN = n => !n || (!String(n.titulo || '').trim() && !String(n.texto || '').trim());
+  const semAcento = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const nPalavras = t => (String(t || '').match(/\S+/g) || []).length;
+  const celular = () => matchMedia('(max-width: 700px)').matches;
+
+  function ligaNotas() {
+    const salvas = SV.ls.get(chaveN(), {});
+    N.lista = salvas && typeof salvas === 'object' ? salvas : {};
+    N.aberta = SV.ls.get('notas.aberta.' + SV.me.uid, null);
+    const path = 'notas/' + SV.me.uid;
+    SV.db.get(path).then(v => { N.acesso = true; juntaNotas(v); }, () => { N.acesso = false; desenhaNotas(); });
+    SV.db.on(path, v => { if (N.acesso === false || (v == null && N.acesso !== true)) return; juntaNotas(v); });
+    desenhaNotas();
+  }
+  /* o banco manda o caderno; mudanças daqui que ainda não chegaram lá continuam valendo */
+  function juntaNotas(remoto) {
+    if (remoto) N.acesso = true;
+    const out = {};
+    for (const [id, n] of Object.entries(remoto || {})) if (n && typeof n === 'object') out[id] = { titulo: String(n.titulo || ''), texto: String(n.texto || ''), t: +n.t || 0, criado: +n.criado || +n.t || 0 };
+    for (const [id, n] of Object.entries(N.lista)) {
+      if (!n || !n.pend) continue;
+      if (!out[id] || (n.t || 0) >= (out[id].t || 0)) {
+        out[id] = n;
+        if (!vaziaN(n) && !N.timers[id] && N.voo[id] !== n.t) agendaN(id, 80);
+      }
+    }
+    N.lista = out; guardaN();
+    desenhaNotas();
+  }
+  const agendaN = (id, ms = 700) => { clearTimeout(N.timers[id]); N.timers[id] = setTimeout(() => enviaN(id), ms); };
+  function enviaN(id) {
+    clearTimeout(N.timers[id]); delete N.timers[id];
+    const n = N.lista[id]; if (!n) return;
+    if (N.acesso === false) { statusN(); return; }
+    const t = n.t, dados = { titulo: String(n.titulo || ''), texto: String(n.texto || ''), t, criado: n.criado || t };
+    N.voo[id] = t; statusN();
+    SV.db.set('notas/' + SV.me.uid + '/' + id, dados).then(() => {
+      if (N.voo[id] === t) delete N.voo[id];
+      const m = N.lista[id]; if (m && m.t === t) { delete m.pend; guardaN(); }
+      statusN();
+    }, e => {
+      delete N.voo[id];
+      if (/PERMISSION/i.test(String(e && (e.code || e.message) || ''))) { N.acesso = false; desenhaNotas(); }
+      statusN(true);
+    });
+  }
+  const descarregaN = () => { for (const id of Object.keys(N.timers)) enviaN(id); };
+  function statusN(erro) {
+    const el = $('#n-status'); if (!el) return;
+    const pend = Object.keys(N.timers).length || Object.keys(N.voo).length;
+    el.textContent = N.acesso === false ? 'Salva neste navegador' : erro ? 'Sem conexão: guardada neste navegador' : pend ? 'Salvando…' : 'Salva';
+    el.classList.toggle('ok', !pend && N.acesso !== false && !erro);
+  }
+  function apagaN(id) {
+    clearTimeout(N.timers[id]); delete N.timers[id];
+    delete N.lista[id]; guardaN();
+    if (N.acesso !== false) SV.db.remove('notas/' + SV.me.uid + '/' + id).catch(() => {});
+    if (N.aberta === id) { N.aberta = null; SV.ls.set('notas.aberta.' + SV.me.uid, null); }
+  }
+  function abreN(id, focar) {
+    const antes = N.aberta;
+    if (antes && antes !== id && vaziaN(N.lista[antes])) apagaN(antes);   // anotação vazia não fica largada no caderno
+    N.aberta = id && N.lista[id] ? id : null; N.apagar = null;
+    SV.ls.set('notas.aberta.' + SV.me.uid, N.aberta);
+    if (N.aberta) N.lendo = true;
+    const caixa = $('#notas'); if (caixa) caixa.classList.toggle('lendo', !!N.lendo);
+    desenhaEditorN(true); desenhaListaN();
+    if (focar) { const el = $(focar); if (el) el.focus(); }
+  }
+  function novaN() {
+    const id = SV.uid(), agora = Date.now();
+    N.lista[id] = { titulo: '', texto: '', t: agora, criado: agora, pend: true };
+    guardaN(); N.busca = ''; const b = $('#n-busca'); if (b) b.value = '';
+    abreN(id, '#n-titulo');
+  }
+  function ordemN() {
+    const q = semAcento(N.busca).trim();
+    return Object.entries(N.lista).filter(([, n]) => n && (!q || semAcento(n.titulo + ' ' + n.texto).includes(q))).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+  }
+
+  function montaNotas() {
+    const box = $('#p-notas'); if (!box || box.dataset.ok) return;
+    box.dataset.ok = '1';
+    box.innerHTML = `<div class="titulo-pg"><h1>Anotações</h1><p id="n-sub"></p></div>
+      <div class="notas" id="notas">
+        <div class="cartao n-lista"><h2>Caderno <small id="n-conta"></small></h2>
+          <button class="btn red" type="button" data-n="nova">+ Nova anotação</button>
+          <input class="campo" type="search" id="n-busca" placeholder="Procurar nas anotações" aria-label="Procurar nas anotações" autocomplete="off">
+          <div class="n-itens" id="n-itens" role="list"></div></div>
+        <div class="cartao n-edit" id="n-edit"></div>
+      </div>`;
+    box.addEventListener('click', e => {
+      const it = e.target.closest('[data-nota]');
+      if (it) { abreN(it.dataset.nota); return; }
+      const b = e.target.closest('[data-n]'); if (!b) return;
+      const a = b.dataset.n;
+      if (a === 'nova') novaN();
+      if (a === 'voltar') { if (N.aberta && vaziaN(N.lista[N.aberta])) apagaN(N.aberta); N.lendo = false; desenhaNotas(); }
+      if (a === 'apagar') {
+        if (N.apagar !== N.aberta) { N.apagar = N.aberta; clearTimeout(N.tApagar); N.tApagar = setTimeout(() => { N.apagar = null; barraN(); }, 5000); barraN(); return; }
+        const nome = (N.lista[N.aberta] && N.lista[N.aberta].titulo) || 'A anotação';
+        apagaN(N.aberta); N.apagar = null; N.lendo = false;
+        const prox = ordemN()[0]; if (prox && !celular()) N.aberta = prox[0];
+        desenhaNotas(); SV.toast(nome + ' foi apagada.');
+      }
+      if (a === 'cancelar') { N.apagar = null; barraN(); }
+    });
+    box.addEventListener('input', e => {
+      const el = e.target;
+      if (el.id === 'n-busca') { N.busca = el.value; desenhaListaN(); return; }
+      if (el.id !== 'n-titulo' && el.id !== 'n-texto') return;
+      const n = N.lista[N.aberta]; if (!n) return;
+      if (el.id === 'n-titulo') n.titulo = el.value; else n.texto = el.value;
+      n.t = Date.now(); n.pend = true; guardaN();
+      if (vaziaN(n)) { clearTimeout(N.timers[N.aberta]); delete N.timers[N.aberta]; } else agendaN(N.aberta);
+      statusN(); metaN(); desenhaListaN();
+    });
+    box.addEventListener('keydown', e => {
+      if (e.target.id === 'n-titulo' && e.key === 'Enter') { e.preventDefault(); const t = $('#n-texto'); if (t) t.focus(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && box.contains(e.target)) { e.preventDefault(); descarregaN(); }
+    });
+    box.addEventListener('focusout', () => setTimeout(() => { if (!box.contains(document.activeElement)) descarregaN(); }, 0));
+    addEventListener('pagehide', descarregaN);
+    document.addEventListener('visibilitychange', () => { if (document.hidden) descarregaN(); });
+  }
+  function abaNotas() {
+    if (!N.aberta && !celular()) { const p = ordemN()[0]; if (p) N.aberta = p[0]; }
+    desenhaNotas();
+  }
+  function desenhaNotas() {
+    const box = $('#p-notas'); if (!box || !box.dataset.ok) return;
+    if (N.aberta && !N.lista[N.aberta]) N.aberta = null;
+    $('#n-sub').textContent = N.acesso === false
+      ? 'Por enquanto, as anotações ficam salvas só neste navegador.'
+      : 'Só você vê. Ficam salvas na sua conta e aparecem em qualquer aparelho em que você entrar.';
+    $('#notas').classList.toggle('lendo', !!N.lendo);
+    desenhaListaN(); desenhaEditorN();
+  }
+  function desenhaListaN() {
+    const box = $('#n-itens'); if (!box) return;
+    const todas = Object.keys(N.lista).length, l = ordemN();
+    $('#n-conta').textContent = todas === 1 ? '1 anotação' : todas + ' anotações';
+    const st = box.scrollTop;
+    box.innerHTML = l.length ? l.map(([id, n]) => {
+      const prev = String(n.texto || '').split('\n').map(x => x.trim()).find(Boolean) || '';
+      return `<button type="button" role="listitem" class="n-it${id === N.aberta ? ' on' : ''}" data-nota="${esc(id)}"${id === N.aberta ? ' aria-current="true"' : ''}>
+        <b>${esc(String(n.titulo || '').trim() || 'Sem título')}</b>${prev ? `<span>${esc(prev)}</span>` : ''}<small>${esc(quando(n.t) || '')}</small></button>`;
+    }).join('') : `<p class="vazio">${todas ? 'Nada encontrado.' : 'Nenhuma anotação ainda.'}</p>`;
+    box.scrollTop = st;
+  }
+  function barraN() {
+    const el = $('#n-acoes'); if (!el) return;
+    const conf = N.apagar && N.apagar === N.aberta;
+    el.innerHTML = `<button class="btn sm${conf ? ' red' : ''}" type="button" data-n="apagar">${conf ? 'Confirmar: apagar?' : 'Apagar'}</button>${conf ? '<button class="btn sm" type="button" data-n="cancelar">Cancelar</button>' : ''}`;
+  }
+  function metaN() {
+    const el = $('#n-meta'), n = N.lista[N.aberta]; if (!el || !n) return;
+    const p = nPalavras(n.texto);
+    el.textContent = (p === 1 ? '1 palavra' : p + ' palavras') + (n.criado ? ' · criada em ' + new Date(n.criado).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '');
+  }
+  function desenhaEditorN(forcar) {
+    const ed = $('#n-edit'); if (!ed) return;
+    const id = N.aberta, n = id && N.lista[id];
+    if (!n) {
+      ed.dataset.id = '';
+      ed.innerHTML = `<div class="n-vazia"><button class="btn sm n-voltar" type="button" data-n="voltar">← Anotações</button>
+        <p>${Object.keys(N.lista).length ? 'Escolha uma anotação ao lado ou comece outra.' : 'Seu caderno está vazio. Anote pistas, nomes, lugares, teorias e o que o mestre contou. Só você vê.'}</p>
+        <button class="btn red" type="button" data-n="nova">+ Nova anotação</button></div>`;
+      return;
+    }
+    const ti = $('#n-titulo'), tx = $('#n-texto');
+    if (!forcar && ed.dataset.id === id && ti && tx) {
+      /* chegou mudança de outro aparelho: só atualiza o campo que não está sendo digitado */
+      if (document.activeElement !== ti && ti.value !== n.titulo) ti.value = n.titulo;
+      if (document.activeElement !== tx && tx.value !== n.texto) tx.value = n.texto;
+      metaN(); statusN(); return;
+    }
+    ed.dataset.id = id;
+    ed.innerHTML = `<div class="n-barra"><button class="btn sm n-voltar" type="button" data-n="voltar">← Anotações</button><span class="n-meta" id="n-meta"></span><span class="n-status" id="n-status" aria-live="polite"></span><span class="n-acoes" id="n-acoes"></span></div>
+      <input class="n-titulo" id="n-titulo" placeholder="Título" aria-label="Título da anotação" autocomplete="off">
+      <textarea class="n-texto" id="n-texto" placeholder="Escreva aqui: pistas, nomes, lugares, teorias, o que o mestre contou…" aria-label="Texto da anotação"></textarea>`;
+    $('#n-titulo').value = n.titulo || ''; $('#n-texto').value = n.texto || '';
+    metaN(); statusN(); barraN();
+  }
+
   /* ---------- menu da conta ---------- */
   render.menu = () => {
     $('#menu').innerHTML = `<div class="quem">${avatar(SV.me.uid, SV.me.nome)}<div><b>${esc(SV.me.nome)}</b><small>${SV.isGM ? 'Mestre da mesa' : 'Jogador'}${SV.db.local ? ' · modo de teste' : ''}</small></div></div>
@@ -557,6 +752,7 @@
     SV.sons.init();
     SV.sons.onChange(() => { if (aba === 'sons' && !campoAberto($('#p-sons'))) render.sons(); });
     assina();
+    montaNotas(); ligaNotas();
     render.voz(); render.mesa(); badges();
     irAba(SV.ls.get('aba', 'mapa'));
     setInterval(() => { if (aba === 'mesa') render.mesa(); }, 30000);

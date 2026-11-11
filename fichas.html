@@ -702,28 +702,28 @@ function blocoVocacoes() {
     return h('div', { class: 'card' }, h('div', { class: 'card-h' }, h('b', null, ed.antigo ? 'Editar vocação' : 'Nova vocação')),
       h('form', { class: 'card-b form-voc', onsubmit: e => {
         e.preventDefault();
-        const fd = new FormData(e.target), nome = String(fd.get('nome') || '').trim().slice(0, 40);
+        const fd = new FormData(e.target), nome = String(fd.get('nome') || '').trim();
         if (!nome) { toast('Dê um nome à vocação.'); return; }
         if (VOC_BASE[nome] && !ed.antigo) { toast('Já existe uma vocação com esse nome.'); return; }
         const hab = String(fd.get('hab') || '');
-        const v = { desc: String(fd.get('desc') || '').slice(0, 400), per: String(fd.get('per') || ''), lim: String(fd.get('lim') || '').slice(0, 300), req: String(fd.get('req') || '').slice(0, 200) };
-        if (hab === '__nova') Object.assign(v, { habNome: String(fd.get('habNome') || '').trim().slice(0, 40) || nome, habCusto: String(fd.get('habCusto') || '').slice(0, 20), habTxt: String(fd.get('habTxt') || '').slice(0, 600) });
+        const v = { desc: String(fd.get('desc') || ''), per: String(fd.get('per') || ''), lim: String(fd.get('lim') || ''), req: String(fd.get('req') || '') };
+        if (hab === '__nova') Object.assign(v, { habNome: String(fd.get('habNome') || '').trim() || nome, habCusto: String(fd.get('habCusto') || ''), habTxt: String(fd.get('habTxt') || '') });
         else if (hab) v.hab = hab;
         if (ed.antigo && ed.antigo !== nome) delete S.vocCustom[ed.antigo];
         S.vocCustom[nome] = v; UIS.vocEd = null; refazVoc(); salvar(); renderTudo(); toast('Vocação ' + nome + ' salva.');
       } },
-        campo('Nome', h('input', { name: 'nome', value: ed.nome || '', maxlength: 40, required: true })),
-        campo('Descrição', h('textarea', { name: 'desc', rows: 2, maxlength: 400 }, ed.desc || '')),
+        campo('Nome', h('input', { name: 'nome', value: ed.nome || '', required: true })),
+        campo('Descrição', h('textarea', { name: 'desc', rows: 2 }, ed.desc || '')),
         campo('Habilidade', h('select', { name: 'hab', onchange: e => { UIS.vocEd = Object.assign(ed, { hab: e.target.value }); $('#voc-nova').hidden = e.target.value !== '__nova'; } },
           h('option', { value: '__nova', selected: (!ed.hab || ed.hab === '__nova') || null }, 'Criar uma habilidade nova'),
           habs.map(([k, x]) => h('option', { value: k, selected: ed.hab === k || null }, x.nome + ' (' + x.origem + ')')))),
         h('div', { id: 'voc-nova', hidden: !!(ed.hab && ed.hab !== '__nova') || null },
-          campo('Nome da habilidade', h('input', { name: 'habNome', value: ed.habNome || '', maxlength: 40 })),
-          campo('Custo', h('input', { name: 'habCusto', value: ed.habCusto || '', maxlength: 20, placeholder: 'ex.: 2 PD' })),
-          campo('Efeito (use **negrito**)', h('textarea', { name: 'habTxt', rows: 3, maxlength: 600 }, ed.habTxt || ''))),
+          campo('Nome da habilidade', h('input', { name: 'habNome', value: ed.habNome || '' })),
+          campo('Custo', h('input', { name: 'habCusto', value: ed.habCusto || '', placeholder: 'ex.: 2 PD' })),
+          campo('Efeito (use **negrito**)', h('textarea', { name: 'habTxt', rows: 3 }, ed.habTxt || ''))),
         campo('Perícia extra na criação', h('select', { name: 'per' }, [['', 'Nenhuma'], ['fisico', '+1 passo numa perícia física'], ['mente', '+1 passo numa perícia mental']].map(([v, n]) => h('option', { value: v, selected: (ed.per || '') === v || null }, n)))),
-        campo('Requisito', h('input', { name: 'req', value: ed.req || '', maxlength: 200 })),
-        campo('Limitação', h('input', { name: 'lim', value: ed.lim || '', maxlength: 300 })),
+        campo('Requisito', h('input', { name: 'req', value: ed.req || '' })),
+        campo('Limitação', h('input', { name: 'lim', value: ed.lim || '' })),
         h('p', { class: 'nota-proto' }, 'Régua: uma habilidade só (+d4 num atributo por 2 PD, +d6 em duas perícias por 2 PD, ou um efeito 1×/cena). Benefício maior pede uma limitação.'),
         h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'submit' }, 'Salvar vocação'),
           h('button', { class: 'btn sm', type: 'button', onclick: () => { UIS.vocEd = null; renderRegras(); } }, 'Cancelar'),
@@ -1212,7 +1212,7 @@ function renderFicha() {
   const cab = h('div', { class: 'cab' },
     h('div', { class: 'retrato' }, f.retrato ? h('img', { src: f.retrato, alt: 'Retrato de ' + f.nome }) : h('div', { class: 'ini' }, ini(f.nome)), h('label', { for: 'f-foto' }, f.retrato ? 'Trocar retrato' : 'Pôr retrato'), foto),
     h('div', { class: 'id' },
-      h('div', { class: 'nome' }, h('input', { id: 'f-nome', value: f.nome, 'aria-label': 'Nome', maxlength: 40, oninput: e => { f.nome = e.target.value; salvar(); renderLista(); } }),
+      h('div', { class: 'nome' }, h('input', { id: 'f-nome', value: f.nome, 'aria-label': 'Nome', oninput: e => { f.nome = e.target.value; salvar(); renderLista(); } }),
         h('button', { class: 'btn sm' + (UIS.edit ? ' red' : ''), type: 'button', onclick: () => { UIS.edit = !UIS.edit; renderFicha(); } }, UIS.edit ? 'Pronto' : 'Editar ficha')),
       h('div', { class: 'tags' },
         h('span', { class: 'tag perfil' }, 'Perfil', perfilSel),
@@ -1381,8 +1381,8 @@ function linhaArma(f, a, i) {
 }
 function blocoApresentacao(f) {
   const campo = (rot, k, ph, area) => h('label', { class: 'apr-campo' }, rot,
-    area ? h('textarea', { id: 'f-' + k, maxlength: 400, placeholder: ph, oninput: e => { f[k] = e.target.value; salvar(); } }, f[k] || '')
-         : h('input', { id: 'f-' + k, maxlength: 30, placeholder: ph, value: f[k] || '', oninput: e => { f[k] = e.target.value; salvar(); } }));
+    area ? h('textarea', { id: 'f-' + k, placeholder: ph, oninput: e => { f[k] = e.target.value; salvar(); } }, f[k] || '')
+         : h('input', { id: 'f-' + k, placeholder: ph, value: f[k] || '', oninput: e => { f[k] = e.target.value; salvar(); } }));
   return h('div', { class: 'bloco apr' }, h('div', { class: 'fita' }, 'Apresentação'),
     h('p', { class: 'apr-nota' }, 'É só isto (com o nome e o retrato) que os outros jogadores veem do seu personagem.'),
     campo('Idade', 'idade', 'Ex.: 34 anos'),
@@ -2101,10 +2101,10 @@ const opc = (on, fn, ...kids) => h('button', { type: 'button', class: 'opc' + (o
 const habTxt = k => h('div', { class: 'hab', html: '<strong>' + HAB[k].nome + (HAB[k].custo ? ' (' + HAB[k].custo + ')' : '') + ':</strong> ' + HAB[k].txt });
 const CR_ETAPA = [
   (c) => [h('h2', null, 'Quem é você?'), h('p', { class: 'lead' }, 'Comece pela ideia: um nome e uma frase que diga quem é essa pessoa antes de o paranormal entrar na vida dela.'),
-    h('label', { class: 'cr-campo' }, 'Nome', h('input', { id: 'cr-nome', value: c.nome, maxlength: 40, placeholder: 'Ex.: Ailin', oninput: e => { c.nome = e.target.value; crAtual(c); } })),
+    h('label', { class: 'cr-campo' }, 'Nome', h('input', { id: 'cr-nome', value: c.nome, placeholder: 'Ex.: Ailin', oninput: e => { c.nome = e.target.value; crAtual(c); } })),
     h('label', { class: 'cr-campo' }, 'Conceito (breve descrição)', h('textarea', { id: 'cr-conceito', placeholder: 'Ex.: apicultora do vilarejo, conhece cada trilha da mata e tem medo do escuro.', oninput: e => { c.conceito = e.target.value; } }, c.conceito)),
-    h('label', { class: 'cr-campo' }, 'Idade', h('input', { id: 'cr-idade', value: c.idade || '', maxlength: 30, placeholder: 'Ex.: 34 anos', oninput: e => { c.idade = e.target.value; } })),
-    h('label', { class: 'cr-campo' }, 'Aparência', h('textarea', { id: 'cr-aparencia', maxlength: 400, placeholder: 'Ex.: alta, cabelo grisalho preso, jaqueta jeans gasta.', oninput: e => { c.aparencia = e.target.value; } }, c.aparencia || '')),
+    h('label', { class: 'cr-campo' }, 'Idade', h('input', { id: 'cr-idade', value: c.idade || '', placeholder: 'Ex.: 34 anos', oninput: e => { c.idade = e.target.value; } })),
+    h('label', { class: 'cr-campo' }, 'Aparência', h('textarea', { id: 'cr-aparencia', placeholder: 'Ex.: alta, cabelo grisalho preso, jaqueta jeans gasta.', oninput: e => { c.aparencia = e.target.value; } }, c.aparencia || '')),
     h('p', { class: 'apr-nota' }, 'Nome, idade, aparência e conceito são o que os outros jogadores veem do seu personagem.'),
     h('div', { class: 'campo' }, 'Tipo de personagem'),
     h('div', { class: 'opcoes' }, [['sobrevivente', 'Sobrevivente', 'Gente comum que esbarrou no paranormal. Começa no nível 1, com 5 passos de atributo e 7 de perícia.'], ['agente', 'Agente da Ordem', 'Investigador treinado da Ordo Realitas, nível 6, com as ferramentas da Ordem. 6 passos de atributo, 16 de perícia e uma habilidade de nível.']]

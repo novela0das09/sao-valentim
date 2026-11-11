@@ -1621,7 +1621,7 @@ function renderLista() {
     let nm;
     if (gm && !d.ficha) {
       nm = document.createElement('input'); nm.value = s.nome; nm.setAttribute('aria-label', 'Nome da figura');
-      nm.onchange = () => PM.editar(s.id, { nome: nm.value.trim().slice(0, 22) || 'Figura' });
+      nm.onchange = () => PM.editar(s.id, { nome: nm.value.trim() || 'Figura' });
     } else {
       nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = s.nome;
       const sub = document.createElement('small');
