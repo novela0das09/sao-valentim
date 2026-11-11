@@ -76,7 +76,7 @@
         enviado[id] = JSON.stringify(f);
       }
       D.fichas = novo;
-      avisa('fichas'); render.voz();
+      avisa('fichas'); render.voz(); publicaPerfis();
     };
     if (SV.isGM) db.on('fichas', fichas); else db.query('fichas', 'dono', me, fichas);
     db.on('npcs', v => { D.npcs = v || {}; render.mesa(); });
@@ -119,7 +119,31 @@
     if (SV.isGM && pub !== !!D.pecas[id]) { M.setVisivel(id, pub); return; }
     if (p.nome !== nome || p.cor !== cor) SV.M.editar(id, { nome, cor });
   }
+  let perfisEnviados = null;
+  function publicaPerfis() {
+    const me = SV.me && SV.me.uid; if (!me) return;
+    const out = {};
+    for (const { f } of Object.values(D.fichas)) {
+      if (!f || f.dono !== me || (f.papel || 'pj') !== 'pj') continue;
+      out[f.id] = { nome: String(f.nome || 'Sem nome').slice(0, 60), idade: String(f.idade || '').slice(0, 30), aparencia: String(f.aparencia || '').slice(0, 400),
+        resumo: String(f.resumo || '').slice(0, 400), retrato: f.retrato || '', cor: f.cor || '', criado: f.criado || 0 };
+    }
+    const j = JSON.stringify(out);
+    if (j === perfisEnviados) return;
+    perfisEnviados = j;
+    (Object.keys(out).length ? SV.db.set('users/' + me + '/pj', out) : SV.db.remove('users/' + me + '/pj')).catch(() => { perfisEnviados = null; });
+  }
   SV.F = {
+    /* o que os outros jogadores mostram dos personagens deles: nome, retrato, idade, aparência, breve descrição */
+    outros() {
+      const me = SV.me.uid, out = [];
+      for (const [u, x] of Object.entries(D.users || {})) {
+        if (u === me || !x || !x.pj || typeof x.pj !== 'object') continue;
+        for (const [id, p] of Object.entries(x.pj)) if (p && p.nome) out.push(Object.assign({}, p, { id, dono: u, jogador: x.nome || 'Jogador' }));
+      }
+      return out.sort((a, b) => (a.criado || 0) - (b.criado || 0) || String(a.nome).localeCompare(b.nome));
+    },
+    onOutros(cb) { return ouve('users', () => cb()); },
     isGM: () => !!SV.isGM,
     me: () => ({ uid: SV.me.uid, nome: SV.me.nome }),
     lista,
@@ -142,6 +166,7 @@
         D.fichas[f.id] = { meta: { dono: f.dono }, f: JSON.parse(json) };
         npcPublico(f); atualizaPecaDaFicha(f);
       }
+      setTimeout(publicaPerfis, 0);
       for (const id of Object.keys(D.fichas)) {
         if (vistos.has(id)) continue;
         const f = D.fichas[id].f;
@@ -291,7 +316,7 @@
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
     if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=8' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=9' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=10' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
   }

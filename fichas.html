@@ -161,6 +161,11 @@ button { cursor: pointer; }
 .cargas { display: inline-flex; gap: 3px; }
 .cargas i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--gold); }
 .cargas i.on { background: var(--gold); }
+.apr { display: grid; gap: 8px; }
+.apr-nota { margin: 0; font-size: 12.5px; color: var(--muted); }
+.apr-campo { display: grid; gap: 4px; font-size: 12px; color: var(--muted); letter-spacing: .04em; }
+.apr-campo input, .apr-campo textarea { background: var(--panel); border: 1px solid var(--line-2); color: var(--paper); padding: 7px 9px; font: 14px/1.5 var(--f-body); width: 100%; box-sizing: border-box; }
+.apr-campo textarea { min-height: 62px; resize: vertical; }
 textarea.notas { width: 100%; min-height: 120px; resize: vertical; background: var(--panel); border: 1px solid var(--line-2); padding: 10px 12px; color: var(--paper); font: 14px/1.55 var(--f-type); }
 
 /* mesa de dados */
@@ -439,6 +444,13 @@ select, input, textarea { accent-color: var(--blood); }
 .ponte select { background: var(--panel); border: 1px solid var(--line-2); color: var(--paper); padding: 5px 6px; font: 13px var(--f-body); max-width: 180px; }
 .ponte input[type=checkbox] { accent-color: var(--red); width: 16px; height: 16px; }
 .ponte .sp { flex: 1; }
+.perfil-outro .po-corpo { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 20px; padding: 16px 4px; align-items: start; }
+.perfil-outro .retrato { width: 180px; }
+.perfil-outro h2 { margin: 0 0 4px; font: 30px/1.1 var(--f-display); color: var(--paper); }
+.perfil-outro .po-idade { margin: 0 0 14px; color: var(--muted); font: 14px var(--f-type); }
+.perfil-outro .po-k { font: 11px var(--f-type); letter-spacing: .1em; text-transform: uppercase; color: var(--red); margin-top: 12px; }
+.perfil-outro p { margin: 4px 0 0; white-space: pre-wrap; line-height: 1.55; }
+@media (max-width: 640px) { .perfil-outro .po-corpo { grid-template-columns: 1fr; } .perfil-outro .retrato { width: 140px; } }
 .ponte .tag-papel { font: 11px var(--f-type); letter-spacing: .08em; padding: 3px 7px; border: 1px solid var(--line-2); border-radius: 3px; color: var(--paper-2); }
 .ponte .tag-papel.inimigo { border-color: var(--red); color: var(--red); }
 .sem-ficha { max-width: 460px; margin: 8vh auto 0; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
@@ -981,7 +993,7 @@ const rl = (nome, pts) => ({ id: 'r' + Math.random().toString(36).slice(2, 8), n
 
 
 /* ===================== personagens de exemplo (prontos do playtest) ===================== */
-const P = (o) => Object.assign({ id: 'f' + Math.random().toString(36).slice(2, 9), tipo: 'sobrevivente', nivel: 2, nex: 0, retrato: '', armadura: { v: 0, m: 0 }, evol: [], nl: 0, cor: '', rit: [], red: {}, boost: {}, pavorD: null, relUsos: {}, feri: 0, trau: 0, impeto: 0, banco: 0, armas: [], itens: [], ferr: {}, notas: '', usos: {}, rel: [], insp: [], superou: false }, o);
+const P = (o) => Object.assign({ id: 'f' + Math.random().toString(36).slice(2, 9), tipo: 'sobrevivente', nivel: 2, nex: 0, retrato: '', armadura: { v: 0, m: 0 }, evol: [], nl: 0, cor: '', rit: [], idade: '', aparencia: '', resumo: '', red: {}, boost: {}, pavorD: null, relUsos: {}, feri: 0, trau: 0, impeto: 0, banco: 0, armas: [], itens: [], ferr: {}, notas: '', usos: {}, rel: [], insp: [], superou: false }, o);
 const per = (o = {}) => Object.fromEntries(PER.map(([k]) => [k, o[k] || 'd4']));
 const apt = (o = {}) => Object.fromEntries(APT.map(([k]) => [k, o[k] || 'd4']));
 const ferrAgente = () => Object.fromEntries(Object.entries(FERR).map(([k, [, c]]) => [k, c]));
@@ -1251,7 +1263,7 @@ function renderFicha() {
           : h('span', { style: { fontSize: '12px', color: 'var(--muted)' } }, 'uso livre'))))] : null);
   const notas = h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Anotações'), h('textarea', { class: 'notas', id: 'f-notas', 'aria-label': 'Anotações', placeholder: 'História, contatos, pistas, medos…', oninput: e => { f.notas = e.target.value; salvar(); } }, f.notas || ''));
   const apagar = UIS.edit ? h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', style: UIS.apagar === f.id ? { borderColor: 'var(--red)', color: 'var(--red)' } : null, onclick: () => { if (UIS.apagar === f.id) { S.fichas = S.fichas.filter(x => x.id !== f.id); if (!S.fichas.length) S.fichas = EXEMPLOS(); S.sel = S.fichas[0].id; UIS.apagar = null; UIS.edit = false; salvar(); renderTudo(); toast('Ficha apagada.'); } else { UIS.apagar = f.id; renderFicha(); setTimeout(() => { if (UIS.apagar === f.id) { UIS.apagar = null; renderFicha(); } }, 3000); } } }, UIS.apagar === f.id ? 'Toque de novo para apagar' : 'Apagar esta ficha')) : null;
-  fill($('#ficha'), cab, h('div', { class: 'duas' }, h('div', { class: 'pilha' }, atr, pericias), h('div', { class: 'pilha' }, habs, blocoRituais(f), blocoRelacoes(f), armas, itens, blocoProgressao(f), notas)), apagar);
+  fill($('#ficha'), cab, h('div', { class: 'duas' }, h('div', { class: 'pilha' }, atr, pericias), h('div', { class: 'pilha' }, habs, blocoRituais(f), blocoRelacoes(f), armas, itens, blocoProgressao(f), blocoApresentacao(f), notas)), apagar);
 }
 function formHab(f) {
   const c = UIS.nh ||= { nome: '', cat: 'Personalizada', origem: 'Mestre', custoPD: 0, custoPV: 0, momento: '', req: '', limite: 'livre', duracao: '', txt: '', efeito: 'nenhum', d: 'd4', alvo: 'todos' };
@@ -1360,6 +1372,16 @@ function linhaArma(f, a, i) {
     a.tipo !== 'corpo' ? h('label', null, 'Munição máx.', h('input', { id: `f-a${i}-mun`, type: 'number', min: 0, max: 200, value: a.munMax || 0, onchange: e => { a.munMax = +e.target.value || 0; a.mun = Math.min(a.mun ?? a.munMax, a.munMax); salvar(); renderFicha(); } })) : null,
     h('label', null, ' ', h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.armas.splice(i, 1); salvar(); renderFicha(); } }, 'Tirar arma'))));
   return h('div', { class: 'arma' }, kids);
+}
+function blocoApresentacao(f) {
+  const campo = (rot, k, ph, area) => h('label', { class: 'apr-campo' }, rot,
+    area ? h('textarea', { id: 'f-' + k, maxlength: 400, placeholder: ph, oninput: e => { f[k] = e.target.value; salvar(); } }, f[k] || '')
+         : h('input', { id: 'f-' + k, maxlength: 30, placeholder: ph, value: f[k] || '', oninput: e => { f[k] = e.target.value; salvar(); } }));
+  return h('div', { class: 'bloco apr' }, h('div', { class: 'fita' }, 'Apresentação'),
+    h('p', { class: 'apr-nota' }, 'É só isto (com o nome e o retrato) que os outros jogadores veem do seu personagem.'),
+    campo('Idade', 'idade', 'Ex.: 34 anos'),
+    campo('Aparência', 'aparencia', 'Ex.: alta, cabelo grisalho preso, jaqueta jeans gasta, cicatriz no queixo.', true),
+    campo('Breve descrição', 'resumo', 'Ex.: enfermeira do posto de saúde, fala pouco e repara em tudo.', true));
 }
 function carregarRetrato(f, file) {
   if (!/^image\//.test(file.type)) { toast('Escolha uma imagem (JPG, PNG ou WebP).'); return; }
@@ -2053,7 +2075,7 @@ const CR_PASSOS = ['Conceito', 'Perfil', 'Vocação', 'Atributos', 'Perícias', 
 const crRegras = t => t === 'agente' ? { atr: 6, atrMax: 'd12', per: 16, perMax: 'd10' } : { atr: 5, atrMax: 'd10', per: 7, perMax: 'd8' };
 const DESC_ATR = { fisico: 'força, coordenação, velocidade, fôlego', mente: 'raciocínio, estudo, percepção', emocao: 'vontade, presença, instinto' };
 const gastos = o => Object.values(o).reduce((a, d) => a + Math.max(0, ESCADA.indexOf(d)), 0);
-function crNovo() { return { passo: 0, nome: '', conceito: '', tipo: 'sobrevivente', perfil: '', ocupacao: '', ocPer: '', nivelHab: '', atr: { fisico: 'd4', mente: 'd4', emocao: 'd4' }, per: per(), apt: apt(), pvM: null, pdM: null, rel: [{ nome: '', pts: 2 }, { nome: '', pts: 1 }, { nome: '', pts: 0 }], itens: [] }; }
+function crNovo() { return { passo: 0, nome: '', conceito: '', idade: '', aparencia: '', tipo: 'sobrevivente', perfil: '', ocupacao: '', ocPer: '', nivelHab: '', atr: { fisico: 'd4', mente: 'd4', emocao: 'd4' }, per: per(), apt: apt(), pvM: null, pdM: null, rel: [{ nome: '', pts: 2 }, { nome: '', pts: 1 }, { nome: '', pts: 0 }], itens: [] }; }
 function crPerFinal(c) { const p = Object.assign({}, c.per), a = Object.assign({}, c.apt); if (c.ocPer) { if (c.ocPer.startsWith('apt:')) a[c.ocPer.slice(4)] = passo(a[c.ocPer.slice(4)], 1); else p[c.ocPer] = passo(p[c.ocPer], 1); } return { p, a }; }
 function crSug(c) { return formulaPVPD({ atr: c.atr, tipo: c.tipo, nivel: c.tipo === 'agente' ? 6 : 1 }); }
 function crHabs(c) { return [...new Set([...(PERFIS[c.perfil]?.[2] || []), OCUP[c.ocupacao], c.tipo === 'agente' ? c.nivelHab : null].filter(Boolean))]; }
@@ -2074,7 +2096,10 @@ const habTxt = k => h('div', { class: 'hab', html: '<strong>' + HAB[k].nome + (H
 const CR_ETAPA = [
   (c) => [h('h2', null, 'Quem é você?'), h('p', { class: 'lead' }, 'Comece pela ideia: um nome e uma frase que diga quem é essa pessoa antes de o paranormal entrar na vida dela.'),
     h('label', { class: 'cr-campo' }, 'Nome', h('input', { id: 'cr-nome', value: c.nome, maxlength: 40, placeholder: 'Ex.: Ailin', oninput: e => { c.nome = e.target.value; crAtual(c); } })),
-    h('label', { class: 'cr-campo' }, 'Conceito', h('textarea', { id: 'cr-conceito', placeholder: 'Ex.: apicultora do vilarejo, conhece cada trilha do pântano e tem medo do escuro.', oninput: e => { c.conceito = e.target.value; } }, c.conceito)),
+    h('label', { class: 'cr-campo' }, 'Conceito (breve descrição)', h('textarea', { id: 'cr-conceito', placeholder: 'Ex.: apicultora do vilarejo, conhece cada trilha da mata e tem medo do escuro.', oninput: e => { c.conceito = e.target.value; } }, c.conceito)),
+    h('label', { class: 'cr-campo' }, 'Idade', h('input', { id: 'cr-idade', value: c.idade || '', maxlength: 30, placeholder: 'Ex.: 34 anos', oninput: e => { c.idade = e.target.value; } })),
+    h('label', { class: 'cr-campo' }, 'Aparência', h('textarea', { id: 'cr-aparencia', maxlength: 400, placeholder: 'Ex.: alta, cabelo grisalho preso, jaqueta jeans gasta.', oninput: e => { c.aparencia = e.target.value; } }, c.aparencia || '')),
+    h('p', { class: 'apr-nota' }, 'Nome, idade, aparência e conceito são o que os outros jogadores veem do seu personagem.'),
     h('div', { class: 'campo' }, 'Tipo de personagem'),
     h('div', { class: 'opcoes' }, [['sobrevivente', 'Sobrevivente', 'Gente comum que esbarrou no paranormal. Começa no nível 1, com 5 passos de atributo e 7 de perícia.'], ['agente', 'Agente da Ordem', 'Investigador treinado da Ordo Realitas, nível 6, com as ferramentas da Ordem. 6 passos de atributo, 16 de perícia e uma habilidade de nível.']]
       .map(([k, n, t]) => opc(c.tipo === k, () => { if (c.tipo !== k) { c.tipo = k; c.atr = { fisico: 'd4', mente: 'd4', emocao: 'd4' }; c.per = per(); c.apt = apt(); c.nivelHab = ''; c.pvM = c.pdM = null; } renderCriar(); }, h('b', null, n), h('span', null, t)))),
@@ -2134,7 +2159,7 @@ function crPreview(c) {
 }
 function crCriar(c) {
   const { p, a } = crPerFinal(c), s = crSug(c), pv = c.pvM ?? s.pv, pd = c.pdM ?? s.pd, ag = c.tipo === 'agente';
-  const f = P({ nome: c.nome.trim() || 'Sem nome', tipo: c.tipo, nivel: ag ? 6 : 1, perfil: c.perfil, ocupacao: c.ocupacao, atr: Object.assign({}, c.atr), per: p, apt: a, pv: { v: pv, m: pv }, pd: { v: pd, m: pd }, hab: crHabs(c), itens: c.itens.map(nome => ({ nome, qtd: 1 })), rel: c.rel.filter(r => r.nome.trim()).map(r => rl(r.nome.trim(), r.pts)), notas: c.conceito, ferr: ag ? ferrAgente() : {} });
+  const f = P({ nome: c.nome.trim() || 'Sem nome', tipo: c.tipo, nivel: ag ? 6 : 1, perfil: c.perfil, ocupacao: c.ocupacao, atr: Object.assign({}, c.atr), per: p, apt: a, pv: { v: pv, m: pv }, pd: { v: pd, m: pd }, hab: crHabs(c), itens: c.itens.map(nome => ({ nome, qtd: 1 })), rel: c.rel.filter(r => r.nome.trim()).map(r => rl(r.nome.trim(), r.pts)), notas: c.conceito, resumo: c.conceito, idade: c.idade || '', aparencia: c.aparencia || '', ferr: ag ? ferrAgente() : {} });
   if (VOC[f.ocupacao]?.hab === 'ja-vi-pior') { f.pd.m = Math.max(1, f.pd.m - 2); f.pd.v = Math.min(f.pd.v, f.pd.m); }
   S.fichas.push(f); S.sel = f.id; UIS.cr = null; UIS.edit = false; UIS.roll = null; UIS.res = null; salvar(); irModo('mesa'); toast(f.nome + ' entrou na lista de fichas.');
 }
@@ -2342,22 +2367,27 @@ if (PONTE) {
   const renderTudo0 = renderTudo;
   renderTudo = function () {
     if (S.fichas.length) return renderTudo0();
-    renderModos(); renderCena(); renderLista(); semFicha();
+    renderModos(); renderCena(); renderLista(); if (!verOutro()) semFicha();
     if (UIS.modo === 'criar') renderCriar();
     if (UIS.modo === 'regras') renderRegras();
   };
   renderLista = function () {
     const gm = PONTE.isGM();
-    const item = f => h('button', { class: 'ficha-it' + (f.id === S.sel ? ' on' : ''), type: 'button', style: f.cor ? { '--cor-f': f.cor, '--red': clara(f.cor, 0.22) } : null, onclick: () => { S.sel = f.id; UIS.roll = null; salvarLocal(); irAba('ficha'); renderTudo(); } },
+    const item = f => h('button', { class: 'ficha-it' + (f.id === S.sel ? ' on' : ''), type: 'button', style: f.cor ? { '--cor-f': f.cor, '--red': clara(f.cor, 0.22) } : null, onclick: () => { S.sel = f.id; UIS.outro = null; UIS.roll = null; salvarLocal(); irAba('ficha'); renderTudo(); } },
       h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }),
       h('span', null, h('b', null, f.nome || 'Sem nome'), h('small', null, [(PERFIS[f.perfil]?.[0] || ''), f.ocupacao, 'nv ' + f.nivel].filter(Boolean).join(' · ') +
         (gm && f.papel === 'pj' ? ' · ' + (f.dono ? PONTE.nomeDe(f.dono).split(' ')[0] : 'sem jogador') : '') + (gm && f.papel !== 'pj' && !f.visivel ? ' · oculto' : ''))));
     const grupos = gm
       ? [['Personagens dos jogadores', S.fichas.filter(f => f.papel === 'pj')], ['NPCs', S.fichas.filter(f => f.papel === 'npc')], ['Inimigos', S.fichas.filter(f => f.papel === 'inimigo')]]
       : [['Suas fichas', S.fichas]];
+    const outros = gm ? [] : PONTE.outros();
+    const itemOutro = o => h('button', { class: 'ficha-it outro' + (UIS.outro === o.id ? ' on' : ''), type: 'button', style: o.cor ? { '--cor-f': o.cor } : null, onclick: () => { UIS.outro = o.id; irAba('ficha'); renderTudo(); } },
+      h('span', { class: 'av', html: o.retrato ? `<img src="${esc(o.retrato)}" alt="">` : esc(ini(o.nome)) }),
+      h('span', null, h('b', null, o.nome), h('small', null, [o.idade, 'de ' + String(o.jogador).split(' ')[0]].filter(Boolean).join(' · '))));
     fill($('#lista'),
       h('h3', null, 'Fichas'),
       ...grupos.filter(([, l]) => l.length).map(([g, l]) => [h('div', { class: 'grp-t' }, g), ...l.map(item)]),
+      outros.length ? [h('div', { class: 'grp-t' }, 'Outros personagens'), ...outros.map(itemOutro)] : null,
       h('div', { class: 'row', style: { marginTop: '10px' } },
         h('button', { class: 'btn red sm', type: 'button', onclick: () => irModo('criar') }, 'Criar passo a passo'),
         h('button', { class: 'btn sm', type: 'button', onclick: () => novaComo('pj') }, '+ Em branco'),
@@ -2365,8 +2395,24 @@ if (PONTE) {
         gm ? h('button', { class: 'btn sm', type: 'button', onclick: () => novaComo('inimigo') }, '+ Inimigo') : null),
       h('p', { class: 'nota-proto' }, gm ? 'Você vê todas as fichas da mesa. NPCs e inimigos ficam escondidos dos jogadores até você marcar “Visível”.' : 'Suas fichas ficam guardadas na mesa. O mestre vê e pode ajustar.'));
   };
+  /* jogador olhando o personagem de outro: só nome, retrato, idade, aparência e breve descrição */
+  function verOutro() {
+    if (PONTE.isGM() || !UIS.outro) return false;
+    const o = PONTE.outros().find(x => x.id === UIS.outro);
+    if (!o) { UIS.outro = null; return false; }
+    fill($('#ficha'), h('div', { class: 'perfil-outro', style: o.cor ? { '--cor-f': o.cor } : null },
+      h('div', { class: 'ponte' }, h('span', { class: 'tag-papel' }, 'PERSONAGEM DE ' + String(o.jogador).split(' ')[0].toUpperCase()), h('span', null, 'Você vê só a apresentação. O resto da ficha é do jogador e do mestre.'), h('span', { class: 'sp' }),
+        S.fichas.length ? h('button', { class: 'btn sm', type: 'button', onclick: () => { UIS.outro = null; renderTudo(); } }, 'Voltar para a sua ficha') : null),
+      h('div', { class: 'po-corpo' },
+        h('div', { class: 'retrato' }, o.retrato ? h('img', { src: o.retrato, alt: 'Retrato de ' + o.nome }) : h('div', { class: 'ini' }, ini(o.nome))),
+        h('div', { class: 'po-txt' }, h('h2', null, o.nome), o.idade ? h('p', { class: 'po-idade' }, o.idade) : null,
+          h('div', { class: 'po-k' }, 'Aparência'), h('p', null, o.aparencia || 'O jogador ainda não descreveu.'),
+          h('div', { class: 'po-k' }, 'Quem é'), h('p', null, o.resumo || 'O jogador ainda não escreveu.')))));
+    return true;
+  }
   const renderFicha0 = renderFicha;
   renderFicha = function () {
+    if (verOutro()) return;
     renderFicha0();
     try { const fx = F(); if (fx && PONTE.tema && fx.dono && fx.dono === PONTE.me().uid) PONTE.tema(fx.cor); } catch (e) {}
     const f = F(); if (!f) return;
@@ -2389,6 +2435,7 @@ if (PONTE) {
     $('#ficha').prepend(barra);
   };
   const off = PONTE.onMuda(recebe);
+  const off3 = PONTE.onOutros && PONTE.onOutros(() => { if (!PONTE.isGM()) { renderLista(); if (UIS.outro) renderTudo(); } });
   const off2 = PONTE.onRegras(r => {
     if (!r || r === ultimaRegra) return;
     ultimaRegra = r;
