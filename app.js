@@ -18,6 +18,9 @@
     return new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
   };
   const I = {
+    central: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/><path d="M3.5 12H5M19 12h1.5M12 3.5V5"/></svg>',
+    sino: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+    lapis: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/></svg>',
     mapa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>',
     fichas: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><circle cx="12" cy="9" r="2.6"/><path d="M8 16.5c.8-2 2.2-3 4-3s3.2 1 4 3"/></svg>',
     mesa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg>',
@@ -98,7 +101,7 @@
       D.pedidos.__ok = true; render.mesa(); badges();
     };
     if (SV.isGM) db.on('pedidos', pedidos); else db.on('pedidos/' + me, pedidos);
-    db.on('rolagens', v => { D.rolagens = v || {}; render.mesa(); });
+    db.on('rolagens', v => { D.rolagens = v || {}; render.mesa(); avisa('rolagens'); });
     if (SV.isGM) db.on('mesa/banidos', v => { D.banidos = v || {}; render.mesa(); });
   }
 
@@ -112,12 +115,23 @@
     if (f.papel !== 'pj' && f.visivel) SV.db.set('npcs/' + f.id, { nome: f.nome || 'Sem nome', papel: f.papel, ocupacao: f.ocupacao || '', cor: f.cor || '', retrato: f.retrato || '', t: Date.now() }).catch(() => {});
     else if (D.npcs[f.id]) SV.db.remove('npcs/' + f.id).catch(() => {});
   }
+  /* nome curto da peça: sem "Seu", "Dona", "Dr."; o NPC do catálogo traz o dele */
+  const HONRA = /^(seu|dona|dr\.?|dra\.?|padre|pe\.|soldado|cabo|prof\.?|professora|sr\.?|sra\.?)$/i;
+  function nomeCurto(f) {
+    if (f.npc && f.npc.curto) return String(f.npc.curto).slice(0, 22);
+    const p = String(f.nome || 'Sem nome').trim().split(/\s+/);
+    while (p.length > 1 && HONRA.test(p[0])) p.shift();
+    return (p[0] || 'Sem nome').slice(0, 22);
+  }
+  /* peça de NPC ou inimigo só aparece para os jogadores quando o mestre libera (pecaVisivel);
+     fichas antigas, sem essa marca, seguem o "Visível" como antes */
+  const pecaPublica = f => f.papel === 'pj' || !!(f.pecaVisivel ?? f.visivel);
   function atualizaPecaDaFicha(f) {
     const id = 'f_' + f.id, p = D.pecas[id] || D.pecasGM[id];
     if (!p) return;
-    const nome = String(f.nome || 'Sem nome').split(' ')[0].slice(0, 22), cor = f.cor || p.cor;
-    const pub = f.papel === 'pj' || f.visivel;
-    if (SV.isGM && pub !== !!D.pecas[id]) { M.setVisivel(id, pub); return; }
+    const nome = nomeCurto(f), cor = f.cor || p.cor;
+    const pub = pecaPublica(f);
+    if (SV.isGM && pub !== !!D.pecas[id]) { M.setVisivel(id, pub, true); return; }
     if (p.nome !== nome || p.cor !== cor) SV.M.editar(id, { nome, cor });
   }
   let perfisEnviados = null;
@@ -134,6 +148,23 @@
     perfisEnviados = j;
     (Object.keys(out).length ? SV.db.set('users/' + me + '/pj', out) : SV.db.remove('users/' + me + '/pj')).catch(() => { perfisEnviados = null; });
   }
+  /* grava uma ficha no banco, só se mudou */
+  function grava(f) {
+    const me = SV.me.uid;
+    if (!SV.isGM) { f.dono ||= me; f.papel = 'pj'; }
+    f.papel ||= 'pj'; f.dono ??= ''; f.criado ||= Date.now();
+    const json = JSON.stringify(f);
+    if (enviado[f.id] === json) return false;
+    if (!SV.isGM && f.dono !== me) return false;
+    enviado[f.id] = json;
+    const t = Date.now();
+    SV.db.set('fichas/' + f.id, { dono: f.dono || '', papel: f.papel, visivel: !!f.visivel, nome: String(f.nome || ''), json, t })
+      .catch(e => { delete enviado[f.id]; SV.toast('A ficha de ' + (f.nome || 'alguém') + ' não foi salva no banco (' + (e.code || e.message) + ').', 'err'); });
+    D.fichas[f.id] = { meta: { dono: f.dono, t }, f: JSON.parse(json) };
+    npcPublico(f); atualizaPecaDaFicha(f);
+    return true;
+  }
+  let pedidoAbrir = null;
   SV.F = {
     /* o que os outros jogadores mostram dos personagens deles: nome, retrato, idade, aparência, breve descrição */
     outros() {
@@ -156,16 +187,7 @@
       for (const f of fs) {
         if (!f || !f.id) continue;
         vistos.add(f.id);
-        if (!SV.isGM) { f.dono ||= me; f.papel = 'pj'; }
-        f.papel ||= 'pj'; f.dono ??= ''; f.criado ||= Date.now();
-        const json = JSON.stringify(f);
-        if (enviado[f.id] === json) continue;
-        if (!SV.isGM && f.dono !== me) continue;
-        enviado[f.id] = json;
-        SV.db.set('fichas/' + f.id, { dono: f.dono || '', papel: f.papel, visivel: !!f.visivel, nome: String(f.nome || ''), json, t: Date.now() })
-          .catch(e => { delete enviado[f.id]; SV.toast('A ficha de ' + (f.nome || 'alguém') + ' não foi salva no banco (' + (e.code || e.message) + ').', 'err'); });
-        D.fichas[f.id] = { meta: { dono: f.dono }, f: JSON.parse(json) };
-        npcPublico(f); atualizaPecaDaFicha(f);
+        grava(f);
       }
       setTimeout(publicaPerfis, 0);
       for (const id of Object.keys(D.fichas)) {
@@ -180,21 +202,30 @@
     },
     rolou(e) {
       if (!e) return;
-      const f = lista().find(x => x.nome === e.quem);
+      const fs = lista(), f = (e.fid && fs.find(x => x.id === e.fid)) || fs.find(x => x.nome === e.quem);
       if (SV.isGM && f && f.papel !== 'pj' && !f.visivel) return; // rolagem secreta do mestre
-      const r = { quem: String(e.quem || ''), o: String(e.o || ''), tot: String(e.tot ?? '').slice(0, 12), v: e.v || '', vt: String(e.vt || ''), det: String(e.det || ''), t: e.t || Date.now(), por: SV.me.uid };
+      const r = { quem: String(e.quem || ''), o: String(e.o || ''), tot: String(e.tot ?? '').slice(0, 12), v: e.v || '', vt: String(e.vt || ''), det: String(e.det || ''), t: e.t || Date.now(), por: SV.me.uid,
+        fid: f ? f.id : '', cat: String(e.cat || ''), ex: Array.isArray(e.ex) ? e.ex.map(String).join(' · ') : String(e.ex || ''), custo: String(e.custo || ''), dpd: +e.dpd || 0, dpv: +e.dpv || 0 };
       SV.db.push('rolagens/' + SV.me.uid, r).catch(() => {});
     },
-    porNoMapa(fid) {
+    porNoMapa(fid, focar = true) {
       const f = D.fichas[fid] && D.fichas[fid].f;
       if (!f) { SV.toast('Salve a ficha antes de pôr no mapa.'); return; }
       const id = 'f_' + fid;
       if (!(D.pecas[id] || D.pecasGM[id])) {
-        SV.M.novaPeca(id, { nome: String(f.nome || 'Sem nome').split(' ')[0].slice(0, 22), cor: f.cor || '', dono: f.dono || '', tipo: f.papel || 'pj', ficha: fid }, f.papel === 'pj' || f.visivel);
+        SV.M.novaPeca(id, { nome: nomeCurto(f), cor: f.cor || '', dono: f.dono || '', tipo: f.papel || 'pj', ficha: fid }, pecaPublica(f));
       }
-      SV.M.focar(id); irAba('mapa');
+      if (focar) { SV.M.focar(id); irAba('mapa'); }
     },
     temPeca: fid => !!(D.pecas['f_' + fid] || D.pecasGM['f_' + fid]),
+    /* onde está a peça da ficha: no mapa ou não, e se os jogadores veem */
+    mapaDe(fid) { const id = 'f_' + fid, p = D.pecas[id] || D.pecasGM[id]; return { tem: !!p, visivel: !!D.pecas[id], posto: !!p && p.x != null }; },
+    tirarDoMapa(fid) { M.remover('f_' + fid); },
+    onPecas(cb) { return ouve('pecas', () => cb()); },
+    /* a central pede para abrir uma ficha */
+    abrir(fid) { pedidoAbrir = fid; avisa('abrir'); irAba('fichas'); },
+    pedidoAbrir() { const x = pedidoAbrir; pedidoAbrir = null; return x; },
+    onAbrir(cb) { return ouve('abrir', () => { const x = pedidoAbrir; if (x) { pedidoAbrir = null; cb(x); } }); },
     regras: () => D.regras,
     onRegras(cb) { return ouve('regras', () => cb(D.regras)); },
     tema: cor => SV.tema(cor),
@@ -276,12 +307,14 @@
       if (SV.isGM) SV.db.remove('mesa/travas/' + id).catch(() => {});
     },
     setTrava(id, on) { if (SV.isGM) on ? SV.db.set('mesa/travas/' + id, true) : SV.db.remove('mesa/travas/' + id); },
-    async setVisivel(id, on) {
+    async setVisivel(id, on, deFicha) {
       if (!SV.isGM) return;
       const de = on ? 'pecas_gm/' : 'pecas/', para = on ? 'pecas/' : 'pecas_gm/';
       const p = (on ? D.pecasGM : D.pecas)[id];
       if (!p) return;
       await SV.db.set(para + id, p); await SV.db.remove(de + id);
+      /* o mestre mostrou ou escondeu no mapa: a ficha guarda a decisão, para a próxima gravação não desfazer */
+      if (!deFicha && String(id).startsWith('f_')) { const x = D.fichas[id.slice(2)]; if (x && x.f && x.f.papel !== 'pj' && pecaPublica(x.f) !== !!on) grava(Object.assign({}, x.f, { pecaVisivel: !!on })); }
     },
     minhaPeca() {
       const ps = Object.entries(D.pecas).filter(([, p]) => p && p.dono === SV.me.uid);
@@ -317,13 +350,15 @@
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
     if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=9' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=14' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=15' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
     if (a === 'notas') abaNotas();
+    if (a === 'central' && SV.central) SV.central.aba();
   }
   SV.irAba = irAba;
   function montaAbas() {
+    if (SV.isGM && !ABAS.some(x => x[0] === 'central')) ABAS.splice(2, 0, ['central', 'Central', I.central]);
     $('#abas').innerHTML = ABAS.map(([k, n, ic]) => `<button type="button" role="tab" data-aba="${k}" aria-controls="p-${k}">${ic}<span class="t">${n}</span><span class="bolinha" hidden></span></button>`).join('');
     $('#abas').onclick = e => { const b = e.target.closest('[data-aba]'); if (b) irAba(b.dataset.aba); };
     $('#f-mapa').addEventListener('load', () => { const c = $('#p-mapa .carregando-mapa'); if (c) c.remove(); });
@@ -346,7 +381,12 @@
     c.onclick = e => { e.stopPropagation(); const m = $('#menu'); m.hidden = !m.hidden; c.setAttribute('aria-expanded', String(!m.hidden)); if (!m.hidden) render.menu(); };
     document.addEventListener('click', e => { const m = $('#menu'); if (!m.hidden && !m.contains(e.target) && e.target !== c) { m.hidden = true; c.setAttribute('aria-expanded', 'false'); } });
     $('#b-voz').onclick = () => { const v = $('#voz'); v.hidden = !v.hidden; $('#b-voz').setAttribute('aria-expanded', String(!v.hidden)); render.voz(); };
-    addEventListener('keydown', e => { if (e.key === 'Escape') { $('#menu').hidden = true; $('#voz').hidden = true; } });
+    addEventListener('keydown', e => { if (e.key === 'Escape') { $('#menu').hidden = true; $('#voz').hidden = true; fechaNotaRapida(); } });
+    if (SV.isGM) {
+      const s = $('#b-sino'), nb = $('#b-nota');
+      if (s) { s.hidden = false; s.innerHTML = I.sino + '<span class="bolinha" hidden></span>'; s.onclick = () => { irAba('central'); SV.central && SV.central.ver('notif'); }; }
+      if (nb) { nb.hidden = false; nb.innerHTML = I.lapis; nb.onclick = e => { e.stopPropagation(); notaRapida(); }; }
+    }
   }
 
   /* ==========================================================
@@ -545,28 +585,38 @@
      anotações: cada pessoa tem o seu caderno (notas/<uid>), que só ela lê e escreve.
      Uma cópia fica no navegador: abre na hora e nada se perde se a conexão cair.
      ========================================================== */
-  const N = { lista: {}, aberta: null, busca: '', acesso: null, timers: {}, voo: {}, apagar: null, lendo: false, tApagar: 0 };
+  const N = { lista: {}, aberta: null, busca: '', cat: '', acesso: null, timers: {}, voo: {}, apagar: null, lendo: false, tApagar: 0 };
+  const CATS_N = ['NPCs', 'Locais', 'Pistas', 'Segredos', 'Eventos', 'Combates', 'Ideias', 'Planejamento', 'Anotações gerais'];
   const chaveN = () => 'notas.' + SV.me.uid;
+  const raizN = () => 'notas/' + SV.me.uid;
+  const pathN = id => raizN() + '/n' + (id ? '/' + id : '');
   const guardaN = () => SV.ls.set(chaveN(), N.lista);
   const vaziaN = n => !n || (!String(n.titulo || '').trim() && !String(n.texto || '').trim());
   const semAcento = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const nPalavras = t => (String(t || '').match(/\S+/g) || []).length;
   const celular = () => matchMedia('(max-width: 700px)').matches;
+  const dataHora = t => t ? new Date(t).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const limpaN = n => ({ titulo: String(n.titulo || ''), texto: String(n.texto || ''), t: +n.t || 0, criado: +n.criado || +n.t || 0, cat: String(n.cat || ''), fixa: !!n.fixa, sessao: n.sessao === '' || n.sessao == null ? '' : +n.sessao || '' });
 
+  /* o caderno mora em notas/<uid>/n; o que ficou no lugar antigo (notas/<uid>/<id>) muda de endereço uma vez */
   function ligaNotas() {
     const salvas = SV.ls.get(chaveN(), {});
     N.lista = salvas && typeof salvas === 'object' ? salvas : {};
     N.aberta = SV.ls.get('notas.aberta.' + SV.me.uid, null);
-    const path = 'notas/' + SV.me.uid;
-    SV.db.get(path).then(v => { N.acesso = true; juntaNotas(v); }, () => { N.acesso = false; desenhaNotas(); });
-    SV.db.on(path, v => { if (N.acesso === false || (v == null && N.acesso !== true)) return; juntaNotas(v); });
+    SV.db.get(raizN()).then(async v => {
+      N.acesso = true;
+      const velhas = Object.entries(v || {}).filter(([k, x]) => k !== 'n' && k !== 'm' && x && typeof x === 'object' && ('texto' in x || 'titulo' in x));
+      if (velhas.length) { const upd = {}; for (const [k, x] of velhas) { upd['n/' + k] = x; upd[k] = null; } try { await SV.db.update(raizN(), upd); } catch (e) { console.warn('[notas] mudança', e); } }
+      juntaNotas(Object.assign({}, (v && v.n) || {}, Object.fromEntries(velhas)));
+      SV.db.on(pathN(), x => { if (N.acesso === false) return; juntaNotas(x); });
+    }, () => { N.acesso = false; desenhaNotas(); });
     desenhaNotas();
   }
   /* o banco manda o caderno; mudanças daqui que ainda não chegaram lá continuam valendo */
   function juntaNotas(remoto) {
     if (remoto) N.acesso = true;
     const out = {};
-    for (const [id, n] of Object.entries(remoto || {})) if (n && typeof n === 'object') out[id] = { titulo: String(n.titulo || ''), texto: String(n.texto || ''), t: +n.t || 0, criado: +n.criado || +n.t || 0 };
+    for (const [id, n] of Object.entries(remoto || {})) if (n && typeof n === 'object') out[id] = limpaN(n);
     for (const [id, n] of Object.entries(N.lista)) {
       if (!n || !n.pend) continue;
       if (!out[id] || (n.t || 0) >= (out[id].t || 0)) {
@@ -575,16 +625,16 @@
       }
     }
     N.lista = out; guardaN();
-    desenhaNotas();
+    desenhaNotas(); desenhaRapida();
   }
   const agendaN = (id, ms = 700) => { clearTimeout(N.timers[id]); N.timers[id] = setTimeout(() => enviaN(id), ms); };
   function enviaN(id) {
     clearTimeout(N.timers[id]); delete N.timers[id];
     const n = N.lista[id]; if (!n) return;
     if (N.acesso === false) { statusN(); return; }
-    const t = n.t, dados = { titulo: String(n.titulo || ''), texto: String(n.texto || ''), t, criado: n.criado || t };
+    const t = n.t, dados = limpaN(n);
     N.voo[id] = t; statusN();
-    SV.db.set('notas/' + SV.me.uid + '/' + id, dados).then(() => {
+    SV.db.set(pathN(id), dados).then(() => {
       if (N.voo[id] === t) delete N.voo[id];
       const m = N.lista[id]; if (m && m.t === t) { delete m.pend; guardaN(); }
       statusN();
@@ -595,16 +645,21 @@
     });
   }
   const descarregaN = () => { for (const id of Object.keys(N.timers)) enviaN(id); };
+  function mexeN(id, campos) {
+    const n = N.lista[id]; if (!n) return;
+    Object.assign(n, campos, { t: Date.now(), pend: true }); guardaN();
+    if (vaziaN(n)) { clearTimeout(N.timers[id]); delete N.timers[id]; } else agendaN(id);
+    statusN();
+  }
   function statusN(erro) {
-    const el = $('#n-status'); if (!el) return;
     const pend = Object.keys(N.timers).length || Object.keys(N.voo).length;
-    el.textContent = N.acesso === false ? 'Salva neste navegador' : erro ? 'Sem conexão: guardada neste navegador' : pend ? 'Salvando…' : 'Salva';
-    el.classList.toggle('ok', !pend && N.acesso !== false && !erro);
+    const txt = N.acesso === false ? 'Salva neste navegador' : erro ? 'Sem conexão: guardada neste navegador' : pend ? 'Salvando…' : 'Salva';
+    for (const el of [$('#n-status'), $('#nr-status')]) { if (!el) continue; el.textContent = txt; el.classList.toggle('ok', !pend && N.acesso !== false && !erro); }
   }
   function apagaN(id) {
     clearTimeout(N.timers[id]); delete N.timers[id];
     delete N.lista[id]; guardaN();
-    if (N.acesso !== false) SV.db.remove('notas/' + SV.me.uid + '/' + id).catch(() => {});
+    if (N.acesso !== false) SV.db.remove(pathN(id)).catch(() => {});
     if (N.aberta === id) { N.aberta = null; SV.ls.set('notas.aberta.' + SV.me.uid, null); }
   }
   function abreN(id, focar) {
@@ -617,16 +672,19 @@
     desenhaEditorN(true); desenhaListaN();
     if (focar) { const el = $(focar); if (el) el.focus(); }
   }
-  function novaN() {
+  const sessaoAtual = () => (SV.isGM && SV.central && SV.central.sessao()) || '';
+  function novaN(base) {
     const id = SV.uid(), agora = Date.now();
-    N.lista[id] = { titulo: '', texto: '', t: agora, criado: agora, pend: true };
+    N.lista[id] = Object.assign({ titulo: '', texto: '', t: agora, criado: agora, cat: N.cat || '', fixa: false, sessao: sessaoAtual(), pend: true }, base || {});
     guardaN(); N.busca = ''; const b = $('#n-busca'); if (b) b.value = '';
-    abreN(id, '#n-titulo');
+    return id;
   }
   function ordemN() {
     const q = semAcento(N.busca).trim();
-    return Object.entries(N.lista).filter(([, n]) => n && (!q || semAcento(n.titulo + ' ' + n.texto).includes(q))).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+    return Object.entries(N.lista).filter(([, n]) => n && (!N.cat || (N.cat === '—' ? !n.cat : n.cat === N.cat)) && (!q || semAcento(n.titulo + ' ' + n.texto + ' ' + (n.cat || '')).includes(q)))
+      .sort((a, b) => (!!b[1].fixa - !!a[1].fixa) || (b[1].t || 0) - (a[1].t || 0));
   }
+  const catsUsadas = () => [...new Set([...CATS_N, ...Object.values(N.lista).map(n => n && n.cat).filter(Boolean)])];
 
   function montaNotas() {
     const box = $('#p-notas'); if (!box || box.dataset.ok) return;
@@ -636,16 +694,19 @@
         <div class="cartao n-lista"><h2>Caderno <small id="n-conta"></small></h2>
           <button class="btn red" type="button" data-n="nova">+ Nova anotação</button>
           <input class="campo" type="search" id="n-busca" placeholder="Procurar nas anotações" aria-label="Procurar nas anotações" autocomplete="off">
+          <select class="campo" id="n-filtro" aria-label="Filtrar por categoria"></select>
           <div class="n-itens" id="n-itens" role="list"></div></div>
         <div class="cartao n-edit" id="n-edit"></div>
-      </div>`;
+      </div>
+      <datalist id="n-cats"></datalist>`;
     box.addEventListener('click', e => {
       const it = e.target.closest('[data-nota]');
       if (it) { abreN(it.dataset.nota); return; }
       const b = e.target.closest('[data-n]'); if (!b) return;
       const a = b.dataset.n;
-      if (a === 'nova') novaN();
+      if (a === 'nova') abreN(novaN(), '#n-titulo');
       if (a === 'voltar') { if (N.aberta && vaziaN(N.lista[N.aberta])) apagaN(N.aberta); N.lendo = false; desenhaNotas(); }
+      if (a === 'fixar') { const n = N.lista[N.aberta]; if (n) { mexeN(N.aberta, { fixa: !n.fixa }); barraN(); desenhaListaN(); } }
       if (a === 'apagar') {
         if (N.apagar !== N.aberta) { N.apagar = N.aberta; clearTimeout(N.tApagar); N.tApagar = setTimeout(() => { N.apagar = null; barraN(); }, 5000); barraN(); return; }
         const nome = (N.lista[N.aberta] && N.lista[N.aberta].titulo) || 'A anotação';
@@ -658,12 +719,17 @@
     box.addEventListener('input', e => {
       const el = e.target;
       if (el.id === 'n-busca') { N.busca = el.value; desenhaListaN(); return; }
-      if (el.id !== 'n-titulo' && el.id !== 'n-texto') return;
-      const n = N.lista[N.aberta]; if (!n) return;
-      if (el.id === 'n-titulo') n.titulo = el.value; else n.texto = el.value;
-      n.t = Date.now(); n.pend = true; guardaN();
-      if (vaziaN(n)) { clearTimeout(N.timers[N.aberta]); delete N.timers[N.aberta]; } else agendaN(N.aberta);
-      statusN(); metaN(); desenhaListaN();
+      if (!N.lista[N.aberta]) return;
+      if (el.id === 'n-titulo') mexeN(N.aberta, { titulo: el.value });
+      else if (el.id === 'n-texto') mexeN(N.aberta, { texto: el.value });
+      else if (el.id === 'n-cat') mexeN(N.aberta, { cat: el.value.trim() });
+      else if (el.id === 'n-sessao') mexeN(N.aberta, { sessao: el.value === '' ? '' : Math.max(0, +el.value || 0) });
+      else return;
+      metaN(); desenhaListaN();
+    });
+    box.addEventListener('change', e => {
+      if (e.target.id === 'n-filtro') { N.cat = e.target.value; desenhaListaN(); }
+      if (e.target.id === 'n-cat') { desenhaFiltroN(); }
     });
     box.addEventListener('keydown', e => {
       if (e.target.id === 'n-titulo' && e.key === 'Enter') { e.preventDefault(); const t = $('#n-texto'); if (t) t.focus(); }
@@ -677,6 +743,12 @@
     if (!N.aberta && !celular()) { const p = ordemN()[0]; if (p) N.aberta = p[0]; }
     desenhaNotas();
   }
+  function desenhaFiltroN() {
+    const sel = $('#n-filtro'), dl = $('#n-cats'); if (!sel) return;
+    const cats = catsUsadas(), n = c => Object.values(N.lista).filter(x => x && (c === '—' ? !x.cat : x.cat === c)).length;
+    sel.innerHTML = `<option value="">Todas as categorias</option>` + cats.map(c => `<option value="${esc(c)}"${N.cat === c ? ' selected' : ''}>${esc(c)}${n(c) ? ' (' + n(c) + ')' : ''}</option>`).join('') + `<option value="—"${N.cat === '—' ? ' selected' : ''}>Sem categoria</option>`;
+    if (dl) dl.innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+  }
   function desenhaNotas() {
     const box = $('#p-notas'); if (!box || !box.dataset.ok) return;
     if (N.aberta && !N.lista[N.aberta]) N.aberta = null;
@@ -684,7 +756,7 @@
       ? 'Por enquanto, as anotações ficam salvas só neste navegador.'
       : 'Só você vê. Ficam salvas na sua conta e aparecem em qualquer aparelho em que você entrar.';
     $('#notas').classList.toggle('lendo', !!N.lendo);
-    desenhaListaN(); desenhaEditorN();
+    desenhaFiltroN(); desenhaListaN(); desenhaEditorN();
   }
   function desenhaListaN() {
     const box = $('#n-itens'); if (!box) return;
@@ -693,20 +765,21 @@
     const st = box.scrollTop;
     box.innerHTML = l.length ? l.map(([id, n]) => {
       const prev = String(n.texto || '').split('\n').map(x => x.trim()).find(Boolean) || '';
-      return `<button type="button" role="listitem" class="n-it${id === N.aberta ? ' on' : ''}" data-nota="${esc(id)}"${id === N.aberta ? ' aria-current="true"' : ''}>
-        <b>${esc(String(n.titulo || '').trim() || 'Sem título')}</b>${prev ? `<span>${esc(prev)}</span>` : ''}<small>${esc(quando(n.t) || '')}</small></button>`;
+      const meta = [n.cat, n.sessao ? 'sessão ' + n.sessao : '', quando(n.t)].filter(Boolean).join(' · ');
+      return `<button type="button" role="listitem" class="n-it${id === N.aberta ? ' on' : ''}${n.fixa ? ' fixa' : ''}" data-nota="${esc(id)}"${id === N.aberta ? ' aria-current="true"' : ''}>
+        <b>${n.fixa ? '<i class="n-pino" aria-label="Fixada"></i>' : ''}${esc(String(n.titulo || '').trim() || 'Sem título')}</b>${prev ? `<span>${esc(prev)}</span>` : ''}<small>${esc(meta)}</small></button>`;
     }).join('') : `<p class="vazio">${todas ? 'Nada encontrado.' : 'Nenhuma anotação ainda.'}</p>`;
     box.scrollTop = st;
   }
   function barraN() {
-    const el = $('#n-acoes'); if (!el) return;
+    const el = $('#n-acoes'), n = N.lista[N.aberta]; if (!el || !n) return;
     const conf = N.apagar && N.apagar === N.aberta;
-    el.innerHTML = `<button class="btn sm${conf ? ' red' : ''}" type="button" data-n="apagar">${conf ? 'Confirmar: apagar?' : 'Apagar'}</button>${conf ? '<button class="btn sm" type="button" data-n="cancelar">Cancelar</button>' : ''}`;
+    el.innerHTML = `<button class="btn sm${n.fixa ? ' on' : ''}" type="button" data-n="fixar" aria-pressed="${n.fixa ? 'true' : 'false'}">${n.fixa ? 'Fixada' : 'Fixar'}</button><button class="btn sm${conf ? ' red' : ''}" type="button" data-n="apagar">${conf ? 'Confirmar: apagar?' : 'Apagar'}</button>${conf ? '<button class="btn sm" type="button" data-n="cancelar">Cancelar</button>' : ''}`;
   }
   function metaN() {
     const el = $('#n-meta'), n = N.lista[N.aberta]; if (!el || !n) return;
     const p = nPalavras(n.texto);
-    el.textContent = (p === 1 ? '1 palavra' : p + ' palavras') + (n.criado ? ' · criada em ' + new Date(n.criado).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '');
+    el.textContent = (p === 1 ? '1 palavra' : p + ' palavras') + (n.criado ? ' · criada em ' + dataHora(n.criado) : '') + (n.t && n.t - (n.criado || 0) > 60e3 ? ' · editada em ' + dataHora(n.t) : '');
   }
   function desenhaEditorN(forcar) {
     const ed = $('#n-edit'); if (!ed) return;
@@ -714,23 +787,67 @@
     if (!n) {
       ed.dataset.id = '';
       ed.innerHTML = `<div class="n-vazia"><button class="btn sm n-voltar" type="button" data-n="voltar">← Anotações</button>
-        <p>${Object.keys(N.lista).length ? 'Escolha uma anotação ao lado ou comece outra.' : 'Seu caderno está vazio. Anote pistas, nomes, lugares, teorias e o que o mestre contou. Só você vê.'}</p>
+        <p>${Object.keys(N.lista).length ? 'Escolha uma anotação ao lado ou comece outra.' : (SV.isGM ? 'Seu caderno de mestre está vazio. Anote NPCs, locais, pistas, segredos e ideias. Só você vê.' : 'Seu caderno está vazio. Anote pistas, nomes, lugares, teorias e o que o mestre contou. Só você vê.')}</p>
         <button class="btn red" type="button" data-n="nova">+ Nova anotação</button></div>`;
       return;
     }
-    const ti = $('#n-titulo'), tx = $('#n-texto');
+    const ti = $('#n-titulo'), tx = $('#n-texto'), ca = $('#n-cat'), se = $('#n-sessao');
     if (!forcar && ed.dataset.id === id && ti && tx) {
       /* chegou mudança de outro aparelho: só atualiza o campo que não está sendo digitado */
       if (document.activeElement !== ti && ti.value !== n.titulo) ti.value = n.titulo;
       if (document.activeElement !== tx && tx.value !== n.texto) tx.value = n.texto;
-      metaN(); statusN(); return;
+      if (ca && document.activeElement !== ca && ca.value !== (n.cat || '')) ca.value = n.cat || '';
+      if (se && document.activeElement !== se && se.value !== String(n.sessao ?? '')) se.value = n.sessao ?? '';
+      metaN(); statusN(); barraN(); return;
     }
     ed.dataset.id = id;
     ed.innerHTML = `<div class="n-barra"><button class="btn sm n-voltar" type="button" data-n="voltar">← Anotações</button><span class="n-meta" id="n-meta"></span><span class="n-status" id="n-status" aria-live="polite"></span><span class="n-acoes" id="n-acoes"></span></div>
+      <div class="n-campos"><label>Categoria <input class="campo" id="n-cat" list="n-cats" placeholder="Sem categoria" autocomplete="off"></label>${SV.isGM ? '<label>Sessão <input class="campo" id="n-sessao" type="number" min="0" inputmode="numeric" placeholder="—"></label>' : ''}</div>
       <input class="n-titulo" id="n-titulo" placeholder="Título" aria-label="Título da anotação" autocomplete="off">
-      <textarea class="n-texto" id="n-texto" placeholder="Escreva aqui: pistas, nomes, lugares, teorias, o que o mestre contou…" aria-label="Texto da anotação"></textarea>`;
-    $('#n-titulo').value = n.titulo || ''; $('#n-texto').value = n.texto || '';
+      <textarea class="n-texto" id="n-texto" placeholder="${SV.isGM ? 'Escreva aqui: NPCs, locais, pistas, segredos, ideias para a próxima sessão…' : 'Escreva aqui: pistas, nomes, lugares, teorias, o que o mestre contou…'}" aria-label="Texto da anotação"></textarea>`;
+    $('#n-titulo').value = n.titulo || ''; $('#n-texto').value = n.texto || ''; $('#n-cat').value = n.cat || '';
+    if ($('#n-sessao')) $('#n-sessao').value = n.sessao ?? '';
     metaN(); statusN(); barraN();
+  }
+
+  /* nota rápida do mestre: uma janelinha que salva sozinha, sem sair da tela em que está */
+  function notaRapida() {
+    let p = $('#nota-rapida');
+    if (p && !p.hidden) { fechaNotaRapida(); return; }
+    if (!p) {
+      p = document.createElement('div'); p.id = 'nota-rapida'; p.className = 'nota-rapida'; p.setAttribute('role', 'dialog'); p.setAttribute('aria-label', 'Nota rápida');
+      p.innerHTML = `<div class="nr-topo"><b>Nota rápida</b><span class="n-status" id="nr-status" aria-live="polite"></span><button class="btn sm" type="button" data-nr="nova" title="Começar outra nota rápida">Nova</button><button class="btn sm" type="button" data-nr="abrir">Abrir no caderno</button><button class="nr-x" type="button" data-nr="fechar" aria-label="Fechar">×</button></div>
+        <textarea id="nr-texto" placeholder="Escreva. Salva sozinho." aria-label="Texto da nota rápida"></textarea><small id="nr-meta"></small>`;
+      document.body.append(p);
+      p.addEventListener('input', e => { if (e.target.id !== 'nr-texto') return; const id = rapidaId(true); mexeN(id, { texto: e.target.value }); desenhaListaN(); metaRapida(); });
+      p.addEventListener('click', e => {
+        const b = e.target.closest('[data-nr]'); if (!b) return;
+        if (b.dataset.nr === 'fechar') fechaNotaRapida();
+        if (b.dataset.nr === 'nova') { SV.ls.set('nota.rapida', null); desenhaRapida(true); $('#nr-texto').focus(); }
+        if (b.dataset.nr === 'abrir') { const id = SV.ls.get('nota.rapida', null); fechaNotaRapida(); irAba('notas'); if (id && N.lista[id]) abreN(id); }
+      });
+      document.addEventListener('click', e => { const q = $('#nota-rapida'); if (q && !q.hidden && !q.contains(e.target) && !e.target.closest('#b-nota')) fechaNotaRapida(); });
+    }
+    p.hidden = false; desenhaRapida(true);
+    setTimeout(() => { const t = $('#nr-texto'); if (t) { t.focus(); t.selectionStart = t.selectionEnd = t.value.length; } }, 20);
+  }
+  function fechaNotaRapida() { const p = $('#nota-rapida'); if (!p || p.hidden) return; descarregaN(); p.hidden = true; }
+  /* a nota rápida continua a mesma por 3 horas; depois disso começa outra */
+  function rapidaId(criar) {
+    let id = SV.ls.get('nota.rapida', null);
+    if (id && N.lista[id] && Date.now() - (N.lista[id].criado || 0) < 3 * 3600e3) return id;
+    if (!criar) return null;
+    const agora = Date.now();
+    id = novaN({ titulo: 'Nota rápida · ' + dataHora(agora), cat: 'Anotações gerais', criado: agora });
+    SV.ls.set('nota.rapida', id);
+    return id;
+  }
+  function metaRapida() { const m = $('#nr-meta'), id = rapidaId(false); if (m) m.textContent = id && N.lista[id] ? 'Vai para o caderno, em Anotações gerais' + (N.lista[id].sessao ? ' · sessão ' + N.lista[id].sessao : '') + '.' : 'Vai para o caderno, em Anotações gerais.'; }
+  function desenhaRapida(forcar) {
+    const p = $('#nota-rapida'), t = $('#nr-texto'); if (!p || p.hidden || !t) return;
+    const id = rapidaId(false), txt = id && N.lista[id] ? N.lista[id].texto || '' : '';
+    if (forcar || (document.activeElement !== t && t.value !== txt)) t.value = txt;
+    metaRapida(); statusN();
   }
 
   /* ---------- menu da conta ---------- */
@@ -753,9 +870,11 @@
     SV.sons.onChange(() => { if (aba === 'sons' && !campoAberto($('#p-sons'))) render.sons(); });
     assina();
     montaNotas(); ligaNotas();
+    SV._iniciou = true; if (SV.isGM && SV.central) SV.central.inicia();
     render.voz(); render.mesa(); badges();
     irAba(SV.ls.get('aba', 'mapa'));
     setInterval(() => { if (aba === 'mesa') render.mesa(); }, 30000);
   }
+  SV._ = { D, ouve, avisa, esc, quando, nomeDe, ehGM, avatar, ini, lista, grava, irAba: a => irAba(a), aba: () => aba, notaRapida: () => notaRapida(), notas: { novaN, abreN, mexeN } };
   SV.entrar(inicia);
 })();

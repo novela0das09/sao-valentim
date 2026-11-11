@@ -44,8 +44,9 @@
       setTimeout(() => s.cb(v), 0);
     }
     function avisa(p) { for (const s of subs) if (p.startsWith(s.path) || s.path.startsWith(p)) dispara(s); }
-    function mudou(p) { guarda(); avisa(p); bc && bc.postMessage({ p }); }
-    if (bc) bc.onmessage = e => { ler(); avisa(e.data.p); };
+    /* a outra aba recebe o valor junto: o localStorage às vezes chega atrasado entre abas */
+    function mudou(p) { guarda(); avisa(p); bc && bc.postMessage({ p, v: clone(pega(p)), tem: true }); }
+    if (bc) bc.onmessage = e => { if (e.data && e.data.tem) poe(e.data.p, e.data.v); else ler(); avisa(e.data.p); };
     return {
       local: true,
       on(path, cb) { const s = { path: norm(path), cb }; subs.add(s); dispara(s); return () => subs.delete(s); },
