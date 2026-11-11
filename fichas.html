@@ -1193,7 +1193,7 @@ function seletorCor(f) {
   const set = c => { f.cor = c; salvar(); renderFicha(); renderLista(); };
   return h('div', { class: 'cores', role: 'group', 'aria-label': 'Cor da ficha' }, h('span', { style: { fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)' } }, 'Cor'),
     CORES.map(([c, n]) => h('button', { type: 'button', class: (f.cor || '#b3191f') === c ? 'on' : '', title: n, 'aria-label': 'Cor ' + n, style: { background: c }, onclick: () => set(c) })),
-    h('input', { type: 'color', id: 'f-cor', value: f.cor || '#b3191f', title: 'Outra cor', 'aria-label': 'Escolher outra cor', oninput: e => aplicarTema(e.target.value), onchange: e => set(e.target.value) }));
+    h('input', { type: 'color', id: 'f-cor', value: f.cor || '#b3191f', title: 'Outra cor', 'aria-label': 'Escolher outra cor', oninput: e => { if (!PONTE || f.dono === PONTE.me().uid) aplicarTema(e.target.value); }, onchange: e => set(e.target.value) }));
 }
 function renderFicha() {
   const f = F(); if (!f) return;
@@ -2410,11 +2410,25 @@ if (PONTE) {
           h('div', { class: 'po-k' }, 'Quem é'), h('p', null, o.resumo || 'O jogador ainda não escreveu.')))));
     return true;
   }
+  /* a cor é pessoal: cada um vê o site na cor da PRÓPRIA ficha. Abrir a ficha de outra pessoa (o mestre abrindo a do
+     jogador, por exemplo) não muda nada. O mestre, sem ficha própria, fica no vermelho padrão. */
+  function minhaCor() {
+    const me = PONTE.me().uid, f = F();
+    const minha = f && f.dono === me ? f : S.fichas.find(x => x.dono === me && (x.papel || 'pj') === 'pj');
+    return minha && /^#[0-9a-f]{6}$/i.test(minha.cor || '') ? minha.cor : '';
+  }
+  function temaPessoal() {
+    const c = minhaCor();
+    try { aplicarTema(c); } catch (e) {}
+    try { PONTE.tema && PONTE.tema(c || '#b3191f'); } catch (e) {}
+  }
+  pintarFicha = function () { temaPessoal(); };
+  setTimeout(temaPessoal, 0);
   const renderFicha0 = renderFicha;
   renderFicha = function () {
     if (verOutro()) return;
     renderFicha0();
-    try { const fx = F(); if (fx && PONTE.tema && fx.dono && fx.dono === PONTE.me().uid) PONTE.tema(fx.cor); } catch (e) {}
+    temaPessoal();
     const f = F(); if (!f) return;
     const gm = PONTE.isGM(), noMapa = PONTE.temPeca(f.id);
     const mapa = h('button', { class: 'btn sm', type: 'button', onclick: () => { ponteSalvar(true); PONTE.porNoMapa(f.id); } }, noMapa ? 'Ver no mapa' : 'Pôr no mapa');
