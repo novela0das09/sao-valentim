@@ -171,8 +171,30 @@
     temPeca: fid => !!(D.pecas['f_' + fid] || D.pecasGM['f_' + fid]),
     regras: () => D.regras,
     onRegras(cb) { return ouve('regras', () => cb(D.regras)); },
+    tema: cor => SV.tema(cor),
     salvarRegras(json) { if (SV.isGM && json !== D.regras) { D.regras = json; SV.db.set('mesa/regras', { json, t: Date.now() }).catch(() => {}); } }
   };
+
+  /* ---------- tema: a cor da ficha do jogador pinta o site inteiro ---------- */
+  const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
+  const rgbHex = c => '#' + c.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+  const mist = (a, b, k) => { const x = hexRgb(a), y = hexRgb(b); return rgbHex(x.map((v, i) => v + (y[i] - v) * k)); };
+  const luz = h => { const [r, g, b] = hexRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  const contr = (a, b) => { const x = luz(a), y = luz(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  let temaAtual = '';
+  SV.tema = cor => {
+    cor = /^#[0-9a-f]{6}$/i.test(cor || '') ? cor.toLowerCase() : '#b3191f';
+    if (cor === temaAtual) return; temaAtual = cor;
+    for (let kb = 0.05; contr(cor, '#0a0808') < 2 && kb < 0.7; kb += 0.05) cor = mist(cor, '#ffffff', 0.05);
+    let k = 0.22, red = mist(cor, '#ffffff', k);
+    while (contr(red, '#1a1515') < 4.5 && k < 0.95) { k += 0.07; red = mist(cor, '#ffffff', k); }
+    const on = contr('#ffffff', cor) >= contr('#140f0f', cor) ? '#ffffff' : '#140f0f';
+    const t = { '--blood': cor, '--red': red, '--red-soft': cor + '24', '--on-blood': on, '--bg': mist('#0a0808', cor, 0.03), '--bg-2': mist('#0f0c0c', cor, 0.04),
+      '--panel': mist('#131010', cor, 0.05), '--panel-2': mist('#1a1515', cor, 0.07), '--line': mist('#2c2222', cor, 0.14), '--line-2': mist('#3d2c2c', cor, 0.24) };
+    for (const [n, v] of Object.entries(t)) document.documentElement.style.setProperty(n, v);
+    SV.ls.set('tema', cor);
+  };
+  { const c0 = SV.ls.get('tema', ''); if (c0) SV.tema(c0); }
 
   /* ==========================================================
      ponte com o mapa (mapa.html chama parent.SV.M)
@@ -268,8 +290,8 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html' + location.search; }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html' + location.search; }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=8' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=8' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
   }
