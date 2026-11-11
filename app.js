@@ -83,7 +83,7 @@
       avisa('fichas'); render.voz(); publicaPerfis();
     };
     if (SV.isGM) db.on('fichas', fichas); else db.query('fichas', 'dono', me, fichas);
-    db.on('npcs', v => { D.npcs = v || {}; render.mesa(); });
+    db.on('npcs', v => { D.npcs = v || {}; avisa('npcs'); render.mesa(); });
     db.on('pecas', v => { D.pecas = v || {}; avisa('pecas'); SV.voz.mix && SV.voz.mix(); render.voz(); });
     if (SV.isGM) db.on('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
@@ -176,6 +176,11 @@
       return out.sort((a, b) => (a.criado || 0) - (b.criado || 0) || String(a.nome).localeCompare(b.nome));
     },
     onOutros(cb) { return ouve('users', () => cb()); },
+    /* moradores que o mestre marcou como conhecidos: só nome e ocupação (a ficha e os segredos ficam com o mestre) */
+    npcsConhecidos() { return Object.entries(D.npcs || {}).filter(([, n]) => n && n.nome && n.papel !== 'inimigo').map(([id, n]) => ({ id, nome: String(n.nome), ocupacao: String(n.ocupacao || '') })).sort((a, b) => a.nome.localeCompare(b.nome)); },
+    onNpcs(cb) { return ouve('npcs', () => cb()); },
+    sessao() { return SV.isGM && SV.central && SV.central.sessao ? SV.central.sessao() : null; },
+    reconhecer(npcId) { if (SV.isGM && SV.central && SV.central.reconhecer) SV.central.reconhecer(npcId); },
     isGM: () => !!SV.isGM,
     me: () => ({ uid: SV.me.uid, nome: SV.me.nome }),
     lista,
@@ -350,7 +355,7 @@
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
     if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=9' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=15' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=21' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
     if (a === 'notas') abaNotas();

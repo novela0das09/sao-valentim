@@ -92,6 +92,7 @@ button { cursor: pointer; }
 .caixas { display: flex; flex-wrap: wrap; gap: 3px; }
 .caixa { width: 13px; height: 13px; border: 1.5px solid var(--paper-2); background: transparent; padding: 0; }
 .caixa.on { background: var(--red); border-color: var(--red); }
+.caixa { transform: skewX(-22deg); height: 11px; transition: background .3s, border-color .3s; }
 .rec.pd .caixa.on { background: color-mix(in srgb, var(--red) 45%, #c9c3d8); border-color: color-mix(in srgb, var(--red) 45%, #c9c3d8); }
 .alerta { font-size: 12.5px; color: var(--red); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .mini { display: inline-grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--line-2); background: var(--panel-2); padding: 0; font-weight: 700; }
@@ -282,6 +283,50 @@ button.pill:hover { border-color: var(--red); }
 .rel .pips button.on { background: var(--gold); }
 .rel .pips button.perdido { border-color: var(--muted); background: repeating-linear-gradient(45deg, transparent 0 3px, var(--muted) 3px 4px); }
 .rel .pips button:disabled { cursor: default; }
+.item.relv { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 10px; }
+.relv-cab { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+.relv-quem { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; min-width: 0; }
+.relv-quem i { color: var(--paper-2); font-size: 12.5px; }
+.relv-chip { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; border: 1px solid var(--line-2); color: var(--muted); white-space: nowrap; }
+.relv-chip.npc { border-color: var(--gold); color: var(--gold); }
+.relv-chip.pj { color: var(--paper); }
+.relv-corpo { display: grid; gap: 3px; }
+.relv-corpo p { margin: 0; font-size: 13px; color: var(--paper-2); }
+.relv-corpo p b { color: var(--paper); font-weight: 600; }
+.relv-evo { border-left: 2px solid var(--line-2); padding-left: 8px; display: grid; gap: 2px; font-size: 12.5px; color: var(--paper-2); }
+.relv-e small { color: var(--muted); }
+.relv-e.gm b { color: var(--gold); }
+.relv-ped { font-size: 12.5px; padding: 6px 8px; border: 1px dashed var(--gold); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.relv-form, .cr-rel { display: grid; gap: 6px; }
+.relv-form input, .relv-form select, .relv-form textarea, .cr-rel input, .cr-rel select, .cr-rel textarea { background: var(--panel-2); border: 1px solid var(--line-2); padding: 6px 8px; color: var(--paper); font: inherit; font-size: 13px; min-width: 0; width: 100%; box-sizing: border-box; }
+.relv-form .linha, .cr-rel .linha { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.relv-form .linha > *, .cr-rel .linha > * { flex: 1 1 150px; }
+.relv-form .linha > .mini, .cr-rel .linha > .mini, .relv-form .linha > label.chk { flex: 0 0 auto; width: auto; }
+.relv-form label.chk { display: flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--paper-2); }
+.relv-form label.chk input { width: auto; }
+.relv-k { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.relv-acoes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.mini-link { background: none; border: 0; color: var(--gold); padding: 0; font-size: 12px; text-decoration: underline; cursor: pointer; justify-self: start; }
+.rel-cena { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+.rel-cena-t { display: grid; gap: 2px; }
+.rel-cena-t b { font-size: 13px; color: var(--paper); }
+.rel-cena-t small { font-size: 11.5px; color: var(--muted); }
+.rel-faixas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.rel-faixa-w { display: grid; gap: 3px; justify-items: center; min-width: 0; }
+.rel-faixa { width: 100%; height: 9px; border: 1.5px solid var(--cor-op); transform: skewX(-24deg); background: transparent; transition: background .25s, box-shadow .25s; }
+.rel-faixa.on { background: var(--cor-op); box-shadow: 0 0 10px var(--cor-op); }
+.rel-gastar { display: inline-flex; gap: 4px; align-items: center; }
+.rel-gastar small { font-size: 11.5px; color: var(--muted); }
+.rel-faixa-w small { font-size: 10.5px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rel .pips.faixas-rel { display: inline-flex; gap: 5px; padding: 0 6px 0 4px; }
+.rel .pips.faixas-rel button { width: 24px; height: 9px; transform: skewX(-24deg); border: 1.5px solid var(--cor-op, var(--gold)); background: transparent; border-radius: 0; transition: background .25s, box-shadow .25s; }
+.rel .pips.faixas-rel button.on { background: var(--cor-op, var(--gold)); box-shadow: 0 0 8px var(--cor-op, var(--gold)); }
+.rel .pips.faixas-rel button.perdido { border-color: var(--muted); background: repeating-linear-gradient(90deg, transparent 0 3px, var(--muted) 3px 4px); box-shadow: none; }
+.rel-resumo { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--paper-2); padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.rel-resumo b { color: var(--paper); }
+.cr-rels { display: grid; gap: 10px; }
+.cr-rel { padding: 10px; border: 1px solid var(--line-2); background: var(--panel); }
+.cr-dica { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
 
 /* guia: como é jogar */
 .guia { padding-block: 18px 70px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); align-content: start; gap: 16px; grid-template-columns: minmax(0, 860px); justify-content: center; display: grid; }
@@ -450,7 +495,99 @@ button.pill:hover { border-color: var(--red); }
 .secoes button small { font: 11px var(--f-body); color: var(--muted); }
 .secoes button.on { color: var(--paper); border-bottom-color: var(--red); }
 .secoes button:hover:not(.on) { color: var(--paper); }
-.sec-corpo { display: grid; gap: 20px; }
+.sec-corpo { display: grid; gap: 20px; animation: secEntra .22s ease-out; }
+@keyframes secEntra { from { opacity: 0; transform: translateY(6px); } }
+/* topo: o estado do personagem num relance */
+.topo-f { grid-template-columns: 76px minmax(0, 1fr); gap: 16px; padding: 14px 16px; border: 1px solid var(--line-2); background: linear-gradient(180deg, color-mix(in srgb, var(--blood) 9%, var(--panel)), var(--panel)); position: relative; }
+.topo-f::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--blood); }
+.tf-foto { width: 76px; height: 96px; }
+.tf-meds { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 22px; max-width: none; }
+.med { grid-template-columns: 30px minmax(60px, 1fr) auto auto auto; gap: 8px; position: relative; }
+.med-n { font-size: 17px; }
+.med-seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px; height: 12px; min-width: 0; }
+.med-seg i { transform: skewX(-22deg); border: 1px solid color-mix(in srgb, var(--cor-m) 55%, transparent); background: transparent; transition: background .35s ease, box-shadow .35s ease, border-color .35s; }
+.med-seg i.on { background: var(--cor-m); border-color: var(--cor-m); }
+.med { --cor-m: var(--red); }
+.med.pd { --cor-m: color-mix(in srgb, var(--red) 40%, #c9c3d8); }
+.med.baixo { --cor-m: #d89a3a; }
+.med.critico { --cor-m: #e5484d; }
+.med.critico .med-seg i.on { box-shadow: 0 0 6px #e5484d; animation: segPulsa 1.6s ease-in-out infinite; }
+.med.zerado .med-seg i { border-color: #e5484d; }
+@keyframes segPulsa { 50% { opacity: .55; } }
+.med.dano .med-seg { animation: medTreme .4s ease; }
+.med.dano::after, .med.cura::after { content: attr(data-delta); position: absolute; right: 74px; top: -14px; font: 700 13px var(--f-body); pointer-events: none; animation: deltaSobe 1.1s ease-out forwards; }
+.med.dano::after { color: #ff6b6b; }
+.med.cura::after { color: var(--ok); }
+.med.cura .med-seg i.on { animation: segBrilha .9s ease-out; }
+@keyframes medTreme { 20% { transform: translateX(-3px); } 40% { transform: translateX(3px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
+@keyframes deltaSobe { from { opacity: 1; transform: translateY(4px); } to { opacity: 0; transform: translateY(-12px); } }
+@keyframes segBrilha { 0% { box-shadow: 0 0 0 transparent; } 40% { box-shadow: 0 0 10px var(--ok); } 100% { box-shadow: 0 0 0 transparent; } }
+.tf-linha { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.tf-atr { display: flex; gap: 6px; }
+.tf-a { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px 4px 5px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--paper-2); font: 600 12px var(--f-body); letter-spacing: .04em; cursor: pointer; transition: border-color .2s, transform .15s, background .2s; }
+.tf-a:hover, .tf-a:focus-visible { border-color: var(--red); color: var(--paper); transform: translateY(-1px); }
+.tf-a.bem { border-color: var(--gold); } .tf-a.mal { border-color: #e5484d; }
+.tf-trilha { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--paper-2); letter-spacing: .04em; }
+.tf-trilha .seg { display: inline-flex; gap: 2px; }
+.tf-trilha .seg i { width: 12px; height: 8px; transform: skewX(-22deg); border: 1px solid var(--gold); }
+.tf-trilha .seg i.on { background: var(--gold); box-shadow: 0 0 5px color-mix(in srgb, var(--gold) 70%, transparent); }
+.tf-trilha.arm .seg i { border-color: #7fa7c9; } .tf-trilha.arm .seg i.on { background: #7fa7c9; box-shadow: none; }
+.cond { animation: condEntra .3s ease-out; display: inline-flex; align-items: center; gap: 5px; }
+.cond::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.cond.pavor { box-shadow: 0 0 8px rgba(142, 107, 191, .35); }
+@keyframes condEntra { from { opacity: 0; transform: scale(.85); } }
+.secoes button svg { width: 15px; height: 15px; align-self: center; opacity: .75; }
+.secoes button.on svg { opacity: 1; color: var(--red); }
+.recursos { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.rec { min-width: 0; }
+.rec .row, .rec > div { flex-wrap: wrap; min-width: 0; }
+.card, .cards > * { transition: border-color .2s, transform .2s; }
+.cards > *:hover { border-color: color-mix(in srgb, var(--red) 55%, var(--line-2)); }
+.atr { transition: background .2s; } .atr:hover { background: color-mix(in srgb, var(--blood) 7%, transparent); }
+/* mesa de dados animada */
+.mesa-anim { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: radial-gradient(ellipse at center, rgba(10, 6, 6, .55), rgba(5, 3, 3, .82)); animation: maFundo .18s ease-out; cursor: pointer; }
+.mesa-anim.sai { animation: maSai .22s ease-in forwards; }
+@keyframes maFundo { from { opacity: 0; } }
+@keyframes maSai { to { opacity: 0; } }
+.ma-mesa { display: grid; gap: 14px; justify-items: center; padding: 26px 30px 22px; min-width: min(560px, 92vw); max-width: 94vw; border: 1px solid var(--line-2); background: radial-gradient(ellipse at 50% 40%, color-mix(in srgb, var(--blood) 14%, #171111), #0d0909 75%); box-shadow: 0 30px 80px rgba(0, 0, 0, .6), inset 0 0 60px rgba(0, 0, 0, .55); }
+.ma-tit { font: 12px var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.ma-pista { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 22px; min-height: 96px; align-items: flex-end; }
+.ma-d { display: grid; justify-items: center; gap: 4px; animation: maRola var(--dur) cubic-bezier(.25, .7, .3, 1) both; animation-delay: var(--dly); }
+.ma-d svg { width: 66px; height: 66px; overflow: visible; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .6)); }
+.ma-d .ma-gira { animation: maGira var(--dur) cubic-bezier(.2, .65, .25, 1) both; animation-delay: var(--dly); }
+.ma-d text { opacity: 0; transition: opacity .12s; }
+.ma-d.pousou text { opacity: 1; }
+.ma-d.pousou svg { animation: maImpacto .28s ease-out; }
+.ma-d small { font: 600 11px var(--f-body); color: var(--muted); letter-spacing: .06em; max-width: 92px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ma-d.pousou small { color: var(--paper-2); }
+.ma-d.pavor svg { filter: drop-shadow(0 0 10px rgba(142, 107, 191, .7)); }
+.ma-d.bonus small { color: var(--gold); }
+.ma-d.anulado.pousou svg { opacity: .35; } .ma-d.anulado.pousou small { text-decoration: line-through; }
+.ma-d.fora.pousou svg { opacity: .55; }
+@keyframes maRola { 0% { transform: translate(var(--sx), -150px) scale(.6); opacity: 0; } 12% { opacity: 1; } 55% { transform: translate(calc(var(--sx) * -.12), 0) scale(1); } 68% { transform: translate(calc(var(--sx) * -.05), -22px); } 80% { transform: translate(0, 0) scale(1.06, .94); } 88% { transform: translate(0, -6px) scale(1); } 100% { transform: translate(0, 0); opacity: 1; } }
+@keyframes maGira { from { transform: rotate(0); } to { transform: rotate(var(--rot)); } }
+@keyframes maImpacto { 0% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.ma-res { min-height: 30px; display: flex; gap: 12px; align-items: baseline; justify-content: center; flex-wrap: wrap; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; }
+.ma-res.mostra { opacity: 1; transform: none; }
+.ma-res b { font: 34px/1 var(--f-display); color: var(--paper); }
+.ma-res span { font: 600 13px var(--f-body); letter-spacing: .08em; text-transform: uppercase; }
+.ma-res .ok { color: var(--ok); } .ma-res .bad { color: #ff6b6b; } .ma-res .crit { color: var(--gold); }
+.ma-dica { font-size: 11px; color: var(--muted); }
+.anim-cfg { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; color: var(--paper-2); margin: -4px 0 10px; }
+.anim-cfg button { padding: 3px 9px; font-size: 12px; border: 1px solid var(--line-2); background: transparent; color: var(--paper-2); cursor: pointer; }
+.anim-cfg button.on { border-color: var(--red); color: var(--paper); background: color-mix(in srgb, var(--blood) 20%, transparent); }
+.anim-cfg label { display: inline-flex; gap: 5px; align-items: center; margin-left: 6px; }
+@media (max-width: 640px) {
+  .topo-f { grid-template-columns: 56px minmax(0, 1fr); padding: 12px; gap: 12px; }
+  .tf-foto { width: 56px; height: 70px; }
+  .tf-meds { grid-template-columns: minmax(0, 1fr); }
+  .ma-d svg { width: 54px; height: 54px; }
+  .ma-mesa { padding: 20px 14px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sec-corpo, .cond, .med.dano .med-seg, .med.critico .med-seg i.on, .med.cura .med-seg i.on, .ma-d, .ma-d .ma-gira, .ma-d.pousou svg { animation: none !important; }
+  .med.dano::after, .med.cura::after { animation-duration: .01s; }
+}
 /* ---------- agir ---------- */
 .pc { padding: 12px 14px; display: grid; gap: 10px; }
 .pc-cena { font-size: 12px; color: var(--gold); letter-spacing: .04em; }
@@ -601,6 +738,10 @@ select, input, textarea { accent-color: var(--blood); }
 .npc-secreto .npc-aviso { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--red) 60%, transparent); background: color-mix(in srgb, var(--blood) 14%, transparent); color: var(--paper-2); font-size: 13px; }
 .npc-secreto .npc-aviso b { color: var(--red); text-transform: uppercase; letter-spacing: .08em; font: 12px var(--f-type); margin-right: 6px; }
 .npc-citam { display: flex; flex-wrap: wrap; gap: 6px; }
+.npc-vinc { display: grid; gap: 6px; margin-bottom: 8px; }
+.npc-vinc-l { display: grid; gap: 1px; padding: 6px 8px; border-left: 2px solid var(--gold); background: var(--panel-2); }
+.npc-vinc-l span { font-size: 13px; color: var(--paper-2); }
+.npc-vinc-l small { font-size: 12px; color: var(--muted); }
 .npc-dica { margin: 0; color: var(--muted); font-size: 12.5px; }
 .mk { font-size: .85em; } .mk.novo { color: var(--muted); } .mk.livro { color: var(--gold); }
 @media (max-width: 700px) { .npc-filtros { grid-template-columns: 1fr; } .npc-chk { margin-left: 0; } .npc-tit h2 { font-size: 24px; } }
@@ -678,7 +819,7 @@ const CAMPOS_REG = [
   ['impetoMax', 'Espaços da barra de ímpeto', 'num'],
   ['relD', 'Dado de cada grau de relação (1, 2, 3)', 'dados3'],
   ['relMot', 'Motivar: PD que a pessoa recupera (graus 2 e 3)', 'dados3'],
-  ['relLimite', 'Cada relação se invoca uma vez por…', 'sel:missao=missão|cena=cena'],
+  ['relLimite', 'Uso das relações', 'sel:pontos=pontos que se gastam (3 por cena para mandar)|missao=cada relação uma vez por missão|cena=cada relação uma vez por cena'],
   ['pavor', 'Dado de pavor', 'sel:beta=1 PD desce um passo, 5 PD vira bônus|alpha=2 PD para não rolar, 5 PD vira bônus|nenhum=não existe'],
   ['sobrecarga', 'Sobrecarga mental no fim da rodada', 'bool'],
   ['lesao', 'Zerar PV', 'sel:beta=teste de lesão (Físico + Vigor) e tabela d20|alpha=teste de Vigor; falhou, morre'],
@@ -691,7 +832,7 @@ const CAMPOS_REG = [
 ];
 const VERSOES = {
   beta: { nome: 'Padrão', fonte: 'Relações, dado de pavor, ímpeto de 5 e Prontidão de 2 PD.',
-    impetoMax: 5, relD: ['d6', 'd8', 'd12'], relMot: ['', '2d4', '2d6'], relLimite: 'missao', pavor: 'beta', sobrecarga: false, lesao: 'beta', trauma: 'beta', combate: 'beta', hab: 'beta',
+    impetoMax: 5, relD: ['d6', 'd8', 'd12'], relMot: ['', '2d4', '2d6'], relLimite: 'pontos', pavor: 'beta', sobrecarga: false, lesao: 'beta', trauma: 'beta', combate: 'beta', hab: 'beta',
     pvForm: { base: -2, fis: 2, nivel: 0, agente: 12 }, pdForm: { base: 0, mente: 1, emocao: 1, nivel: 0, agente: 10 }, patamares: [0, 0, 0],
     nomes: { pesquisar: 'Inspecionar', ocultismo: 'Bruxaria' }, ocultar: ['maquinas', 'tecnologia'], beneficios: {},
     conf: { impetoMax: 1, relD: 1, relMot: 1, relLimite: 1, pavor: 1, sobrecarga: 1, lesao: 1, trauma: 1, combate: 1, hab: 1 },
@@ -737,8 +878,42 @@ function formulaPVPD(f) {
   const pn = a.nivel || C.pvNivel || 0, dn = b.nivel || C.pdNivel || 0;
   return { pv: Math.max(1, a.base + a.fis * faces(f.atr.fisico) + pn * n + (ag ? a.agente : 0)), pd: Math.max(1, b.base + b.mente * faces(f.atr.mente) + b.emocao * faces(f.atr.emocao) + dn * n + (ag ? b.agente : 0)) };
 }
-const relUsada = (f, id) => !!(RG.relLimite === 'cena' ? f.usos : f.relUsos)['rel:' + id];
-const marcarRel = (f, id) => { (RG.relLimite === 'cena' ? f.usos : f.relUsos)['rel:' + id] = 1; };
+/* relações (padrão): a cada cena o personagem tem 3 pontos para MANDAR a quem quiser, e cada ponto mandado entra na relação.
+   Usar a relação GASTA de 1 a 3 pontos dela: 1 ponto dá d6, 2 dão d8, 3 dão d12. Não há limite de pessoas. */
+const REL_CENA = 3;
+const relPontos = () => !RG.relLimite || RG.relLimite === 'pontos';
+const relCenaLivre = f => Math.max(0, REL_CENA - (Array.isArray(f.relCena) ? f.relCena.length : 0));
+const relUsada = (f, id) => { if (relPontos()) { const r = (f.rel || []).find(x => x.id === id); return !r || (+r.pts || 0) <= 0; } return !!(RG.relLimite === 'cena' ? f.usos : f.relUsos)['rel:' + id]; };
+const marcarRel = (f, id) => {
+  if (!relPontos()) { (RG.relLimite === 'cena' ? f.usos : f.relUsos)['rel:' + id] = 1; return; }
+};
+/* manda 1 ponto da cena para a relação (sobe 1 ponto nela) */
+function relMandar(f, r) {
+  if (!Array.isArray(f.relCena)) f.relCena = [];
+  if (f.relCena.length >= REL_CENA) return 'cena';
+  if ((+r.pts || 0) >= 3 - (r.perd || 0)) return 'cheia';
+  r.pts = (+r.pts || 0) + 1; f.relCenaId ||= 'c' + Math.random().toString(36).slice(2, 8);
+  f.relCena.push({ t: Date.now(), rel: r.id, nome: r.nome || 'alguém' });
+  r.evo ||= []; const e = { t: Date.now(), d: 1, por: 'jogador', cena: f.relCenaId, txt: 'Mandou 1 ponto na cena' }; const s = relSessao(); if (s != null) e.s = s; r.evo.unshift(e); r.evo = r.evo.slice(0, 40);
+  return 'ok';
+}
+/* gasta de 1 a 3 pontos da relação */
+function relGastar(f, r, n, txt) {
+  n = Math.max(0, Math.min(+n || 0, +r.pts || 0)); if (!n) return 0;
+  r.pts -= n; r.log ||= []; r.log.unshift({ t: Date.now(), txt: txt || 'Usou a relação' });
+  r.evo ||= []; const e = { t: Date.now(), d: -n, por: 'jogador', gasto: true, txt: 'Gastou ' + n + (n === 1 ? ' ponto' : ' pontos') + ' (' + REL_D[n] + '): ' + (txt || 'usou a relação') }; const s = relSessao(); if (s != null) e.s = s; r.evo.unshift(e); r.evo = r.evo.slice(0, 40);
+  return n;
+}
+/* cor oposta à da ficha (matiz girado 180°), para as faixas dos pontos */
+function corOposta(f) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(f.cor || '#b3191f').trim()) || [0, 'b3191f'];
+  const n = parseInt(m[1], 16), r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0;
+  if (d) h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h = Math.round(h * 60 + 360 + 180) % 360;
+  const l = (mx + mn) / 2, sat = d ? d / (1 - Math.abs(2 * l - 1)) : 0;
+  return 'hsl(' + h + ', ' + Math.round(Math.max(sat, .55) * 100) + '%, ' + Math.round(Math.min(Math.max(l, .5), .62) * 100) + '%)';
+}
 /* informações estruturadas de cada habilidade: categoria, momento, limite, duração e de onde veio a regra */
 const HAB_META = {
   impeto: { cat: 'Recurso', momento: 'Enche ao falhar; gastar é ação livre', limite: () => 'Barra de ' + RG.impetoMax, duracao: 'Até o fim da cena', conf: () => RG.hab },
@@ -1161,7 +1336,7 @@ const ARMAS_2016 = [
   { nome: 'Rifle de caça', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 4, alcance: 'longo', mun: 5, munMax: 5 },
   { nome: 'Sinalizador', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 2, alcance: 'curto', mun: 1, munMax: 1 },
 ];
-const rl = (nome, pts) => ({ id: 'r' + Math.random().toString(36).slice(2, 8), nome, pts, desc: '', fid: '', log: [] });
+const rl = (nome, pts, o) => normRel(Object.assign({ id: 'r' + Math.random().toString(36).slice(2, 8), nome, pts, desc: '', fid: '', log: [] }, o || {}));
 
 
 /* ===================== personagens de exemplo (prontos do playtest) ===================== */
@@ -1205,7 +1380,7 @@ function normaliza(f) {
   if (!Array.isArray(f.insp)) f.insp = []; f.usos ||= {}; f.red ||= {}; f.boost ||= {}; f.itens ||= []; f.hab ||= [];
   f.hab = f.hab.filter(k => k !== 'olhar-protetor'); f.relUsos ||= {}; if (f.pavorD === undefined) f.pavorD = null; f.banco = Math.min(4, f.banco || 0); f.impeto = f.impeto || 0; f.evol ||= []; f.nl ||= 0; f.cor ||= ''; f.rit ||= [];
   const TROCA_IT = { 'Pomada de mel': 'Kit de primeiros socorros', 'Tônico fortificante': 'Energético', 'Chá calmante': 'Calmante natural', 'Elixir de mel': 'Chocolate e café', 'Tocha': 'Lanterna' }; for (const it of f.itens) if (TROCA_IT[it.nome]) it.nome = TROCA_IT[it.nome]; f.armadura ||= { v: 0, m: 0 };
-  for (const r of f.rel) { r.desc ??= ''; r.fid ??= ''; r.log ||= []; }
+  for (const r of f.rel) normRel(r); f.relBase ??= 3;
   f.papel ||= 'pj'; f.dono ??= ''; f.visivel = !!f.visivel;
 }
 for (const f of S.fichas) normaliza(f);
@@ -1243,6 +1418,54 @@ function dado(d, valor, tam = 26, cor) {
   return h('span', { class: 'dado', title: d, html: `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" aria-hidden="true"><polygon points="${pts}" fill="${valor != null ? c : 'none'}" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/><text x="12" y="${d === 'd4' ? 17.2 : 15.6}" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="${fs}" fill="${valor != null ? '#fff' : 'var(--paper)'}">${esc(txt)}</text></svg>` });
 }
 const rolar = d => 1 + Math.floor(Math.random() * faces(d));
+/* animação: só mostra os valores que o sistema JÁ rolou. Durante o giro o dado fica sem número; ao pousar, aparece o valor verdadeiro. */
+const ANIM = { modo: 'completa', som: true };
+try { ANIM.modo = localStorage.getItem('sv.anim') || 'completa'; ANIM.som = localStorage.getItem('sv.animSom') !== '0'; } catch (e) {}
+const menosMovimento = () => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+let audioCtx = null;
+function somDados(n, dur) {
+  if (!ANIM.som) return;
+  try {
+    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    const ac = audioCtx, t0 = ac.currentTime;
+    for (let d = 0; d < n; d++) for (let k = 0; k < 4; k++) {
+      const t = t0 + (d * 0.07) + (dur / 1000) * [0.42, 0.62, 0.76, 0.86][k] + Math.random() * 0.03, len = 0.035;
+      const buf = ac.createBuffer(1, Math.floor(ac.sampleRate * len), ac.sampleRate), ch = buf.getChannelData(0);
+      for (let i = 0; i < ch.length; i++) ch[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ch.length, 3);
+      const src = ac.createBufferSource(), bp = ac.createBiquadFilter(), g = ac.createGain();
+      src.buffer = buf; bp.type = 'bandpass'; bp.frequency.value = 1800 + Math.random() * 1600; bp.Q.value = 1.4; g.gain.value = 0.16 * (1 - k * 0.22);
+      src.connect(bp); bp.connect(g); g.connect(ac.destination); src.start(t);
+    }
+  } catch (e) {}
+}
+/* itens: [{ d, v, rot (legenda), tipo: '' | 'pavor' | 'bonus', depois: '' | 'anulado' | 'fora' }]; fim: o que fazer quando terminar */
+function animarDados(itens, fim, final) {
+  itens = (itens || []).filter(x => x && x.d && x.v != null);
+  if (!itens.length || ANIM.modo === 'off' || UIS.semAnim) { fim && fim(); return; }
+  const rapida = ANIM.modo === 'rapida' || menosMovimento(), dur = rapida ? 420 : 950, passo = rapida ? 40 : 90;
+  $('#mesa-anim')?.remove();
+  const forma = x => { const pts = FORMAS[x.d] || FORMAS.d6, c = x.tipo === 'pavor' ? '#8e6bbf' : x.tipo === 'bonus' ? 'var(--gold)' : 'var(--red)';
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="ma-gira" style="transform-origin:12px 12px"><polygon points="${pts}" fill="${c}" fill-opacity=".92" stroke="${c}" stroke-width="1.2" stroke-linejoin="round"/></g><text x="12" y="${x.d === 'd4' ? 17.4 : 15.8}" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="800" font-size="${String(x.v).length > 1 ? 8.6 : 10.5}" fill="#fff">${esc(x.v)}</text></svg>`; };
+  const ds = itens.map((x, i) => h('div', { class: 'ma-d ' + (x.tipo || ''), style: { '--sx': Math.round((Math.random() - 0.5) * 320) + 'px', '--rot': (360 * (2 + Math.floor(Math.random() * 3)) * (Math.random() < .5 ? -1 : 1)) + 'deg', '--dur': dur + 'ms', '--dly': i * passo + 'ms' }, 'data-v': x.v, 'data-d': x.d, html: forma(x) }, h('small', null, (x.rot ? x.rot + ' · ' : '') + x.d)));
+  const resEl = h('div', { class: 'ma-res', 'aria-live': 'polite' });
+  const ov = h('div', { id: 'mesa-anim', class: 'mesa-anim', role: 'status', 'aria-label': 'Rolando ' + itens.map(x => x.d).join(', ') },
+    h('div', { class: 'ma-mesa' }, h('div', { class: 'ma-tit' }, itens.length > 1 ? 'Rolando ' + itens.length + ' dados' : 'Rolando ' + itens[0].d), h('div', { class: 'ma-pista' }, ds), resEl, h('div', { class: 'ma-dica' }, 'Toque para pular')));
+  document.body.append(ov);
+  somDados(itens.length, dur);
+  let feito = false;
+  const termina = () => { if (feito) return; feito = true; clearTimeout(tA); clearTimeout(tB); ds.forEach((el, i) => el.classList.add('pousou', ...(itens[i].depois ? [itens[i].depois] : []))); ov.classList.add('sai'); setTimeout(() => ov.remove(), 230); fim && fim(); };
+  ds.forEach((el, i) => setTimeout(() => { if (!feito) { el.classList.add('pousou'); if (itens[i].depois) setTimeout(() => el.classList.add(itens[i].depois), 160); } }, dur * 0.8 + i * passo));
+  const total = dur + (itens.length - 1) * passo;
+  const tA = setTimeout(() => { if (final && !feito) { fill(resEl, final); resEl.classList.add('mostra'); } }, total + 60);
+  const tB = setTimeout(termina, total + (final ? (rapida ? 520 : 900) : (rapida ? 200 : 380)));
+  ov.addEventListener('click', termina);
+}
+function cfgAnim() {
+  const set = m => { ANIM.modo = m; try { localStorage.setItem('sv.anim', m); } catch (e) {} renderDados(); };
+  return h('div', { class: 'anim-cfg', role: 'group', 'aria-label': 'Animação dos dados' }, 'Animação:',
+    [['completa', 'Completa'], ['rapida', 'Rápida'], ['off', 'Desligada']].map(([k, n]) => h('button', { type: 'button', id: 'anim-' + k, class: ANIM.modo === k ? 'on' : '', 'aria-pressed': ANIM.modo === k ? 'true' : 'false', onclick: () => set(k) }, n)),
+    h('label', null, h('input', { type: 'checkbox', id: 'anim-som', checked: ANIM.som || null, onchange: e => { ANIM.som = e.target.checked; try { localStorage.setItem('sv.animSom', ANIM.som ? '1' : '0'); } catch (x) {} } }), 'Som'));
+}
 const rolarExpr = e => { const m = /^(\d*)d(\d+)$/.exec(String(e)); if (!m) return +e || 0; let s = 0; for (let i = 0; i < (+m[1] || 1); i++) s += 1 + Math.floor(Math.random() * +m[2]); return s; };
 
 /* dado efetivo de um atributo: reduções da cena (falha crítica) e aumento do Ímpeto */
@@ -1277,7 +1500,7 @@ function fimRodada() {
   salvar(); renderTudo();
 }
 function encerrarCena() {
-  for (const f of S.fichas) { f.red = {}; f.boost = {}; f.usos = {}; f.impeto = temHab(f, 'impeto-fervilhante') ? 1 : 0; f.banco = 0; f.feri = 0; f.trau = 0; if (RG.lesao === 'beta' && !f.morto && f.pv.v <= 0) { f.pv.v = 1; f.moribundo = false; } }
+  for (const f of S.fichas) { f.red = {}; f.boost = {}; f.usos = {}; f.relCena = []; f.relCenaId = ''; f.impeto = temHab(f, 'impeto-fervilhante') ? 1 : 0; f.banco = 0; f.feri = 0; f.trau = 0; if (RG.lesao === 'beta' && !f.morto && f.pv.v <= 0) { f.pv.v = 1; f.moribundo = false; } }
   Object.assign(S.cena, { rodada: 0, fase: 0, combate: false, relogio: 0 }); salvar(); renderTudo(); toast('Cena encerrada: ímpetos, marcadores de análise, reduções, testes de lesão e trauma e usos por cena foram zerados. O dado de pavor continua até cair 1.');
 }
 
@@ -1386,12 +1609,16 @@ function condicoes(f) {
   for (const x of f.insp || []) out.push(['Inspirado: ' + ATR_N[x.atr], 'bem']);
   return out;
 }
+const MED_ANT = {};
 function medidor(f, k) {
-  const r = f[k], pct = r.m ? Math.max(0, Math.min(100, Math.round(r.v / r.m * 100))) : 0, zero = r.v <= 0, crit = !zero && r.v <= Math.ceil(r.m / 4);
+  const r = f[k], pct = r.m ? Math.max(0, Math.min(100, Math.round(r.v / r.m * 100))) : 0, zero = r.v <= 0, crit = !zero && r.v <= Math.ceil(r.m / 4), baixo = !zero && !crit && r.v <= Math.ceil(r.m / 2);
   const set = v => { r.v = Math.max(0, Math.min(r.m, v)); salvar(); renderTudo(); };
-  return h('div', { class: 'med ' + k + (zero ? ' zerado' : crit ? ' critico' : '') },
+  const chave = f.id + ':' + k, ant = MED_ANT[chave]; MED_ANT[chave] = r.v;
+  const delta = ant == null ? 0 : r.v - ant;
+  const n = Math.min(r.m, 40), on = r.m ? Math.round(r.v / r.m * n) : 0;
+  return h('div', { class: 'med ' + k + (zero ? ' zerado' : crit ? ' critico' : baixo ? ' baixo' : '') + (delta < 0 ? ' dano' : delta > 0 ? ' cura' : ''), 'data-delta': delta ? (delta > 0 ? '+' : '−') + Math.abs(delta) : null },
     h('span', { class: 'med-n' }, k.toUpperCase()),
-    h('span', { class: 'med-barra', role: 'meter', 'aria-label': k.toUpperCase(), 'aria-valuemin': 0, 'aria-valuemax': r.m, 'aria-valuenow': r.v }, h('i', { style: { width: pct + '%' } })),
+    h('span', { class: 'med-seg', role: 'meter', 'aria-label': k.toUpperCase() + ' ' + r.v + ' de ' + r.m + (zero ? ', zerado' : crit ? ', crítico' : baixo ? ', baixo' : ''), 'aria-valuemin': 0, 'aria-valuemax': r.m, 'aria-valuenow': r.v, title: r.v + ' de ' + r.m + ' (' + pct + '%)' }, Array.from({ length: n }, (_, i) => h('i', { class: i < on ? 'on' : '' }))),
     h('span', { class: 'med-v' }, h('b', null, r.v), ' / ' + r.m),
     h('button', { class: 'mini', type: 'button', 'aria-label': 'Perder 1 ' + k.toUpperCase(), onclick: () => set(r.v - 1) }, '−'),
     h('button', { class: 'mini', type: 'button', 'aria-label': 'Recuperar 1 ' + k.toUpperCase(), onclick: () => set(r.v + 1) }, '+'));
@@ -1403,12 +1630,24 @@ function topoFicha(f, nomeRow) {
     h('div', { class: 'tf-foto', 'aria-hidden': 'true' }, f.retrato ? h('img', { src: f.retrato, alt: '' }) : h('span', null, ini(f.nome))),
     h('div', { class: 'tf-id' }, nomeRow, h('div', { class: 'tf-resumo' }, resumo),
       h('div', { class: 'tf-meds' }, medidor(f, 'pv'), medidor(f, 'pd')),
+      h('div', { class: 'tf-linha' },
+        h('div', { class: 'tf-atr', role: 'group', 'aria-label': 'Atributos: toque para rolar' }, ATR.map(([k, n]) => { const ef = atrEf(f, k), mud = ef !== f.atr[k];
+          return h('button', { type: 'button', class: 'tf-a' + (mud ? (f.boost[k] ? ' bem' : ' mal') : ''), id: 'tf-atr-' + k, title: 'Rolar ' + n + ' (' + ef + ')', onclick: () => abrirRolagem(f, { atr: k, per: '' }) }, dado(ef, null, 24, mud ? (f.boost[k] ? 'var(--gold)' : '#e5484d') : 'var(--red)'), n); })),
+        trilhasTopo(f)),
       conds.length ? h('div', { class: 'tf-conds', 'aria-label': 'Estado do personagem' }, conds.map(([t, c]) => h('span', { class: 'cond ' + c }, t))) : null));
 }
+function trilhasTopo(f) {
+  const out = [], tr = (rot, v, m, cls, tit) => h('span', { class: 'tf-trilha ' + cls, title: tit || rot + ': ' + v + ' de ' + m, role: 'meter', 'aria-label': rot, 'aria-valuemin': 0, 'aria-valuemax': m, 'aria-valuenow': v }, rot, h('span', { class: 'seg' }, Array.from({ length: m }, (_, i) => h('i', { class: i < v ? 'on' : '' }))));
+  if (f.armadura && +f.armadura.m) out.push(tr('Armadura', +f.armadura.v || 0, Math.min(10, +f.armadura.m), 'arm'));
+  if (temHab(f, 'impeto') && RG.impetoMax) out.push(tr('Ímpeto', f.impeto || 0, RG.impetoMax, 'imp'));
+  if (temHab(f, 'avaliacao')) out.push(tr('Análise', f.banco || 0, 4, 'ana', 'Marcadores de análise: ' + (f.banco || 0) + ' de 4'));
+  return out;
+}
+const ICO_SEC = { personagem: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>', combate: '<path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/>', habilidades: '<path d="M12 3l2.2 5.6L20 9l-4.5 3.8L17 19l-5-3.2L7 19l1.5-6.2L4 9l5.8-.4z"/>', inventario: '<path d="M4 8h16v12H4zM9 8V5h6v3"/>', relacoes: '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M11 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5"/>', historico: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>' };
 function barraSecoes(f, sec) {
   const n = { habilidades: (f.hab || []).length + (f.rit || []).length, inventario: (f.itens || []).reduce((a, it) => a + ((it.qtd ?? 1) > 0 ? 1 : 0), 0), relacoes: (f.rel || []).length };
   return h('nav', { class: 'secoes', role: 'tablist', 'aria-label': 'Partes da ficha' }, SECOES.map(([k, nome]) =>
-    h('button', { type: 'button', role: 'tab', id: 'sec-' + k, class: sec === k ? 'on' : '', 'aria-selected': sec === k ? 'true' : 'false', onclick: () => irSecao(k) }, nome, n[k] ? h('small', null, n[k]) : null)));
+    h('button', { type: 'button', role: 'tab', id: 'sec-' + k, class: sec === k ? 'on' : '', 'aria-selected': sec === k ? 'true' : 'false', onclick: () => irSecao(k) }, h('span', { 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICO_SEC[k] || '') + '</svg>', style: { display: 'inline-flex' } }), nome, n[k] ? h('small', null, n[k]) : null)));
 }
 function historicoFicha(f) {
   const l = S.hist.filter(x => x && (x.fid ? x.fid === f.id : x.quem === f.nome)).slice(0, 40);
@@ -1744,7 +1983,10 @@ function opcoesExtras(f, r) {
   }
   if (temHab(f, 'avaliacao') && RG.hab === 'alpha') out.push({ d: 'd4', fonte: 'Avaliação', banco: 1, rot: 'Avaliação +d4', custo: 'guardado', pode: f.banco - r.extras.filter(e => e.banco).length >= 1 });
   if (temHab(f, 'impeto')) out.push({ d: 'd4', fonte: 'Ímpeto', impeto: 1, rot: 'Ímpeto +d4', custo: '1 espaço', pode: f.impeto - r.extras.filter(e => e.impeto).length >= 1 });
-  for (const x of f.rel || []) if (x.pts > 0) out.push({ d: REL_D[x.pts], fonte: 'Relação: ' + (x.nome || '?'), rel: x.id, rot: (x.nome || 'Relação') + (x.neg ? ' (rancor)' : '') + ' +' + REL_D[x.pts], custo: REL_N[x.pts] + ', 1× por ' + (RG.relLimite === 'cena' ? 'cena' : 'missão'), pode: !relUsada(f, x.id) && !usados.has('Relação: ' + (x.nome || '?')) });
+  for (const x of f.rel || []) if (x.pts > 0) {
+    if (relPontos()) { for (let n = 1; n <= Math.min(3, x.pts); n++) if (REL_D[n]) out.push({ d: REL_D[n], fonte: 'Relação: ' + (x.nome || '?'), rel: x.id, gasto: n, rot: (x.nome || 'Relação') + (x.neg ? ' (rancor)' : '') + ' +' + REL_D[n], custo: 'Gasta ' + n + (n === 1 ? ' ponto' : ' pontos') + ' da relação (tem ' + x.pts + ')', pode: !usados.has('Relação: ' + (x.nome || '?')) }); }
+    else out.push({ d: REL_D[x.pts], fonte: 'Relação: ' + (x.nome || '?'), rel: x.id, rot: (x.nome || 'Relação') + (x.neg ? ' (rancor)' : '') + ' +' + REL_D[x.pts], custo: REL_N[x.pts] + ', 1× por ' + (RG.relLimite === 'cena' ? 'cena' : 'missão'), pode: !relUsada(f, x.id) && !usados.has('Relação: ' + (x.nome || '?')) });
+  }
   if (r.especial === 'feri' && f.nl && RG.lesao === 'beta') out.push({ d: 'd6', fonte: 'Dano não letal', rot: 'Não letal +d6', custo: 'não letal', pode: !usados.has('Dano não letal') });
   for (const d of ['d4', 'd6', 'd8']) out.push({ d, fonte: 'Bônus do mestre', rot: '+' + d, custo: 'mestre', pode: true });
   return out;
@@ -1807,7 +2049,7 @@ function montarTeste(f, r) {
     ataque ? h('details', { class: 'mr-sec', open: aberto('mods', true), ontoggle: guarda('mods') }, h('summary', null, 'Modificadores do ataque'),
       h('div', { class: 'mods' }, MODS.filter(m => !m[3] || (m[3] === 'dist' ? r.arma.tipo !== 'corpo' : r.arma.tipo === 'corpo')).map(([k, n]) => h('button', { type: 'button', class: r.mods[k] ? 'on' : '', 'aria-pressed': r.mods[k] ? 'true' : 'false', onclick: () => { r.mods[k] = !r.mods[k]; renderRolar(); } }, n)))) : null,
     h('details', { class: 'mr-sec', open: aberto('extras', false), ontoggle: guarda('extras') }, h('summary', null, 'Dados extras', nEx ? h('small', null, ' · ' + nEx + ' no teste') : null),
-      h('div', { class: 'extras' }, opEx.map(o => h('button', { class: 'btn sm', type: 'button', disabled: cheio || !o.pode || null, title: o.custo, onclick: () => { r.extras.push({ d: o.d, fonte: o.fonte, pd: o.pd, impeto: o.impeto, banco: o.banco, rel: o.rel }); renderRolar(); } }, o.rot, ' ', h('small', null, o.custo))),
+      h('div', { class: 'extras' }, opEx.map(o => h('button', { class: 'btn sm', type: 'button', disabled: cheio || !o.pode || null, title: o.custo, onclick: () => { r.extras.push({ d: o.d, fonte: o.fonte, pd: o.pd, impeto: o.impeto, banco: o.banco, rel: o.rel, gasto: o.gasto }); renderRolar(); } }, o.rot, ' ', h('small', null, o.custo))),
         r.per === 'acrobacia' && !r.esquiva ? h('button', { class: 'btn sm', type: 'button', disabled: cheio || null, title: 'Defesa: Acrobacia + Físico + d6 contra o ataque. Vencendo, não toma dano', onclick: () => { r.esquiva = true; renderRolar(); } }, 'Defesa +d6') : null),
       r.extras.some(e => e.rel) ? h('label', { class: 'campo' }, 'O que o personagem sente (justifica a relação)', h('input', { id: 'r-just', value: r.just, placeholder: 'Ex.: não vou deixar ela morrer como a Aino', oninput: e => { r.just = e.target.value; } })) : null),
     h('details', { class: 'mr-sec', open: aberto('mais', false), ontoggle: guarda('mais') }, h('summary', null, 'Mais ajustes', h('small', null, ' · situação, passos, ajuda, dados de verdade')),
@@ -1862,7 +2104,7 @@ function renderDados() {
   else if (!UIS.res) kids.push(h('div', { class: 'montar' }, h('p', { style: { margin: 0, color: 'var(--paper-2)' } }, 'Toque num atributo ou numa perícia, ou use a aba Combate da ficha: o teste abre numa janela, com o essencial à mostra.')));
   kids.push(blocoInvestigar());
   kids.push(blocoProlongado());
-  kids.push(h('h3', null, 'Dados livres'), h('div', { class: 'livres' }, ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(d => h('button', { type: 'button', onclick: () => { const v = rolar(d); S.hist.unshift({ t: Date.now(), quem: F().nome, o: 'Dado livre ' + d, tot: v, v: '' }); salvar(); renderDados(); toast(d + ': ' + v); } }, dado(d, null, 26), d))));
+  kids.push(h('h3', null, 'Dados livres'), cfgAnim(), h('div', { class: 'livres' }, ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(d => h('button', { type: 'button', id: 'livre-' + d, onclick: () => { const v = rolar(d); S.hist.unshift({ t: Date.now(), quem: F().nome, o: 'Dado livre ' + d, tot: v, v: '' }); salvar(); animarDados([{ d, v, rot: 'Dado livre' }], () => { renderDados(); toast(d + ': ' + v); }, [h('b', null, v), h('span', null, d)]); } }, dado(d, null, 26), d))));
   kids.push(h('h3', null, 'Histórico'), S.hist.length ? h('div', { class: 'hist' }, S.hist.slice(0, 30).map(x => h('div', { class: 'hist-it' }, h('span', { class: 't' }, x.tot), h('span', { class: 'w' }, h('b', null, x.quem + ' · ' + x.o), h('small', null, (x.det ? x.det + ' · ' : '') + new Date(x.t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))), h('span', { class: 'v ' + (x.v || '') }, x.vt || '')))) : h('p', { style: { color: 'var(--muted)', fontSize: '13px', margin: 0 } }, 'As rolagens aparecem aqui.'));
   if (!PONTE) kids.push(h('p', { class: 'nota-proto' }, 'Protótipo: a call, o mapa e a sincronização com os jogadores ficam no site de verdade. Aqui tudo roda só neste navegador.'));
   fill(el, kids);
@@ -1870,7 +2112,7 @@ function renderDados() {
 function fazerRolagem(f, r) {
   const lista = dadosDoTeste(f, r).slice(0, 4), msgs = [], pd0 = f.pd.v, pv0 = f.pv.v, modsTxt = ajustesAtivos(f, r),
     exUsados = r.extras.filter(e => !e.auto).map(e => e.fonte + ' +' + e.d + (e.pd ? ' (' + e.pd + ' PD)' : e.impeto ? ' (Ímpeto)' : e.banco ? ' (guardado)' : e.rel ? ' (relação)' : ''));
-  for (const e of r.extras) { if (e.pd) f.pd.v = Math.max(0, f.pd.v - e.pd); if (e.impeto) f.impeto = Math.max(0, f.impeto - 1); if (e.banco) f.banco = Math.max(0, f.banco - 1); if (e.rel) { marcarRel(f, e.rel); const rr = f.rel.find(y => y.id === e.rel); if (rr) rr.log.unshift({ t: Date.now(), txt: r.just || '(sem justificativa)' }); } }
+  for (const e of r.extras) { if (e.pd) f.pd.v = Math.max(0, f.pd.v - e.pd); if (e.impeto) f.impeto = Math.max(0, f.impeto - 1); if (e.banco) f.banco = Math.max(0, f.banco - 1); if (e.rel) { const rr = f.rel.find(y => y.id === e.rel); if (relPontos() && rr) relGastar(f, rr, e.gasto || rr.pts, r.just || 'usou num teste'); else { marcarRel(f, e.rel); if (rr) rr.log.unshift({ t: Date.now(), txt: r.just || '(sem justificativa)' }); } } }
   const pv = (r.pvCusto || 0) + (r.sust === 1 ? 1 : 0);
   if (pv) { f.pv.v = Math.max(0, f.pv.v - pv); msgs.push('Gastou ' + pv + ' PV de esforço.'); }
   if (r.ritual && RITUAIS[r.ritual]) { const C = CIRCULO[RITUAIS[r.ritual].c]; f.pd.v = Math.max(0, f.pd.v - C.pd); msgs.push('Pagou ' + C.pd + ' PD para conjurar ' + RITUAIS[r.ritual].nome + '.'); }
@@ -1893,8 +2135,12 @@ function fazerRolagem(f, r) {
   if (r.sust) r.sust = Math.min(4, r.sust + 1);
   UIS.trocando = false;
   avaliar(f, UIS.res, true);
-  UIS.modal = 'res';
-  salvar(); renderTudo();
+  salvar();
+  const res = UIS.res, c = res.c || calcular(res), vd = VEREDITO(res, c);
+  const itens = res.dados.map((x, i) => ({ d: x.d, v: x.v, rot: x.fonte, tipo: i >= 2 || /pavor/i.test(x.fonte || '') ? 'bonus' : '', depois: x.apagado ? 'anulado' : res.conta.includes(i) ? '' : 'fora' }));
+  if (res.pavor?.v) itens.push({ d: res.pavor.d || 'd6', v: res.pavor.v, rot: 'Pavor', tipo: 'pavor' });
+  const final = [h('b', null, c.tot), h('span', { class: vd[1] === 'ok' || vd[1] === 'sucesso' ? 'ok' : /crit/.test(vd[1]) ? 'crit' : /falha|bad|err/.test(vd[1]) ? 'bad' : '' }, vd[0])];
+  animarDados(itens, () => { UIS.modal = 'res'; renderTudo(); }, final);
 }
 /* resultado: soma de até 3 dados, crítico (dois dados iguais de 6 ou mais), falha crítica (tudo 1), RA e RB */
 function calcular(res) {
@@ -2011,7 +2257,7 @@ function cardResultado(res) {
 function blocoTabela(f, res) {
   const les = res.especial === 'feri', tab = les ? LESOES : TRAUMAS, nome = les ? 'lesões' : 'traumas';
   const bon = patamar(f), dois = les && f.nl;
-  if (!res.tab) return h('div', { class: 'tabela-fc' }, 'Tabela de ' + nome + ' (d20' + (bon ? ' +' + bon + ' de patamar' : '') + (dois ? ', dano não letal: rola 2 e fica com o melhor' : '') + '). ', h('button', { class: 'btn sm red', type: 'button', onclick: () => { res.tab = Math.max(rolar('d20'), dois ? rolar('d20') : 0) + bon; salvar(); renderDados(); } }, 'Rolar d20'));
+  if (!res.tab) return h('div', { class: 'tabela-fc' }, 'Tabela de ' + nome + ' (d20' + (bon ? ' +' + bon + ' de patamar' : '') + (dois ? ', dano não letal: rola 2 e fica com o melhor' : '') + '). ', h('button', { class: 'btn sm red', type: 'button', onclick: () => { { const a1 = rolar('d20'), a2 = dois ? rolar('d20') : 0; res.tab = Math.max(a1, a2) + bon; salvar(); animarDados([{ d: 'd20', v: a1, rot: 'Tabela', depois: dois && a2 > a1 ? 'fora' : '' }, ...(dois ? [{ d: 'd20', v: a2, rot: 'Tabela', depois: a1 >= a2 ? 'fora' : '' }] : [])], () => renderDados(), [h('b', null, res.tab), h('span', null, bon ? 'com +' + bon + ' de patamar' : 'na tabela')]); } } }, 'Rolar d20'));
   const [, nm, txt, ef] = naTabela(tab, res.tab);
   return h('div', { class: 'tabela-fc' }, h('b', null, res.tab + ' · ' + nm + ': '), txt, ' ',
     ef && !res.tabAplicado ? h('button', { class: 'btn sm', type: 'button', onclick: () => {
@@ -2026,7 +2272,7 @@ function blocoTabela(f, res) {
     } }, 'Aplicar na ficha') : res.tabAplicado ? h('span', { style: { color: 'var(--muted)' } }, ' Aplicado.') : null);
 }
 function blocoFalhaCritica(f, res) {
-  if (!res.fc) return h('div', { class: 'tabela-fc' }, 'Falha crítica: o mestre escolhe uma consequência ou rola 1d8. ', h('button', { class: 'btn sm red', type: 'button', onclick: () => { res.fc = rolar('d8'); salvar(); renderDados(); } }, 'Rolar 1d8'));
+  if (!res.fc) return h('div', { class: 'tabela-fc' }, 'Falha crítica: o mestre escolhe uma consequência ou rola 1d8. ', h('button', { class: 'btn sm red', type: 'button', onclick: () => { res.fc = rolar('d8'); salvar(); animarDados([{ d: 'd8', v: res.fc, rot: 'Falha crítica' }], () => renderDados(), [h('b', null, res.fc), h('span', null, 'tabela de falha crítica')]); } }, 'Rolar 1d8'));
   const [nm, txt, ef] = FALHA_CRIT[res.fc];
   return h('div', { class: 'tabela-fc' }, h('b', null, res.fc + ' · ' + nm + ': '), txt, ' ',
     ef && !res.fcAplicado ? h('button', { class: 'btn sm', type: 'button', onclick: () => {
@@ -2119,29 +2365,158 @@ function cardItens(f) {
       h('select', { id: 'f-addit', 'aria-label': 'Adicionar item', onchange: e => { const v = e.target.value; if (!v) return; const ex = f.itens.find(x => x.nome === v); if (ex) ex.qtd = (ex.qtd ?? 1) + 1; else f.itens.push({ nome: v, qtd: 1 }); salvar(); renderFicha(); toast(v + ' na mochila.'); } },
         h('option', { value: '' }, 'Itens de 2016…'), Object.keys(ITEM_CAT).map(k => h('option', { value: k }, k))))));
 }
+/* ===================== relações: vínculos com o grupo e com a vila ===================== */
+const PTR = () => { try { return typeof PONTE !== 'undefined' && PONTE ? PONTE : null; } catch (e) { return null; } };
+const relMestre = () => !PTR() || PTR().isGM();
+const REL_TIPOS = ['Amizade antiga', 'Conhecidos de infância', 'Colegas de trabalho', 'Nos ajudamos uma vez', 'Não nos damos bem, mas precisamos um do outro', 'Segredo em comum', 'Dívida ou favor pendente', 'Vizinhos', 'Freguês e comerciante', 'Alguém que me ofereceu ajuda', 'Desconfio, mas há um laço', 'Família'];
+const REL_VE = { '-1': 'Desconfia de você', '0': 'Mal te conhece', '1': 'Te vê como um conhecido', '2': 'Confia em você', '3': 'É leal a você' };
+const REL_RP = ['Ainda sem peso: alguém que você conhece de vista ou acabou de conhecer.', 'Afinidade: você presta atenção nessa pessoa, nota quando ela não está bem e tende a acreditar no que ela diz.', 'Vínculo: você arrisca alguma coisa por ela, conta as coisas para ela primeiro e sente quando ela some.', 'Devoção: você iria até o fundo do vale por ela. Deixá-la para trás pesa como uma ferida.'];
+const REL_RP_NEG = ['Ainda sem peso.', 'Rancor leve: você desconfia do que ela diz.', 'Rancor: você evita ficar sozinho com ela e não esquece o que ela fez.', 'Rancor fundo: ela ocupa sua cabeça. Você faria muito para vê-la cair.'];
+const QUEM_N = { pj: 'Do grupo', npc: 'Morador da vila', outro: 'Outra pessoa' };
+function normRel(r) {
+  r.desc ??= ''; r.fid ??= ''; r.log ||= []; r.npc ??= ''; r.quem ||= r.npc ? 'npc' : r.fid ? 'pj' : 'outro';
+  r.tipo ??= ''; r.origem ??= ''; r.rp ??= ''; r.estado ??= ''; r.evo ||= [];
+  if (r.pedido === undefined) r.pedido = null; if (r.outro === undefined) r.outro = null; return r;
+}
+const relGan = r => (r.evo || []).reduce((a, e) => a + (e.por === 'gm' || e.cena || e.gasto ? (+e.d || 0) : 0), 0);
+const relUsoLivre = f => (f.rel || []).reduce((a, r) => a + Math.max(0, (+r.pts || 0) - Math.max(0, relGan(r))), 0);
+const relLivres = f => Math.max(0, (f.relBase ?? 3) - relUsoLivre(f));
+function relSessao() { const P = PTR(); try { return P && P.sessao ? P.sessao() : null; } catch (e) { return null; } }
+const relJaNaSessao = r => { const s = relSessao(); return s != null && (r.evo || []).some(e => e.por === 'gm' && e.d > 0 && e.s === s); };
+function pessoasRel(f) {
+  const P = PTR(), gm = relMestre();
+  let pjs = [], npcs = [];
+  if (P && !gm) {
+    pjs = (P.outros ? P.outros() : []).map(x => ({ id: x.id, nome: x.nome, sub: x.jogador }));
+    for (const x of S.fichas) if ((x.papel || 'pj') === 'pj' && (!f || x.id !== f.id)) pjs.push({ id: x.id, nome: x.nome, sub: 'também seu' });
+    npcs = (P.npcsConhecidos ? P.npcsConhecidos() : []).map(x => ({ id: x.id, nome: x.nome, sub: x.ocupacao }));
+  } else {
+    pjs = S.fichas.filter(x => (x.papel || 'pj') === 'pj' && (!f || x.id !== f.id)).map(x => ({ id: x.id, nome: x.nome, sub: P && x.dono ? String(P.nomeDe(x.dono)).split(' ')[0] : '' }));
+    npcs = S.fichas.filter(x => x.papel === 'npc').map(x => ({ id: x.id, nome: x.nome, sub: (x.npc && (x.npc.curto || x.npc.funcao)) || x.ocupacao || '' }));
+  }
+  return { pjs, npcs };
+}
+function selQuem(r, id, f, depois) {
+  const { pjs, npcs } = pessoasRel(f);
+  const val = r.quem === 'pj' && r.fid ? 'pj:' + r.fid : r.quem === 'npc' && r.npc ? 'npc:' + r.npc : 'outro';
+  const tem = val === 'outro' || (val.startsWith('pj:') ? pjs.some(x => 'pj:' + x.id === val) : npcs.some(x => 'npc:' + x.id === val));
+  return h('select', { id, class: 'rel-sel', 'aria-label': 'Com quem é a relação', onchange: e => {
+      const v = e.target.value;
+      if (v === 'outro') { r.quem = 'outro'; r.fid = ''; r.npc = ''; }
+      else if (v.startsWith('pj:')) { const x = pjs.find(p => 'pj:' + p.id === v); if (x) { r.quem = 'pj'; r.fid = x.id; r.npc = ''; r.nome = x.nome; } }
+      else { const x = npcs.find(p => 'npc:' + p.id === v); if (x) { r.quem = 'npc'; r.npc = x.id; r.fid = ''; r.nome = x.nome; } }
+      depois(); } },
+    h('option', { value: 'outro', selected: val === 'outro' || null }, 'Outra pessoa (escrever o nome)'),
+    pjs.length ? h('optgroup', { label: 'Personagens do grupo' }, pjs.map(x => h('option', { value: 'pj:' + x.id, selected: val === 'pj:' + x.id || null }, x.nome + (x.sub ? ' · ' + x.sub : '')))) : null,
+    npcs.length ? h('optgroup', { label: 'Moradores da vila' }, npcs.map(x => h('option', { value: 'npc:' + x.id, selected: val === 'npc:' + x.id || null }, x.nome + (x.sub ? ' · ' + x.sub : '')))) : null,
+    tem ? null : h('option', { value: val, selected: true }, r.nome || '?'));
+}
+const listaTipos = () => h('datalist', { id: 'rel-tipos' }, REL_TIPOS.map(t => h('option', { value: t })));
+function relEvoluir(f, r, d, txt, extra) {
+  normRel(r); const max = 3 - (r.perd || 0), antes = +r.pts || 0;
+  r.pts = Math.max(0, Math.min(max, antes + d));
+  const e = { t: Date.now(), d: r.pts - antes, por: 'gm', txt: txt || 'Reconhecimento do mestre' }; const s = relSessao(); if (s != null) e.s = s;
+  if (extra && extra.ve != null && extra.ve !== '') { r.outro = Object.assign({ g: 0, txt: '', vis: false }, r.outro || {}, { g: +extra.ve }); e.ve = +extra.ve; }
+  r.evo.unshift(e); r.evo = r.evo.slice(0, 40); r.pedido = null; UIS.relEvo = null; UIS.relConf = null;
+  salvar(); renderFicha(); toast('Relação de ' + (f.nome || 'alguém') + ' com ' + (r.nome || 'alguém') + (e.d ? ': ' + (r.pts ? REL_N[r.pts] : 'sem pontos') : ': registrada') + '.');
+  return e;
+}
 function blocoRelacoes(f) {
-  const deu = f.usos.relup;
-  return h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Relações'),
-    h('div', { class: 'card' }, f.rel.map((r, i) => { const max = 3 - (r.perd || 0), alvo = r.fid ? S.fichas.find(x => x.id === r.fid) : null; if (alvo) r.nome = alvo.nome; return h('div', { class: 'item rel' },
-      h('span', { style: { display: 'grid', gap: '4px', minWidth: 0 } },
-        h('select', { id: 'f-relf-' + i, 'aria-label': 'Personagem da relação', style: { background: 'var(--panel-2)', border: '1px solid var(--line-2)', padding: '4px', color: 'var(--paper)', fontSize: '13px' }, onchange: e => { r.fid = e.target.value; if (r.fid) r.nome = S.fichas.find(x => x.id === r.fid)?.nome || r.nome; salvar(); renderFicha(); } },
-          h('option', { value: '', selected: !r.fid || null }, 'Outra pessoa (NPC)…'), S.fichas.filter(x => x.id !== f.id).map(x => h('option', { value: x.id, selected: r.fid === x.id || null }, x.nome))),
-        r.fid ? null : h('input', { class: 'nm', id: 'f-rel-' + i, value: r.nome, placeholder: 'Nome da pessoa', 'aria-label': 'Pessoa', oninput: e => { r.nome = e.target.value; salvar(); } }),
-        h('input', { class: 'nm', id: 'f-reld-' + i, value: r.desc, placeholder: 'O que ela é para você', 'aria-label': 'Descrição da relação', style: { fontSize: '12.5px', color: 'var(--paper-2)' }, oninput: e => { r.desc = e.target.value; salvar(); } }),
-        r.log.length ? h('small', { style: { color: 'var(--muted)' } }, 'Última invocação: "' + r.log[0].txt + '"') : null),
-      h('span', { class: 'row' },
-        h('span', { class: 'pips', role: 'group', 'aria-label': r.pts + ' de 3 pontos', title: r.pts + ' de 3 pontos' + (r.perd ? ' · ' + r.perd + ' perdido(s) para sempre' : '') }, [0, 1, 2].map(j => h('button', { type: 'button', class: j < r.pts ? 'on' : j >= max ? 'perdido' : '', 'aria-label': j >= max ? 'Ponto perdido para sempre' : 'Deixar em ' + (j + 1), disabled: !UIS.edit || j >= max || null, onclick: () => { r.pts = r.pts === j + 1 ? j : j + 1; salvar(); renderFicha(); } }))),
-        r.pts ? h('span', { style: { fontSize: '11.5px', color: relUsada(f, r.id) ? 'var(--muted)' : 'var(--gold)' }, title: relUsada(f, r.id) ? 'Já invocada' : 'Disponível' }, (r.neg ? 'Negativa · ' : '') + REL_N[r.pts] + ' ' + REL_D[r.pts] + (relUsada(f, r.id) ? ' · usada' : ' · disponível')) : null,
-        REL_MOT[r.pts] ? h('button', { class: 'btn sm', type: 'button', disabled: relUsada(f, r.id) || null, title: 'Gasta a invocação desta missão e uma ação: a pessoa recupera ' + REL_MOT[r.pts] + ' PD', onclick: () => { const v = rolarExpr(REL_MOT[r.pts]), alvo = r.fid ? S.fichas.find(x => x.id === r.fid) : S.fichas.find(x => x.id !== f.id && x.nome.trim().toLowerCase() === (r.nome || '').trim().toLowerCase()); marcarRel(f, r.id); r.log.unshift({ t: Date.now(), txt: 'Motivou: +' + v + ' PD' }); if (alvo) alvo.pd.v = Math.min(alvo.pd.m, alvo.pd.v + v); salvar(); renderTudo(); toast((alvo ? alvo.nome : r.nome || 'A pessoa') + ' recupera ' + v + ' PD (' + REL_MOT[r.pts] + ').'); } }, 'Motivar') : null,
-        h('button', { class: 'btn sm', type: 'button', disabled: deu || r.pts >= max || null, title: 'Depois de uma interação marcante. Um ponto por cena.', onclick: () => { r.pts++; f.usos.relup = 1; salvar(); renderFicha(); toast('Relação com ' + (r.nome || 'alguém') + ' subiu para ' + REL_N[r.pts] + '.'); } }, '+1'),
+  const gm = relMestre(); f.rel ||= []; f.rel.forEach(normRel); f.relBase ??= 3;
+  const livres = relLivres(f), dist = f.rel.reduce((a, r) => a + (+r.pts || 0), 0), dt = t => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  if (!Array.isArray(f.relCena)) f.relCena = [];
+  const porPontos = relPontos(), cenaLivre = relCenaLivre(f);
+
+  const faixas = porPontos ? h('div', { class: 'rel-cena', id: 'rel-cena' },
+    h('div', { class: 'rel-cena-t' }, h('b', null, 'Pontos para mandar nesta cena: ' + cenaLivre + ' de ' + REL_CENA),
+      h('small', null, f.relCena.length ? 'Mandados para ' + f.relCena.map(u => String(u.nome).split(' ')[0]).join(', ') : 'Cada ponto mandado sobe 1 na relação com a pessoa')),
+    h('button', { class: 'btn sm ghost', type: 'button', id: 'rel-nova-cena', title: 'Começo de cena: os 3 pontos para mandar voltam. Encerrar a cena também faz isso.', onclick: () => { f.relCena = []; f.relCenaId = ''; salvar(); renderFicha(); toast('Cena nova: ' + REL_CENA + ' pontos para ' + (f.nome || 'o personagem') + ' mandar.'); } }, 'Nova cena')) : null;
+  const peds = f.rel.filter(r => r.pedido).length;
+  const editando = r => UIS.edit || UIS.relEd === r.id || !String(r.nome || '').trim();
+  const pips = (r, i, max) => h('span', { class: 'pips faixas-rel', role: 'group', 'aria-label': r.pts + ' de 3 pontos', title: r.pts + ' de 3 pontos' + (r.perd ? ' · ' + r.perd + ' perdido(s) para sempre' : '') },
+    [0, 1, 2].map(j => h('button', { type: 'button', class: j < r.pts ? 'on' : j >= max ? 'perdido' : '', 'aria-label': j >= max ? 'Ponto perdido para sempre' : 'Deixar em ' + (j + 1), disabled: !UIS.edit || j >= max || null,
+      onclick: () => { const novo = r.pts === j + 1 ? j : j + 1, d = novo - r.pts;
+        if (!gm && d > 0 && d > livres) { toast('Sem pontos livres. Peça a evolução ao mestre contando o que aconteceu.'); return; }
+        r.pts = novo; if (gm && PTR()) { const e = { t: Date.now(), d, por: 'gm', txt: 'Ajuste manual do mestre' }; const s = relSessao(); if (s != null) e.s = s; r.evo.unshift(e); }
+        salvar(); renderFicha(); } })));
+  const formEdicao = (r, i) => h('div', { class: 'relv-form' },
+    h('div', { class: 'linha' }, selQuem(r, 'f-relq-' + i, f, () => { salvar(); renderFicha(); }),
+      r.quem === 'outro' ? h('input', { class: 'nm', id: 'f-rel-' + i, value: r.nome, placeholder: 'Nome da pessoa', 'aria-label': 'Pessoa', oninput: e => { r.nome = e.target.value; salvar(); } }) : null),
+    h('input', { id: 'f-relt-' + i, list: 'rel-tipos', value: r.tipo || r.desc, placeholder: 'Tipo de relação (amizade antiga, dívida, segredo em comum...)', 'aria-label': 'Tipo de relação', oninput: e => { r.tipo = e.target.value; r.desc = ''; salvar(); } }),
+    h('textarea', { id: 'f-relo-' + i, rows: 2, placeholder: 'Como se conhecem e de onde vem esse vínculo', 'aria-label': 'Origem da relação', oninput: e => { r.origem = e.target.value; salvar(); } }, r.origem),
+    h('input', { id: 'f-relrp-' + i, value: r.rp, placeholder: 'Como pesa no RP (opcional): ' + (r.neg ? REL_RP_NEG : REL_RP)[r.pts || 0], 'aria-label': 'Como a relação pesa na interpretação', oninput: e => { r.rp = e.target.value; salvar(); } }),
+    gm ? [h('div', { class: 'relv-k' }, 'Só o mestre edita'),
+      h('input', { id: 'f-rele-' + i, value: r.estado, placeholder: 'Estado atual da relação (o jogador vê)', 'aria-label': 'Estado atual da relação', oninput: e => { r.estado = e.target.value; salvar(); } }),
+      h('div', { class: 'linha' },
+        h('select', { id: 'f-relve-' + i, 'aria-label': 'Como a outra pessoa vê o personagem', onchange: e => { const v = e.target.value; r.outro = v === '' ? null : Object.assign({ g: 0, txt: '', vis: false }, r.outro || {}, { g: +v }); salvar(); renderFicha(); } },
+          h('option', { value: '', selected: !r.outro || null }, 'Como a pessoa vê o personagem: não definido'), Object.entries(REL_VE).map(([k, n]) => h('option', { value: k, selected: r.outro && String(r.outro.g) === k || null }, n))),
+        r.outro ? h('input', { id: 'f-relvt-' + i, value: r.outro.txt || '', placeholder: 'Detalhe (ex.: gosta dele, mas ainda não confia)', 'aria-label': 'Detalhe de como a pessoa vê o personagem', oninput: e => { r.outro.txt = e.target.value; salvar(); } }) : null,
+        r.outro ? h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'f-relvv-' + i, checked: r.outro.vis || null, onchange: e => { r.outro.vis = e.target.checked; salvar(); } }), 'O jogador vê') : null)] : null,
+    UIS.relEd === r.id && !UIS.edit ? h('button', { class: 'btn sm', type: 'button', onclick: () => { UIS.relEd = null; renderFicha(); } }, 'Pronto') : null);
+  const leitura = r => { const ve = r.outro && (gm || r.outro.vis) ? REL_VE[String(r.outro.g)] : null, primeiro = String(r.nome || 'a pessoa').split(' ')[0];
+    return h('div', { class: 'relv-corpo' },
+      r.origem ? h('p', null, h('b', null, 'Como se conhecem: '), r.origem) : null,
+      h('p', null, h('b', null, 'No RP: '), r.rp || (r.neg ? REL_RP_NEG : REL_RP)[r.pts || 0]),
+      r.estado ? h('p', null, h('b', null, 'Agora: '), r.estado) : null,
+      ve ? h('p', null, h('b', null, 'Como ' + primeiro + ' vê você: '), ve + (r.outro.txt ? '. ' + r.outro.txt : '') + (gm && !r.outro.vis ? ' (só o mestre vê)' : '')) : null); };
+  const evolucao = r => { const evs = r.evo || [], ab = UIS.relHist && UIS.relHist[r.id]; if (!evs.length) return null;
+    return h('div', { class: 'relv-evo', 'aria-label': 'Evolução da relação' }, (ab ? evs : evs.slice(0, 2)).map(e => h('div', { class: 'relv-e ' + (e.por || '') },
+        h('small', null, dt(e.t) + (e.s ? ' · sessão ' + e.s : '') + ' · '), e.d ? h('b', null, (e.d > 0 ? '+' : '') + e.d + ' ') : null, e.txt)),
+      evs.length > 2 ? h('button', { class: 'mini-link', type: 'button', onclick: () => { UIS.relHist = Object.assign({}, UIS.relHist, { [r.id]: !ab }); renderFicha(); } }, ab ? 'Mostrar menos' : 'Ver a evolução completa (' + evs.length + ')') : null); };
+  const pedido = r => r.pedido ? h('div', { class: 'relv-ped' }, h('small', null, gm ? 'Pedido do jogador:' : 'Seu pedido ao mestre:'), '“' + r.pedido.txt + '”',
+    gm ? [h('button', { class: 'btn sm', type: 'button', id: 'rel-aceita-' + r.id, onclick: () => relEvoluir(f, r, 1, 'Pedido aceito: ' + r.pedido.txt) }, 'Conceder +1'),
+      h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { const e = { t: Date.now(), d: 0, por: 'gm', txt: 'Pedido não concedido desta vez: ' + r.pedido.txt }; const s = relSessao(); if (s != null) e.s = s; r.evo.unshift(e); r.pedido = null; salvar(); renderFicha(); } }, 'Recusar')]
+      : h('small', null, '· aguardando o mestre')) : null;
+  const formPedido = r => UIS.relPed === r.id ? h('div', { class: 'relv-form' }, h('div', { class: 'relv-k' }, 'O que aconteceu entre vocês?'),
+    h('textarea', { id: 'rel-ped-txt', rows: 2, placeholder: 'Ex.: ajudei o Ademir a achar a aliança que ele perdeu na enchente', 'aria-label': 'O que aconteceu' }),
+    h('div', { class: 'linha' }, h('button', { class: 'btn sm red', type: 'button', id: 'rel-ped-ok', onclick: () => { const t = ($('#rel-ped-txt')?.value || '').trim(); if (t.length < 8) { toast('Conte em uma frase o que aconteceu.'); return; } r.pedido = { t: Date.now(), txt: t }; UIS.relPed = null; salvar(); renderFicha(); toast('Pedido enviado ao mestre.'); } }, 'Enviar ao mestre'),
+      h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { UIS.relPed = null; renderFicha(); } }, 'Cancelar'))) : null;
+  const formEvo = r => { if (UIS.relEvo !== r.id) return null; const repete = relJaNaSessao(r);
+    return h('div', { class: 'relv-form' }, h('div', { class: 'relv-k' }, 'Evoluir a relação' + (repete ? ' · já evoluiu nesta sessão' : '')),
+      h('input', { id: 'rel-evo-txt', placeholder: 'Motivo (o que o personagem fez)', 'aria-label': 'Motivo da evolução' }),
+      h('div', { class: 'linha' },
+        h('select', { id: 'rel-evo-d', 'aria-label': 'Pontos' }, [[1, '+1 ponto'], [0, 'Sem mudar os pontos'], [2, '+2 pontos'], [-1, '−1 ponto']].map(([v, n]) => h('option', { value: v }, n))),
+        h('select', { id: 'rel-evo-ve', 'aria-label': 'Como a pessoa passa a ver o personagem' }, h('option', { value: '' }, 'A visão da pessoa não muda'), Object.entries(REL_VE).map(([k, n]) => h('option', { value: k }, n)))),
+      h('div', { class: 'linha' }, h('button', { class: 'btn sm red', type: 'button', id: 'rel-evo-ok', onclick: () => {
+          const t = ($('#rel-evo-txt')?.value || '').trim(), d = +($('#rel-evo-d')?.value || 1), ve = $('#rel-evo-ve')?.value;
+          if (t.length < 5) { toast('Escreva o motivo: a evolução precisa de um acontecimento.'); return; }
+          if (repete && d > 0 && UIS.relConf !== r.id) { UIS.relConf = r.id; const b = $('#rel-evo-ok'); if (b) b.textContent = 'Já evoluiu nesta sessão. Conceder mesmo assim?'; return; }
+          relEvoluir(f, r, d, t, { ve }); } }, 'Conceder'),
+        h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { UIS.relEvo = null; UIS.relConf = null; renderFicha(); } }, 'Cancelar'))); };
+  const card = (r, i) => {
+    const max = 3 - (r.perd || 0);
+    if (r.quem === 'pj' && r.fid) { const a = S.fichas.find(x => x.id === r.fid) || (PTR() && PTR().outros ? PTR().outros().find(x => x.id === r.fid) : null); if (a && a.nome) r.nome = a.nome; }
+    return h('div', { class: 'item rel relv', id: 'rel-' + r.id },
+      h('div', { class: 'relv-cab' },
+        h('div', { class: 'relv-quem' }, h('b', null, r.nome || 'Nova relação'), h('span', { class: 'relv-chip ' + r.quem }, QUEM_N[r.quem] || ''), (r.tipo || r.desc) ? h('i', null, r.tipo || r.desc) : null),
+        h('span', { class: 'row' }, pips(r, i, max),
+          r.pts ? h('span', { style: { fontSize: '11.5px', color: relUsada(f, r.id) ? 'var(--muted)' : 'var(--gold)' }, title: relUsada(f, r.id) ? (porPontos ? 'Sem pontos de relação nesta cena' : 'Já invocada') : 'Disponível' }, (r.neg ? 'Negativa · ' : '') + REL_N[r.pts] + ' · ' + (porPontos ? r.pts + (r.pts === 1 ? ' ponto' : ' pontos') + ' para gastar' : REL_D[r.pts] + (relUsada(f, r.id) ? ' · usada' : ' · disponível')) + (porPontos && f.relCena.some(u => u.rel === r.id) ? ' · +' + f.relCena.filter(u => u.rel === r.id).length + ' nesta cena' : '')) : h('span', { style: { fontSize: '11.5px', color: 'var(--muted)' } }, 'sem pontos'))),
+      editando(r) ? formEdicao(r, i) : leitura(r),
+      evolucao(r), pedido(r), formPedido(r), formEvo(r),
+      r.log.length ? h('small', { style: { color: 'var(--muted)' } }, 'Última invocação: "' + r.log[0].txt + '"') : null,
+      h('div', { class: 'relv-acoes' },
+        porPontos && String(r.nome || '').trim() ? h('button', { class: 'btn sm', type: 'button', id: 'rel-usar-' + i, disabled: cenaLivre <= 0 || r.pts >= max || null, title: cenaLivre <= 0 ? 'Os 3 pontos desta cena já foram mandados.' : r.pts >= max ? 'A relação já está no máximo.' : 'Manda 1 dos pontos desta cena para ' + (r.nome || 'a pessoa') + ': a relação sobe 1 ponto.', onclick: () => { const x = relMandar(f, r); if (x === 'ok') { salvar(); renderFicha(); toast('+1 ponto na relação com ' + (r.nome || 'a pessoa') + '. Restam ' + relCenaLivre(f) + ' para mandar nesta cena.'); } else toast(x === 'cena' ? 'Os 3 pontos desta cena já foram mandados.' : 'A relação já está no máximo.'); } }, 'Mandar 1 ponto') : null,
+        porPontos && r.pts ? h('span', { class: 'rel-gastar', role: 'group', 'aria-label': 'Gastar pontos da relação' }, h('small', null, 'Gastar'), [1, 2, 3].map(n => h('button', { class: 'mini', type: 'button', id: 'rel-gasta-' + i + '-' + n, disabled: n > r.pts || null, title: 'Gasta ' + n + (n === 1 ? ' ponto' : ' pontos') + ' da relação: ' + REL_D[n] + ' num teste ligado à pessoa' + (n === 3 ? ', ou a ação extra da Devoção para salvá-la' : ''), onclick: () => { relGastar(f, r, n, 'usou na cena'); salvar(); renderFicha(); toast((r.nome || 'A relação') + ': gastou ' + n + (n === 1 ? ' ponto' : ' pontos') + ' (' + REL_D[n] + '). Restam ' + r.pts + '.'); } }, String(n)))) : null,
+        REL_MOT[r.pts] ? h('button', { class: 'btn sm', type: 'button', disabled: relUsada(f, r.id) || null, title: (porPontos ? 'Gasta os ' + r.pts + ' pontos da relação' : 'Gasta a invocação desta missão') + ' e uma ação: a pessoa recupera ' + REL_MOT[r.pts] + ' PD', onclick: () => { const v = rolarExpr(REL_MOT[r.pts]), alvo = r.fid ? S.fichas.find(x => x.id === r.fid) : S.fichas.find(x => x.id !== f.id && x.nome.trim().toLowerCase() === (r.nome || '').trim().toLowerCase()); if (relPontos()) relGastar(f, r, r.pts, 'Motivou: +' + v + ' PD'); else { marcarRel(f, r.id); r.log.unshift({ t: Date.now(), txt: 'Motivou: +' + v + ' PD' }); } if (alvo) alvo.pd.v = Math.min(alvo.pd.m, alvo.pd.v + v); salvar(); renderTudo(); toast((alvo ? alvo.nome : r.nome || 'A pessoa') + ' recupera ' + v + ' PD (' + REL_MOT[r.pts] + ').'); } }, 'Motivar') : null,
+        gm ? h('button', { class: 'btn sm', type: 'button', id: 'rel-evo-' + i, title: 'Depois de um acontecimento marcante. Registra o motivo na evolução.', onclick: () => { UIS.relEvo = UIS.relEvo === r.id ? null : r.id; UIS.relConf = null; renderFicha(); setTimeout(() => $('#rel-evo-txt')?.focus(), 20); } }, 'Evoluir')
+          : (!r.pedido && String(r.nome || '').trim() ? h('button', { class: 'btn sm', type: 'button', id: 'rel-pedir-' + i, title: 'Conte ao mestre o que aconteceu. Quem decide se a relação cresce é ele.', onclick: () => { UIS.relPed = UIS.relPed === r.id ? null : r.id; renderFicha(); setTimeout(() => $('#rel-ped-txt')?.focus(), 20); } }, 'Pedir evolução') : null),
+        !editando(r) ? h('button', { class: 'btn sm ghost', type: 'button', id: 'rel-ed-' + i, onclick: () => { UIS.relEd = r.id; renderFicha(); } }, 'Editar') : null,
         UIS.edit ? [h('button', { class: 'mini', type: 'button', title: r.neg ? 'Relação negativa (rancor): vale em testes contra a pessoa. Toque para voltar a positiva' : 'Virar relação negativa (rancor)', 'aria-label': 'Alternar relação negativa', 'aria-pressed': r.neg ? 'true' : 'false', onclick: () => { r.neg = !r.neg; salvar(); renderFicha(); } }, r.neg ? '−' : '±'),
           h('button', { class: 'mini', type: 'button', title: 'Perdeu esta pessoa: perde PD igual ao dado da relação (' + (REL_D[r.pts] || 'sem dado') + ')', 'aria-label': 'Perdeu esta pessoa', disabled: !r.pts || !REL_D[r.pts] || null, onclick: () => perdePD(f, REL_D[r.pts], 'Perdeu ' + (r.nome || 'alguém querido')) }, '✝'),
           h('button', { class: 'mini', type: 'button', title: 'Sacrificar um ponto para sempre (ritual)', 'aria-label': 'Sacrificar um ponto para sempre', disabled: !r.pts || null, onclick: () => { r.pts--; r.perd = (r.perd || 0) + 1; salvar(); renderFicha(); } }, '⊘'),
-          h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar relação', onclick: () => { f.rel.splice(i, 1); salvar(); renderFicha(); } }, '×')] : null)); }),
-      h('div', { class: 'item' }, h('span', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.rel.push(rl('', 1)); salvar(); renderFicha(); setTimeout(() => $('#f-rel-' + (f.rel.length - 1))?.focus(), 20); } }, '+ Relação'),
-        h('button', { class: 'btn sm ghost', type: 'button', title: 'Começo de missão (ou de ato): as relações podem ser invocadas de novo', onclick: () => { f.relUsos = {}; salvar(); renderFicha(); toast('Relações de ' + f.nome + ' prontas para invocar de novo.'); } }, 'Nova missão')))),
+          h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar relação', onclick: () => { f.rel.splice(i, 1); salvar(); renderFicha(); } }, '×')] : null));
+  };
+  return h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Relações'), listaTipos(),
+    h('div', { class: 'card', style: { '--cor-op': corOposta(f) } }, faixas,
+      h('div', { class: 'rel-resumo', id: 'rel-resumo', role: 'status' }, h('span', null, h('b', null, f.rel.length), f.rel.length === 1 ? ' vínculo' : ' vínculos'), h('span', null, h('b', null, dist), ' pontos distribuídos'),
+        porPontos ? null : h('span', null, h('b', null, livres), livres === 1 ? ' ponto livre' : ' pontos livres'), peds ? h('span', null, h('b', null, peds), gm ? ' pedido(s) para responder' : ' pedido(s) aguardando o mestre') : null),
+      f.rel.length ? f.rel.map(card) : h('div', { class: 'item' }, h('span', { style: { color: 'var(--muted)', fontSize: '13px' } }, 'Ninguém ainda. Pense em quem do grupo ou da vila importa para o seu personagem.')),
+      h('div', { class: 'item' }, h('span', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', id: 'rel-mais', onclick: () => { const r = rl('', 0, { quem: 'outro' }); f.rel.push(r); UIS.relEd = r.id; salvar(); renderFicha(); setTimeout(() => $('#f-relq-' + (f.rel.length - 1))?.focus(), 20); } }, '+ Vínculo'),
+        porPontos ? null : h('button', { class: 'btn sm ghost', type: 'button', title: 'Começo de missão (ou de ato): as relações podem ser invocadas de novo', onclick: () => { f.relUsos = {}; salvar(); renderFicha(); toast('Relações de ' + f.nome + ' prontas para invocar de novo.'); } }, 'Nova missão')))),
     h('p', { class: 'legenda' }, 'Relação é vínculo, não carinho: pode virar negativa (±, no modo editar) e continua valendo em testes contra a pessoa. Só quem sente usa o dado. Perder alguém querido custa o dado da relação em PD (✝).'),
-    h('p', { class: 'legenda' }, 'Graus: 1 Afinidade (+d6), 2 Vínculo (+d8), 3 Devoção (+d12) num teste ligado à pessoa. Cada relação se invoca uma vez por missão (na campanha, uma vez por ato). Vínculo e Devoção também podem motivar a pessoa (2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvá-la se estiver em perigo. Para invocar, descreva o que sente por ela.'));
+    h('p', { class: 'legenda' }, 'Graus: 1 Afinidade (+d6), 2 Vínculo (+d8), 3 Devoção (+d12) num teste ligado à pessoa. ' + (porPontos ? 'Não há limite de pessoas: tenha vínculo com quem quiser. A cada cena você tem 3 pontos para mandar a quem quiser (os 3 para uma pessoa ou um para cada), e cada ponto mandado sobe a relação, até 3. A relação só gasta quando você decide usar: 1 ponto dá d6, 2 dão d8, 3 dão d12, e esses pontos saem da relação.' : 'Cada relação se invoca uma vez por missão (na campanha, uma vez por ato).') + ' Vínculo e Devoção também podem motivar a pessoa (2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvá-la se estiver em perigo. Para invocar, descreva o que sente por ela.'),
+    h('p', { class: 'legenda' }, gm ? 'Evoluir: registre o motivo. Uma evolução por relação por sessão; a segunda pede confirmação. Como a pessoa vê o personagem é só narrativo e não dá bônus.'
+      : 'Você distribui ' + (f.relBase ?? 3) + ' pontos livres como quiser. Depois disso, a relação cresce quando o mestre reconhece algo marcante entre vocês: use Pedir evolução e conte o que aconteceu. Conversa comum não conta.'));
 }
 /* investigação do beta: o dado da perícia diz o que se recebe de graça */
 function blocoInvestigar() {
@@ -2320,7 +2695,7 @@ function GUIA(f) {
       Pp('Aprender com alguém também sobe perícia: depois de uma aula com o druida, a Bruxaria de um personagem passou de d4 para d6 de vez.'),
       row(bt('Começar um ritual (alvo 20)', () => { novoProl('Acender a fogueira sagrada', 20, 'ritual'); usarPreset(f, 'ritual'); }, 'red'))] },
     { t: 'Relações e fim de cena', c: [
-      Pp('Cada relação tem um grau: <strong>Afinidade</strong> (1), <strong>Vínculo</strong> (2) ou <strong>Devoção</strong> (3). Para <strong>invocar</strong>, você descreve o que sente pela pessoa e ganha +d6, +d8 ou +d12 num teste ligado a ela. Cada relação se invoca <strong>uma vez por missão</strong>, então guarde para a hora certa.'),
+      Pp('Cada relação tem um grau: <strong>Afinidade</strong> (1), <strong>Vínculo</strong> (2) ou <strong>Devoção</strong> (3). Para <strong>invocar</strong>, você descreve o que sente pela pessoa e ganha +d6, +d8 ou +d12 num teste ligado a ela. A cada cena você tem <strong>3 pontos para mandar</strong> a quem quiser (os 3 para uma pessoa ou um para cada), e cada ponto mandado sobe a relação, até 3. A relação só gasta quando você decide usar: <strong>1 ponto dá d6, 2 dão d8, 3 dão d12</strong>, e esses pontos saem da relação. Não há limite de pessoas.'),
       Pp('Vínculo e Devoção também servem para <strong>motivar</strong> a pessoa (ela recupera 2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvar quem está em perigo. O preço: se algo acontecer com quem você ama, o trauma é maior.'),
       Pp('<strong>Ep. 2:</strong> relação mede vínculo, não carinho. Ela pode virar <strong>negativa</strong> e continua valendo em testes contra a pessoa. É de mão única: só quem sente usa o dado (pedir que a outra pessoa use a relação dela com você não vale). Com a relação, dá para <strong>acalmar</strong> alguém em pânico (Persuasão + o dado) e levá-lo junto por uma barreira de medo. Perder alguém querido custou o dado da relação em PD: Devoção, d12.'),
       Pp('<strong>Fim de cena:</strong> ímpetos e marcadores de análise zeram, reduções da cena somem e as habilidades de uma vez por cena voltam. O dado de pavor fica até cair 1.'),
@@ -2474,7 +2849,7 @@ const CR_PASSOS = ['Conceito', 'Perfil', 'Vocação', 'Atributos', 'Perícias', 
 const crRegras = t => t === 'agente' ? { atr: 6, atrMax: 'd12', per: 16, perMax: 'd10' } : { atr: 5, atrMax: 'd10', per: 7, perMax: 'd8' };
 const DESC_ATR = { fisico: 'força, coordenação, velocidade, fôlego', mente: 'raciocínio, estudo, percepção', emocao: 'vontade, presença, instinto' };
 const gastos = o => Object.values(o).reduce((a, d) => a + Math.max(0, ESCADA.indexOf(d)), 0);
-function crNovo() { return { passo: 0, nome: '', conceito: '', idade: '', aparencia: '', tipo: 'sobrevivente', perfil: '', ocupacao: '', ocPer: '', nivelHab: '', atr: { fisico: 'd4', mente: 'd4', emocao: 'd4' }, per: per(), apt: apt(), pvM: null, pdM: null, rel: [{ nome: '', pts: 2 }, { nome: '', pts: 1 }, { nome: '', pts: 0 }], itens: [] }; }
+function crNovo() { return { passo: 0, nome: '', conceito: '', idade: '', aparencia: '', tipo: 'sobrevivente', perfil: '', ocupacao: '', ocPer: '', nivelHab: '', atr: { fisico: 'd4', mente: 'd4', emocao: 'd4' }, per: per(), apt: apt(), pvM: null, pdM: null, rel: [], itens: [] }; }
 function crPerFinal(c) { const p = Object.assign({}, c.per), a = Object.assign({}, c.apt); if (c.ocPer) { if (c.ocPer.startsWith('apt:')) a[c.ocPer.slice(4)] = passo(a[c.ocPer.slice(4)], 1); else p[c.ocPer] = passo(p[c.ocPer], 1); } return { p, a }; }
 function crSug(c) { return formulaPVPD({ atr: c.atr, tipo: c.tipo, nivel: c.tipo === 'agente' ? 6 : 1 }); }
 function crHabs(c) { return [...new Set([...(PERFIS[c.perfil]?.[2] || []), OCUP[c.ocupacao], c.tipo === 'agente' ? c.nivelHab : null].filter(Boolean))]; }
@@ -2525,10 +2900,18 @@ const CR_ETAPA = [
       h('div', { class: 'linha-cr' },
         h('label', { class: 'cr-campo' }, 'PV (vida)', h('input', { type: 'number', id: 'cr-pv', min: 1, max: 99, value: c.pvM ?? s.pv, onchange: e => { c.pvM = Math.max(1, Math.min(99, +e.target.value || 1)); renderCriar(); } })),
         h('label', { class: 'cr-campo' }, 'PD (determinação)', h('input', { type: 'number', id: 'cr-pd', min: 1, max: 99, value: c.pdM ?? s.pd, onchange: e => { c.pdM = Math.max(1, Math.min(99, +e.target.value || 1)); renderCriar(); } }))),
-      h('div', { class: 'campo' }, 'Relações: pessoas que importam (3 pontos para distribuir, até 3 por pessoa)'),
-      h('div', { class: 'dist' }, c.rel.map((r, i) => h('div', { class: 'ln' },
-        h('input', { class: 'nm', id: 'cr-rel-' + i, value: r.nome, placeholder: ['Ex.: minha mãe', 'Ex.: o melhor amigo', 'Ex.: a vizinha'][i], 'aria-label': 'Pessoa ' + (i + 1), style: { background: 'var(--panel-2)', border: '1px solid var(--line-2)', padding: '6px 8px', color: 'var(--paper)', minWidth: 0 }, oninput: e => { r.nome = e.target.value; } }),
-        h('select', { id: 'cr-relp-' + i, 'aria-label': 'Pontos', style: { background: 'var(--panel-2)', border: '1px solid var(--line-2)', padding: '6px', color: 'var(--paper)' }, onchange: e => { r.pts = +e.target.value; renderCriar(); } }, [0, 1, 2, 3].map(v => h('option', { value: v, selected: r.pts === v || null, disabled: tot - r.pts + v > 3 || null }, v + (v === 1 ? ' ponto' : ' pontos'))))))),
+      h('div', { class: 'campo' }, 'Vínculos: quem importa para o seu personagem (opcional)'),
+      h('p', { class: 'cr-dica' }, 'Pode ser alguém do grupo, um morador que vocês já conhecem ou outra pessoa. A família de fora do vale não precisa entrar aqui. São 3 pontos para distribuir, até 3 por pessoa; um vínculo pode começar com 0 e crescer na campanha.'),
+      h('div', { class: 'sobra' + (tot >= 3 ? ' zero' : ''), role: 'status', id: 'cr-rel-sobra' }, h('b', null, 3 - tot), (3 - tot === 1 ? 'ponto livre' : 'pontos livres') + ' · ' + tot + ' de 3 distribuídos'),
+      listaTipos(),
+      h('div', { class: 'cr-rels' }, c.rel.map((r, i) => h('div', { class: 'cr-rel' },
+        h('div', { class: 'linha' }, selQuem(r, 'cr-relq-' + i, null, () => renderCriar()),
+          r.quem === 'outro' || !r.quem ? h('input', { id: 'cr-rel-' + i, value: r.nome, placeholder: 'Nome da pessoa', 'aria-label': 'Pessoa ' + (i + 1), oninput: e => { r.nome = e.target.value; } }) : null,
+          h('select', { id: 'cr-relp-' + i, 'aria-label': 'Pontos', onchange: e => { r.pts = +e.target.value; renderCriar(); } }, [0, 1, 2, 3].map(v => h('option', { value: v, selected: r.pts === v || null, disabled: tot - r.pts + v > 3 || null }, v + (v === 1 ? ' ponto' : ' pontos')))),
+          h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar vínculo', onclick: () => { c.rel.splice(i, 1); renderCriar(); } }, '×')),
+        h('input', { id: 'cr-relt-' + i, list: 'rel-tipos', value: r.tipo || '', placeholder: 'Tipo de relação (amizade antiga, dívida, segredo em comum...)', 'aria-label': 'Tipo de relação', oninput: e => { r.tipo = e.target.value; } }),
+        h('textarea', { id: 'cr-relo-' + i, rows: 2, placeholder: 'Como se conhecem e de onde vem esse vínculo', 'aria-label': 'Origem da relação', oninput: e => { r.origem = e.target.value; } }, r.origem || '')))),
+      h('div', null, h('button', { class: 'btn sm ghost', type: 'button', id: 'cr-rel-mais', onclick: () => { c.rel.push({ nome: '', pts: 0, quem: 'outro', fid: '', npc: '', tipo: '', origem: '' }); renderCriar(); setTimeout(() => $('#cr-relq-' + (c.rel.length - 1))?.focus(), 20); } }, '+ Adicionar vínculo')),
       h('div', { class: 'campo' }, 'Itens para começar (até 2)'),
       h('div', { class: 'opcoes' }, Object.entries(ITEM_CAT).map(([k, x]) => opc(c.itens.includes(k), () => { if (c.itens.includes(k)) c.itens = c.itens.filter(y => y !== k); else if (c.itens.length < 2) c.itens.push(k); else { toast('Até 2 itens. Tire um antes.'); return; } renderCriar(); }, h('b', null, k), h('span', null, x.txt))))]; },
   (c) => { const { p, a } = crPerFinal(c), s = crSug(c);
@@ -2542,7 +2925,7 @@ const CR_ETAPA = [
           h('p', null, h('strong', null, 'Perícias treinadas: '), tr.join(', ') || 'nenhuma'),
           h('p', null, h('strong', null, 'Habilidades: '), crHabs(c).map(k => HAB[k].nome).join(', ')),
           h('p', null, h('strong', null, 'PV '), c.pvM ?? s.pv, ' · ', h('strong', null, 'PD '), c.pdM ?? s.pd),
-          rels.length ? h('p', null, h('strong', null, 'Relações: '), rels.map(r => r.nome.trim() + ' (' + r.pts + ')').join(', ')) : null,
+          rels.length ? h('p', null, h('strong', null, 'Vínculos: '), rels.map(r => r.nome.trim() + (r.tipo ? ', ' + r.tipo.trim() : '') + ' (' + r.pts + ')').join(' · ')) : null,
           c.itens.length ? h('p', null, h('strong', null, 'Itens: '), c.itens.join(', ')) : null))]; },
 ];
 function crPreview(c) {
@@ -2558,7 +2941,7 @@ function crPreview(c) {
 }
 function crCriar(c) {
   const { p, a } = crPerFinal(c), s = crSug(c), pv = c.pvM ?? s.pv, pd = c.pdM ?? s.pd, ag = c.tipo === 'agente';
-  const f = P({ nome: c.nome.trim() || 'Sem nome', tipo: c.tipo, nivel: ag ? 6 : 1, perfil: c.perfil, ocupacao: c.ocupacao, atr: Object.assign({}, c.atr), per: p, apt: a, pv: { v: pv, m: pv }, pd: { v: pd, m: pd }, hab: crHabs(c), itens: c.itens.map(nome => ({ nome, qtd: 1 })), rel: c.rel.filter(r => r.nome.trim()).map(r => rl(r.nome.trim(), r.pts)), notas: c.conceito, resumo: c.conceito, idade: c.idade || '', aparencia: c.aparencia || '', ferr: ag ? ferrAgente() : {} });
+  const f = P({ nome: c.nome.trim() || 'Sem nome', tipo: c.tipo, nivel: ag ? 6 : 1, perfil: c.perfil, ocupacao: c.ocupacao, atr: Object.assign({}, c.atr), per: p, apt: a, pv: { v: pv, m: pv }, pd: { v: pd, m: pd }, hab: crHabs(c), itens: c.itens.map(nome => ({ nome, qtd: 1 })), rel: c.rel.filter(r => r.nome.trim()).map(r => rl(r.nome.trim(), r.pts, { quem: r.quem || 'outro', fid: r.fid || '', npc: r.npc || '', tipo: (r.tipo || '').trim(), origem: (r.origem || '').trim(), evo: [{ t: Date.now(), d: r.pts, por: 'criacao', txt: 'Vínculo criado com a ficha' }] })), relBase: 3, notas: c.conceito, resumo: c.conceito, idade: c.idade || '', aparencia: c.aparencia || '', ferr: ag ? ferrAgente() : {} });
   if (VOC[f.ocupacao]?.hab === 'ja-vi-pior') { f.pd.m = Math.max(1, f.pd.m - 2); f.pd.v = Math.min(f.pd.v, f.pd.m); }
   S.fichas.push(f); S.sel = f.id; UIS.cr = null; UIS.edit = false; UIS.roll = null; UIS.res = null; salvar(); irModo('mesa'); toast(f.nome + ' entrou na lista de fichas.');
 }
@@ -2669,7 +3052,7 @@ function rodarTestes() {
   ok('Padrão: ímpeto com 5 espaços', RG.impetoMax === 5);
   const fx = P({ nome: 'teste', atr: { fisico: 'd8', mente: 'd6', emocao: 'd6' }, per: per(), apt: apt(), pv: { v: 1, m: 1 }, pd: { v: 1, m: 1 }, hab: [], nivel: 1 });
   ok('Fórmula de PV/PD da versão aplica (14 / 12 com Físico d8, Mente d6, Emoção d6)', (() => { const x = formulaPVPD(fx); return x.pv === 14 && x.pd === 12; })());
-  ok('Relação usada uma vez por missão (não volta ao fim da cena)', (() => { marcarRel(fx, 'r1'); const u = relUsada(fx, 'r1'); fx.usos = {}; return u && relUsada(fx, 'r1'); })());
+  ok('Relações: manda até 3 pontos por cena e gasta de 1 a 3 da relação', (() => { const r = { id: 'rz', nome: 'Teste', pts: 0, log: [], evo: [] }; const g = { rel: [r], relCena: [] }; const a = relMandar(g, r) === 'ok' && relMandar(g, r) === 'ok' && relMandar(g, r) === 'ok' && r.pts === 3; const b = relMandar(g, r) === 'cena'; const c = relGastar(g, r, 2, 'x') === 2 && r.pts === 1; return a && b && c; })());
   ok('Patamar sem regra definida (e sem as complementares) fica em iniciante', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = false; const r = patamar(Object.assign({}, fx, { nivel: 9 })) === 0; S.regras.casa.ativo = a; return r; })());
   ok('Diferença da evolução registra atributo e perícia', (() => { const a = fotoFicha(fx); fx.atr.mente = 'd8'; fx.per.luta = 'd6'; const d = difFicha(a, fx); return d.some(x => x.startsWith('Mente')) && d.some(x => x.startsWith('Luta')); })());
   S.regras.versao = 'alpha'; aplicarVersao();
@@ -2874,6 +3257,20 @@ if (PONTE) {
     return h('div', { class: 'npc-campo' }, h('div', { class: 'npc-k' }, 'Falas prontas'),
       n.falas.length ? h('ul', { class: 'npc-falas' }, n.falas.map(x => h('li', null, x.tipo ? h('b', null, x.tipo) : null, h('span', { html: rico(x.texto) })))) : h('p', { class: 'npc-nd' }, ND));
   }
+  /* quem dos personagens tem vínculo com este NPC, e como o NPC vê cada um */
+  function vinculosNPC(f) {
+    const nm = String(f.nome || '').trim().toLowerCase(), l = [];
+    for (const p of S.fichas) if ((p.papel || 'pj') === 'pj') for (const r of p.rel || []) { normRel(r); if (r.npc === f.id || (!r.npc && r.quem !== 'pj' && String(r.nome || '').trim().toLowerCase() === nm && nm)) l.push({ p, r }); }
+    l.sort((a, b) => (b.r.pts || 0) - (a.r.pts || 0));
+    return h('div', { class: 'npc-campo', id: 'npc-vinculos' }, h('div', { class: 'npc-k' }, 'Vínculos com os personagens'),
+      l.length ? h('div', { class: 'npc-vinc' }, l.map(({ p, r }) => h('div', { class: 'npc-vinc-l' },
+        h('b', null, p.nome || 'Sem nome'),
+        h('span', null, (r.pts ? REL_N[r.pts] + ' ' + REL_D[r.pts] : 'sem pontos') + (r.tipo || r.desc ? ' · ' + (r.tipo || r.desc) : '') + (r.neg ? ' · rancor' : '')),
+        h('small', null, (r.outro ? String(f.nome || 'O NPC').split(' ')[0] + ': ' + REL_VE[String(r.outro.g)].toLowerCase() + (r.outro.txt ? '. ' + r.outro.txt : '') : 'O NPC ainda não tem opinião registrada') + (r.pedido ? ' · pedido pendente: “' + r.pedido.txt + '”' : '')),
+        r.evo && r.evo[0] ? h('small', null, 'Última evolução: ' + r.evo[0].txt) : null)))
+        : h('p', { class: 'npc-nd' }, 'Nenhum personagem tem vínculo com este NPC ainda.'),
+      PONTE && PONTE.reconhecer ? h('button', { class: 'btn sm red', type: 'button', id: 'npc-reconhecer', title: 'Abre a Central na aba Relações com este NPC escolhido', onclick: () => { ponteSalvar(true); PONTE.reconhecer(f.id); } }, 'Reconhecer um personagem') : null);
+  }
   function corpoNPC(f) {
     const n = npcDe(f), vista = UIS.npcVista || 'interpretar', ed = !!UIS.npcEdit;
     if (vista === 'interpretar') return h('div', { class: 'npc-corpo' },
@@ -2895,7 +3292,8 @@ if (PONTE) {
       return h('div', { class: 'npc-corpo' }, campoNPC(n, 'itens.10', 'Relações', ed, 6),
         h('div', { class: 'npc-campo' }, h('div', { class: 'npc-k' }, 'Relações escondidas'), h('p', { html: rico(escondidas(n)) })),
         h('div', { class: 'npc-campo' }, h('div', { class: 'npc-k' }, 'Aparece na ficha de'),
-          cit.length ? h('div', { class: 'npc-citam' }, cit.map(g => h('button', { class: 'btn sm', type: 'button', onclick: () => { S.sel = g.id; salvarLocal(); renderTudo(); } }, g.nome))) : h('p', { class: 'npc-nd' }, 'Nenhuma outra ficha cita este NPC.')));
+          cit.length ? h('div', { class: 'npc-citam' }, cit.map(g => h('button', { class: 'btn sm', type: 'button', onclick: () => { S.sel = g.id; salvarLocal(); renderTudo(); } }, g.nome))) : h('p', { class: 'npc-nd' }, 'Nenhuma outra ficha cita este NPC.')),
+        vinculosNPC(f));
     }
     if (vista === 'notas') return h('div', { class: 'npc-corpo' },
       h('div', { class: 'npc-campo' }, h('div', { class: 'npc-k' }, 'Notas do mestre ', h('small', { id: 'npc-st-notas' }, n.notasT ? 'Salvo' : '')),
@@ -3052,6 +3450,7 @@ if (PONTE) {
   };
   const off = PONTE.onMuda(recebe);
   const off4 = PONTE.onAbrir && PONTE.onAbrir(abrirFicha);
+  const off6 = PONTE.onNpcs && PONTE.onNpcs(() => { if (PONTE.isGM()) return; if (UIS.modo === 'criar') renderCriar(); else if (!document.activeElement || !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) renderFicha(); });
   const off5 = PONTE.onPecas && PONTE.onPecas(() => { if (PONTE.isGM()) atualizaMapaNPC(); });
   setTimeout(() => { const x = PONTE.pedidoAbrir && PONTE.pedidoAbrir(); if (x) abrirFicha(x); }, 0);
   const off3 = PONTE.onOutros && PONTE.onOutros(() => { if (!PONTE.isGM()) { renderLista(); if (UIS.outro) renderTudo(); } });

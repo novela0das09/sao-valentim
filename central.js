@@ -24,9 +24,10 @@
     outros: svg('<circle cx="12" cy="12" r="1.5"/><circle cx="5" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>')
   };
   const PADRAO = { pvBaixo: 50, pvCrit: 25, pdBaixo: 50, pdCrit: 25, sessao: 1, aviso: true };
-  const VISTAS = [['geral', 'Visão geral'], ['combate', 'Combate'], ['jogadores', 'Jogadores'], ['notif', 'Notificações'], ['notas', 'Anotações'], ['hist', 'Histórico da sessão'], ['config', 'Configurações']];
+  const VISTAS = [['geral', 'Visão geral'], ['combate', 'Combate'], ['jogadores', 'Jogadores'], ['relacoes', 'Relações'], ['notif', 'Notificações'], ['notas', 'Anotações'], ['hist', 'Histórico da sessão'], ['config', 'Configurações']];
   const C = { cfg: Object.assign({}, PADRAO), ev: {}, est: {}, cur: {}, prev: {}, recentes: [], pronto: false, base: '', tDiff: 0, tDes: 0,
-    vista: 'geral', f: { fid: '', cat: '', modo: 'ativas' }, hf: { fid: '', cat: '', s: '' }, abertos: {}, extras: false, sessaoConf: false, naoLidas: 0 };
+    vista: 'geral', f: { fid: '', cat: '', modo: 'ativas' }, hf: { fid: '', cat: '', s: '' }, abertos: {}, extras: false, sessaoConf: false, naoLidas: 0,
+    rf: { npc: '', fid: '', d: '1', ve: '', vis: false, motivo: '', estado: '', nota: '' }, rconf: '', rfil: '', rab: {}, rnotas: {} };
   let _ = null;
   try { C.vista = localStorage.getItem('sv.central.vista') || 'geral'; } catch (e) {}
 
@@ -57,6 +58,7 @@
     });
     SV.db.on(C.base + '/cfg', v => { C.cfg = Object.assign({}, PADRAO, v && typeof v === 'object' ? v : {}); agendaDesenho(); });
     SV.db.on(C.base + '/ev', v => { C.ev = v && typeof v === 'object' ? v : {}; sino(); agendaDesenho(); });
+    SV.db.on('notas/' + SV.me.uid + '/r', v => { C.rnotas = v && typeof v === 'object' ? v : {}; if (C.vista === 'relacoes') agendaDesenho(); });
     _.ouve('fichas', () => { agendaDiff(); agendaDesenho(); });
     _.ouve('rolagens', () => { lerRolagens(); agendaDesenho(); });
     _.ouve('users', () => agendaDesenho());
@@ -122,10 +124,13 @@
   /* as fichas dos jogadores: PV, PD, condições, relações, itens e progresso */
   function agendaDiff() { clearTimeout(C.tDiff); C.tDiff = setTimeout(diff, 1300); }
   function snap(f) {
-    const rel = {}; for (const r of f.rel || []) if (r && (r.nome || r.id)) rel[r.id || r.nome] = { nome: r.nome || 'alguém', n: (r.log || []).length, ult: (r.log && r.log[0] && r.log[0].txt) || '' };
+    const rel = {}; let livre = 0; for (const r of f.rel || []) if (r && (r.nome || r.id)) { rel[r.id || r.nome] = { nome: r.nome || 'alguém', n: (r.log || []).length, ult: (r.log && r.log[0] && r.log[0].txt) || '', ped: (r.pedido && r.pedido.txt) || '' }; livre += Math.max(0, (+r.pts || 0) - Math.max(0, ganDe(r))); }
+    const exc = Math.max(0, livre - (f.relBase ?? 3)), cenas = {};
+    for (const r of f.rel || []) for (const e of (r && Array.isArray(r.evo) ? r.evo : [])) if (e && e.cena) cenas[e.cena] = (cenas[e.cena] || 0) + 1;
+    const cx = Math.max(0, ...Object.values(cenas));
     const it = {}; for (const x of f.itens || []) if (x && x.nome) it[x.nome] = +(x.qtd ?? 1);
     return { pv: +(f.pv && f.pv.v) || 0, pvm: +(f.pv && f.pv.m) || 0, pd: +(f.pd && f.pd.v) || 0, pdm: +(f.pd && f.pd.m) || 0,
-      cond: (Array.isArray(f._cond) ? f._cond : []).filter(c => !/zerad/i.test(c)), rel, it, hab: Array.isArray(f._habN) ? [...f._habN] : (f.hab || []).map(prettyHab), rit: Array.isArray(f._ritN) ? [...f._ritN] : (f.rit || []).map(prettyHab), nivel: +f.nivel || 1, nex: +f.nex || 0 };
+      cond: (Array.isArray(f._cond) ? f._cond : []).filter(c => !/zerad/i.test(c)), rel, it, hab: Array.isArray(f._habN) ? [...f._habN] : (f.hab || []).map(prettyHab), rit: Array.isArray(f._ritN) ? [...f._ritN] : (f.rit || []).map(prettyHab), nivel: +f.nivel || 1, nex: +f.nex || 0, exc, cx };
   }
   function casa(fid, campo, n) {
     const i = C.recentes.findIndex(r => r.fid === fid && r[campo] === n);
@@ -162,7 +167,10 @@
       if (dpd > 0) ev('pd+', { cat: 'recursos', txt: 'recuperou ' + dpd + ' PD · ' + b.pd + '/' + b.pdm, nv: 'info' });
       for (const c of b.cond) if (!a.cond.includes(c)) ev('c+' + c, { cat: 'condicoes', txt: 'recebeu a condição ' + c, nv: /morto|perdida|moribundo/i.test(c) ? 'alerta' : 'aviso' });
       for (const c of a.cond) if (!b.cond.includes(c)) ev('c-' + c, { cat: 'condicoes', txt: 'perdeu a condição ' + c, nv: 'info' });
-      for (const [k, r] of Object.entries(b.rel)) { const o = a.rel[k]; if (o && r.n > o.n) ev('rel' + k + r.n, { cat: 'relacoes', txt: 'usou a relação com ' + r.nome + (r.ult ? ': ' + r.ult : ''), nv: 'aviso' }); }
+      for (const [k, r] of Object.entries(b.rel)) { const o = a.rel[k]; if (o && r.n > o.n) ev('rel' + k + r.n, { cat: 'relacoes', txt: 'usou a relação com ' + r.nome + (r.ult ? ': ' + r.ult : ''), nv: 'aviso' });
+        if (r.ped && (!o || o.ped !== r.ped)) ev('relped' + k + fnv(r.ped), { cat: 'relacoes', txt: 'pediu para evoluir a relação com ' + r.nome + ': “' + r.ped + '”', nv: 'aviso', k: 'relped' }); }
+      if (b.cx > 3 && b.cx > (a.cx || 0)) ev('relc' + b.cx, { cat: 'relacoes', txt: 'mandou ' + b.cx + ' pontos de relação numa mesma cena (o limite é 3)', nv: 'alerta', k: 'relc' });
+      if (b.exc > (a.exc || 0)) ev('relx' + b.exc, { cat: 'relacoes', txt: 'pôs ' + b.exc + ' ponto(s) de relação acima do que tinha livre, sem concessão do mestre', nv: 'alerta', k: 'relx' });
       for (const [k, q] of Object.entries(a.it)) { const q2 = b.it[k]; if (q2 == null) ev('it-' + k, { cat: 'outros', txt: 'ficou sem ' + k, nv: 'info' }); else if (q2 < q) ev('it' + k + q2, { cat: 'outros', txt: 'usou ' + k + ' (restam ' + q2 + ')', nv: 'info' }); }
       for (const hb of b.hab) if (!a.hab.includes(hb)) ev('hab' + hb, { cat: 'habilidades', txt: 'ganhou a habilidade ' + hb, nv: 'info' });
       for (const r of b.rit) if (!a.rit.includes(r)) ev('rit' + r, { cat: 'habilidades', txt: 'aprendeu o ritual ' + r, nv: 'info' });
@@ -193,11 +201,11 @@
   function desenha() {
     sino();
     const box = $('#p-central'); if (!box || !box.dataset.ok || !_ || _.aba() !== 'central') return;
-    if (box.contains(document.activeElement) && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && C.vista === 'config') return;
+    if (box.contains(document.activeElement) && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && (C.vista === 'config' || C.vista === 'relacoes')) return;
     const nAt = Object.values(C.ev).filter(e => ativo(e) && !e.lida).length;
     $('#c-abas').innerHTML = VISTAS.map(([k, n]) => `<button type="button" role="tab" data-v="${k}" aria-selected="${C.vista === k}" class="${C.vista === k ? 'on' : ''}">${n}${k === 'notif' && nAt ? ` <span class="c-n">${nAt}</span>` : ''}</button>`).join('');
     const corpo = $('#c-corpo'), st = box.scrollTop;
-    corpo.innerHTML = ({ geral: vGeral, combate: vCombate, jogadores: vJogadores, notif: vNotif, hist: vHist, config: vConfig }[C.vista] || vGeral)();
+    corpo.innerHTML = ({ geral: vGeral, combate: vCombate, jogadores: vJogadores, relacoes: vRelacoes, notif: vNotif, hist: vHist, config: vConfig }[C.vista] || vGeral)();
     box.scrollTop = st;
   }
   const medidor = (rec, v, m, cfg) => {
@@ -330,6 +338,135 @@
   }
 
   /* ---------------------------------------------------------- ações */
+
+  /* ---------------------------------------------------------- relações */
+  const GRAU = ['Sem pontos', 'Afinidade', 'Vínculo', 'Devoção'];
+  const VE = { '-1': 'Desconfia', '0': 'Mal conhece', '1': 'Conhecido', '2': 'Confia', '3': 'Leal' };
+  const QUEM = { pj: 'Do grupo', npc: 'Morador', outro: 'Outra pessoa' };
+  function ganDe(r) { return (Array.isArray(r.evo) ? r.evo : []).reduce((a, e) => a + (e && (e.por === 'gm' || e.cena || e.gasto) ? (+e.d || 0) : 0), 0); }
+  const relsDe = f => (Array.isArray(f.rel) ? f.rel : []).filter(r => r && typeof r === 'object');
+  const quemDe = r => r.quem || (r.npc ? 'npc' : r.fid ? 'pj' : 'outro');
+  const npcsF = () => Object.values(_.D.fichas).map(x => x.f).filter(f => f && f.papel === 'npc').sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+  const relNpc = (r, n) => r.npc === n.id || (!r.npc && quemDe(r) !== 'pj' && !!String(n.nome || '').trim() && String(r.nome || '').trim().toLowerCase() === String(n.nome || '').trim().toLowerCase());
+  const ultGm = r => (Array.isArray(r.evo) ? r.evo : []).find(e => e && e.por === 'gm');
+  const evoNaSessao = r => (Array.isArray(r.evo) ? r.evo : []).some(e => e && e.por === 'gm' && +e.d > 0 && +e.s === (+C.cfg.sessao || 1));
+  const grauTxt = r => (r.neg ? 'Rancor · ' : '') + GRAU[+r.pts || 0] + (r.perd ? ' (' + r.perd + ' perdido)' : '');
+  function aplicaRel(fid, relId, npcId, o) {
+    const f0 = fichaDe(fid); if (!f0) return null;
+    const f = JSON.parse(JSON.stringify(f0)); f.rel = Array.isArray(f.rel) ? f.rel : [];
+    const n = npcId ? fichaDe(npcId) : null;
+    let r = relId ? f.rel.find(x => x && x.id === relId) : null;
+    if (!r && n) r = f.rel.find(x => x && relNpc(x, n));
+    if (!r) { if (!n) return null; r = { id: 'r' + Math.random().toString(36).slice(2, 8), nome: n.nome || 'Sem nome', pts: 0, desc: '', fid: '', log: [], quem: 'npc', npc: n.id, tipo: '', origem: '', rp: '', estado: '', evo: [], pedido: null, outro: null }; f.rel.push(r); }
+    r.evo = Array.isArray(r.evo) ? r.evo : []; r.log = Array.isArray(r.log) ? r.log : [];
+    if (n && !r.npc) { r.npc = n.id; r.quem = 'npc'; }
+    const sess = +C.cfg.sessao || 1, max = 3 - (+r.perd || 0), antes = +r.pts || 0;
+    r.pts = Math.max(0, Math.min(max, antes + (+o.d || 0)));
+    const e = { t: Date.now(), s: sess, d: r.pts - antes, por: 'gm', txt: o.motivo };
+    if (o.ve !== '' && o.ve != null) { r.outro = Object.assign({ g: 0, txt: '', vis: false }, r.outro || {}, { g: +o.ve, vis: !!o.vis }); e.ve = +o.ve; }
+    else if (r.outro && o.vis != null) r.outro.vis = !!o.vis;
+    if (o.estado) r.estado = o.estado;
+    if (o.pedido !== 'manter') r.pedido = null;
+    r.evo.unshift(e); r.evo = r.evo.slice(0, 40);
+    _.grava(f);
+    if (o.nota) SV.db.set('notas/' + SV.me.uid + '/r/' + f.id + '/' + r.id + '/' + Date.now().toString(36), { t: Date.now(), s: sess, txt: o.nota, motivo: o.motivo || '' }).catch(() => SV.toast('A anotação não foi salva.', 'err'));
+    emite('rg' + f.id + r.id + e.t, { fid: f.id, quem: f.nome || 'Sem nome', cat: 'relacoes', txt: 'relação com ' + r.nome + (e.d ? (e.d > 0 ? ' subiu' : ' desceu') + ' para ' + GRAU[r.pts] : ' registrada') + ': ' + o.motivo, nv: 'info', k: 'relgm' });
+    agendaDiff();
+    return { f, r, e };
+  }
+  function vRelacoes() {
+    const l = pjs(), ns = npcsF(), sess = +C.cfg.sessao || 1, rf = C.rf;
+    const peds = [], fracas = [], imp = {};
+    for (const f of l) for (const r of relsDe(f)) {
+      if (r.pedido && r.pedido.txt) peds.push({ f, r });
+      const u = ultGm(r);
+      if ((+r.pts || 0) <= 1 && (!u || (+u.s || 0) <= sess - 2)) fracas.push({ f, r });
+      if (quemDe(r) === 'npc' || r.npc) { const k = r.npc || 'n:' + String(r.nome).toLowerCase(); const x = imp[k] ||= { nome: r.nome, npc: r.npc, soma: 0, pjs: [] }; x.soma += +r.pts || 0; x.pjs.push(f.nome + ' (' + GRAU[+r.pts || 0] + ')'); }
+    }
+    const impL = Object.values(imp).sort((a, b) => b.soma - a.soma || b.pjs.length - a.pjs.length);
+    const fSel = rf.fid ? fichaDe(rf.fid) : null, nSel = rf.npc ? fichaDe(rf.npc) : null, atual = fSel && nSel ? relsDe(fSel).find(r => relNpc(r, nSel)) : null;
+    const opt = (v, n, sel) => `<option value="${esc(v)}"${sel ? ' selected' : ''}>${esc(n)}</option>`;
+    const linha = (f, r) => {
+      const k = f.id + ':' + r.id, ab = !!C.rab[k], u = ultGm(r) || (r.evo || [])[0], q = quemDe(r);
+      const rec = q === 'pj' && r.fid ? (() => { const o = fichaDe(r.fid); const v = o && relsDe(o).find(x => x.fid === f.id); return v ? 'recíproca: ' + GRAU[+v.pts || 0] : 'só de um lado'; })() : '';
+      const notas = Object.entries((C.rnotas[f.id] || {})[r.id] || {}).map(([, x]) => x).filter(x => x && x.txt).sort((a, b) => b.t - a.t);
+      return `<div class="c-rel-l${r.pedido ? ' ped' : ''}">
+        <div class="c-rel-q"><b>${esc(r.nome || 'Sem nome')}</b> <span class="c-rel-chip ${esc(q)}">${esc(QUEM[q] || '')}</span>${r.tipo || r.desc ? ` <i>${esc(r.tipo || r.desc)}</i>` : ''}</div>
+        <div class="c-rel-g"><b>${esc(grauTxt(r))}</b>${r.outro ? ` · ${esc(String(r.nome || '').split(' ')[0])}: ${esc(VE[String(r.outro.g)] || '')}${r.outro.vis ? '' : ' <small>(oculto)</small>'}` : ''}${rec ? ` · <small>${esc(rec)}</small>` : ''}</div>
+        <div class="c-rel-u">${u ? `<small>${esc(dia(u.t))}${u.s ? ' · sessão ' + esc(u.s) : ''}:</small> ${esc(u.txt || '')}` : '<small>sem evolução registrada</small>'}</div>
+        <div class="c-rel-a"><button class="btn sm" type="button" data-c="rel-menos" data-fid="${esc(f.id)}" data-rid="${esc(r.id)}" aria-label="Tirar um ponto de ${esc(r.nome)}">−</button><button class="btn sm" type="button" data-c="rel-mais" data-fid="${esc(f.id)}" data-rid="${esc(r.id)}" aria-label="Dar um ponto em ${esc(r.nome)}">+</button><button class="btn sm ghost" type="button" data-c="rel-hist" data-k="${esc(k)}">${ab ? 'Fechar' : 'Histórico'}</button></div>
+        ${ab ? `<div class="c-rel-h">
+          ${(r.evo || []).length ? `<ul class="c-lista">${r.evo.map(e => `<li><small>${esc(dia(e.t))}${e.s ? ' · sessão ' + esc(e.s) : ''} · ${esc(e.por === 'gm' ? 'mestre' : e.por === 'criacao' ? 'criação' : 'jogador')}</small> ${e.d ? `<b>${e.d > 0 ? '+' : ''}${esc(e.d)}</b> ` : ''}${esc(e.txt || '')}</li>`).join('')}</ul>` : '<p class="vazio">Sem evolução ainda.</p>'}
+          ${r.origem ? `<p><small>Como se conhecem:</small> ${esc(r.origem)}</p>` : ''}
+          <div class="c-rel-n"><b>Anotações privadas</b>${notas.length ? `<ul class="c-lista">${notas.map(x => `<li><small>${esc(dia(x.t))} · sessão ${esc(x.s || '?')}</small> ${esc(x.txt)}</li>`).join('')}</ul>` : ' <small>nenhuma ainda</small>'}
+            <div class="c-rel-lin"><input class="c-in" type="text" data-rn="${esc(k)}" placeholder="Anotação só sua sobre este vínculo" aria-label="Anotação privada sobre ${esc(r.nome)}"><button class="btn sm" type="button" data-c="rel-nota" data-k="${esc(k)}">Anotar</button></div></div>
+        </div>` : ''}
+      </div>`;
+    };
+    const rep = atual && evoNaSessao(atual);
+    return `<div class="c-resumo">
+        <div class="c-kpi${peds.length ? ' tem' : ''}"><b>${peds.length}</b><span>pedidos dos jogadores</span></div>
+        <div class="c-kpi"><b>${l.reduce((a, f) => a + relsDe(f).filter(r => quemDe(r) === 'npc' || r.npc).length, 0)}</b><span>vínculos com moradores</span></div>
+        <div class="c-kpi"><b>${fracas.length}</b><span>pouco desenvolvidas</span></div>
+        <div class="c-kpi"><b>${impL.filter(x => x.soma >= 2).length}</b><span>NPCs que importam</span></div>
+      </div>
+      <section class="cartao c-rf" id="c-rec"><h2>Reconhecimento <small>sessão ${esc(sess)}</small></h2>
+        <p class="c-dica">Quando um personagem faz algo marcante por um morador, registre aqui. Conversa comum não conta. Uma evolução por vínculo por sessão; a segunda pede confirmação.</p>
+        <div class="c-rel-lin">
+          <label>NPC <select class="c-in" data-rf="npc" id="c-rf-npc"><option value="">Escolha…</option>${ns.map(n => opt(n.id, n.nome + (n.npc && n.npc.curto ? '' : ''), rf.npc === n.id)).join('')}</select></label>
+          <label>Personagem <select class="c-in" data-rf="fid" id="c-rf-fid"><option value="">Escolha…</option>${l.map(f => opt(f.id, f.nome + ' · ' + jogadorDe(f), rf.fid === f.id)).join('')}</select></label></div>
+        ${fSel && nSel ? `<p class="c-dica" id="c-rf-atual">${atual ? `Hoje: ${esc(fSel.nome)} → ${esc(nSel.nome)}: <b>${esc(grauTxt(atual))}</b>${atual.outro ? ` · ${esc(nSel.nome.split(' ')[0])} vê: ${esc(VE[String(atual.outro.g)])}` : ''}${rep ? ' · <b>já evoluiu nesta sessão</b>' : ''}` : `${esc(fSel.nome)} ainda não tem vínculo com ${esc(nSel.nome)}. Conceder cria o vínculo.`}</p>` : ''}
+        <label>Motivo (o que aconteceu) <input class="c-in" type="text" data-rf="motivo" id="c-rf-motivo" value="${esc(rf.motivo)}" placeholder="Ex.: ajudou o Ademir a recuperar a aliança perdida"></label>
+        <div class="c-rel-lin">
+          <label>Pontos de relação do personagem <select class="c-in" data-rf="d" id="c-rf-d">${[['1', '+1'], ['0', 'sem mudar'], ['2', '+2'], ['-1', '−1']].map(([v, n]) => opt(v, n, rf.d === v)).join('')}</select></label>
+          <label>Como o NPC passa a ver <select class="c-in" data-rf="ve" id="c-rf-ve">${opt('', 'não muda', rf.ve === '')}${Object.entries(VE).map(([k, n]) => opt(k, n, rf.ve === k)).join('')}</select></label>
+          <label class="c-chk"><input type="checkbox" data-rf="vis" id="c-rf-vis"${rf.vis ? ' checked' : ''}> O jogador vê como o NPC o vê</label></div>
+        <label>Estado atual (o jogador vê, opcional) <input class="c-in" type="text" data-rf="estado" id="c-rf-estado" value="${esc(rf.estado)}" placeholder="Ex.: o Ademir agora guarda pão para ele"></label>
+        <label>Anotação privada (só você vê) <textarea class="c-in" rows="2" data-rf="nota" id="c-rf-nota" placeholder="Ex.: o Ademir vai contar do acordo se ele voltar a perguntar">${esc(rf.nota)}</textarea></label>
+        <div><button class="btn sm red" type="button" data-c="rel-conceder" id="c-rf-ok">${C.rconf && C.rconf === (rf.fid + ':' + rf.npc) ? 'Já evoluiu nesta sessão. Conceder mesmo assim?' : 'Registrar reconhecimento'}</button></div>
+      </section>
+      <section class="cartao" id="c-peds"><h2>Pedidos dos jogadores <small>${peds.length ? '' : 'nenhum'}</small></h2>
+        ${peds.length ? `<ul class="c-lista">${peds.map(({ f, r }) => `<li class="c-ped"><b>${esc(f.nome)}</b> → ${esc(r.nome)} <small>(${esc(grauTxt(r))})</small>: “${esc(r.pedido.txt)}” <span class="c-rel-a"><button class="btn sm red" type="button" data-c="rel-aceita" data-fid="${esc(f.id)}" data-rid="${esc(r.id)}">Conceder +1</button><button class="btn sm" type="button" data-c="rel-registra" data-fid="${esc(f.id)}" data-rid="${esc(r.id)}">Só registrar</button><button class="btn sm ghost" type="button" data-c="rel-recusa" data-fid="${esc(f.id)}" data-rid="${esc(r.id)}">Recusar</button></span></li>`).join('')}</ul>` : '<p class="vazio">Quando um jogador pedir a evolução de uma relação, o pedido aparece aqui e no sino.</p>'}
+      </section>
+      <section class="cartao"><h2>NPCs que importam <small>soma dos pontos dos personagens</small></h2>
+        ${impL.length ? `<ul class="c-lista">${impL.slice(0, 10).map(x => `<li><b>${esc(x.nome)}</b> <small>${esc(x.soma)} ponto(s)</small> · ${esc(x.pjs.join(', '))}</li>`).join('')}</ul>` : '<p class="vazio">Nenhum personagem tem vínculo com moradores ainda.</p>'}
+      </section>
+      <section class="cartao"><h2>Relações de cada personagem</h2>
+        <label>Mostrar <select class="c-in" data-rfil="1" id="c-rfil">${opt('', 'todos', !C.rfil)}${l.map(f => opt(f.id, f.nome, C.rfil === f.id)).join('')}</select></label>
+        ${l.filter(f => !C.rfil || f.id === C.rfil).map(f => `<div class="c-rel-pj"><h3>${esc(f.nome)} <small>${esc(jogadorDe(f))} · ${relsDe(f).length} vínculo(s)</small></h3>${relsDe(f).length ? relsDe(f).map(r => linha(f, r)).join('') : '<p class="vazio">Sem vínculos.</p>'}</div>`).join('') || '<p class="vazio">Nenhuma ficha de jogador ainda.</p>'}
+      </section>
+      <section class="cartao"><h2>Pouco desenvolvidas <small>até 1 ponto e sem evolução nas últimas duas sessões</small></h2>
+        ${fracas.length ? `<ul class="c-lista">${fracas.map(({ f, r }) => `<li>${esc(f.nome)} → <b>${esc(r.nome)}</b> <small>${esc(grauTxt(r))}${r.tipo ? ' · ' + esc(r.tipo) : ''}</small></li>`).join('')}</ul>` : '<p class="vazio">Nenhuma.</p>'}
+      </section>`;
+  }
+  function cliqueRel(a, b) {
+    const fid = b.dataset.fid, rid = b.dataset.rid;
+    const f = fid ? fichaDe(fid) : null, r = f ? relsDe(f).find(x => x.id === rid) : null;
+    if (a === 'rel-hist') { C.rab[b.dataset.k] = !C.rab[b.dataset.k]; desenha(); return true; }
+    if (a === 'rel-nota') {
+      const [nf, nr] = String(b.dataset.k).split(':'), inp = document.querySelector('[data-rn="' + CSS.escape(b.dataset.k) + '"]'), t = (inp && inp.value || '').trim();
+      if (!t) return true;
+      SV.db.set('notas/' + SV.me.uid + '/r/' + nf + '/' + nr + '/' + Date.now().toString(36), { t: Date.now(), s: +C.cfg.sessao || 1, txt: t }).then(() => SV.toast('Anotação guardada. Só você vê.')).catch(() => SV.toast('A anotação não foi salva.', 'err'));
+      return true;
+    }
+    if (a === 'rel-conceder') {
+      const rf = C.rf; rf.motivo = (rf.motivo || '').trim();
+      if (!rf.npc || !rf.fid) { SV.toast('Escolha o NPC e o personagem.', 'err'); return true; }
+      if (rf.motivo.length < 5) { SV.toast('Escreva o motivo: a evolução precisa de um acontecimento.', 'err'); return true; }
+      const fS = fichaDe(rf.fid), nS = fichaDe(rf.npc), at = fS && nS ? relsDe(fS).find(x => relNpc(x, nS)) : null, ch = rf.fid + ':' + rf.npc;
+      if (at && evoNaSessao(at) && +rf.d > 0 && C.rconf !== ch) { C.rconf = ch; desenha(); return true; }
+      const res = aplicaRel(rf.fid, null, rf.npc, { d: +rf.d, motivo: rf.motivo, ve: rf.ve, vis: rf.vis, estado: (rf.estado || '').trim(), nota: (rf.nota || '').trim() });
+      if (res) { SV.toast('Reconhecimento registrado: ' + res.f.nome + ' e ' + res.r.nome + ' (' + GRAU[+res.r.pts || 0] + ').'); C.rf = { npc: rf.npc, fid: '', d: '1', ve: '', vis: false, motivo: '', estado: '', nota: '' }; C.rconf = ''; }
+      desenha(); return true;
+    }
+    if (!f || !r) return false;
+    if (a === 'rel-aceita') aplicaRel(fid, rid, null, { d: 1, motivo: 'Pedido aceito: ' + r.pedido.txt });
+    else if (a === 'rel-registra') aplicaRel(fid, rid, null, { d: 0, motivo: 'Registrado: ' + r.pedido.txt });
+    else if (a === 'rel-recusa') aplicaRel(fid, rid, null, { d: 0, motivo: 'Pedido não concedido desta vez: ' + r.pedido.txt });
+    else if (a === 'rel-mais' || a === 'rel-menos') aplicaRel(fid, rid, null, { d: a === 'rel-mais' ? 1 : -1, motivo: 'Correção do mestre', pedido: 'manter' });
+    else return false;
+    desenha(); return true;
+  }
   function ajusta(fid, rec, d) {
     const f0 = fichaDe(fid); if (!f0 || !f0[rec]) return;
     const f = JSON.parse(JSON.stringify(f0));
@@ -342,6 +479,7 @@
     if (v && !e.target.closest('[data-c]')) { ver(v.dataset.v); return; }
     const b = e.target.closest('[data-c]'); if (!b) return;
     const a = b.dataset.c, id = b.dataset.id, fid = b.dataset.fid;
+    if (a.startsWith('rel-') && cliqueRel(a, b)) return;
     if (a === 'nota-rapida') { e.stopPropagation(); _.notaRapida(); }
     else if (a === 'abrir') SV.F.abrir(fid);
     else if (a === 'menos' || a === 'mais') ajusta(fid, b.dataset.r, a === 'mais' ? 1 : -1);
@@ -362,6 +500,8 @@
   }
   function muda(e) {
     const el = e.target;
+    if (el.dataset.rf) { const k = el.dataset.rf; C.rf[k] = k === 'vis' ? el.checked : el.value; if (k === 'npc' || k === 'fid') { C.rconf = ''; desenha(); } return; }
+    if (el.dataset.rfil) { C.rfil = el.value; desenha(); return; }
     if (el.dataset.f) { C.f[el.dataset.f] = el.value; desenha(); return; }
     if (el.dataset.h) { C.hf[el.dataset.h] = el.value; desenha(); return; }
     if (el.dataset.c === 'extras') { C.extras = el.checked; desenha(); return; }
@@ -395,7 +535,8 @@
     inicia,
     aba() { desenha(); },
     ver,
-    sessao: () => +C.cfg.sessao || 1
+    sessao: () => +C.cfg.sessao || 1,
+    reconhecer(npcId) { if (!_) return; C.rf.npc = npcId || ''; C.rf.fid = ''; C.rconf = ''; C.vista = 'relacoes'; try { localStorage.setItem('sv.central.vista', 'relacoes'); } catch (e) {} _.irAba('central'); desenha(); setTimeout(() => { const el = document.querySelector('#c-rf-fid'); if (el) el.focus(); }, 60); }
   };
   if (SV._iniciou && SV.isGM) inicia();
 })();
