@@ -449,7 +449,7 @@ select, input, textarea { accent-color: var(--blood); }
 
 <div class="app" id="app">
   <header class="top">
-    <div class="brand"><b>Remanso</b><span id="marca">ORDEM PARANORMAL 2 · 2016 · PLAYTEST BETA 1.1</span></div>
+    <div class="brand"><b>Remanso</b><span id="marca">ORDEM PARANORMAL 2 · 2016</span></div>
     <nav class="modos" id="modos" aria-label="Modo"></nav>
     <div class="cena" id="cena"></div>
   </header>
@@ -482,13 +482,13 @@ const PERFIS = { executor: ['Executor', 'Age primeiro e insiste quando falha.', 
 /* habilidades (texto resumido com as nossas palavras) */
 const HAB = {
   impeto: { nome: 'Ímpeto', origem: 'Perfil · Executor', txt: 'Barra com <strong>cinco espaços</strong>. Cada teste em que você falha enche um espaço, e a barra <strong>esvazia no fim da cena</strong>. Como ação livre, gaste <strong>1 espaço</strong> para <strong>+d4</strong> num teste, <strong>3 espaços</strong> para subir um atributo em um passo até o fim da cena, ou <strong>3 espaços</strong> para uma ação extra num conflito.' },
-  'olhar-protetor': { nome: 'Olhar Protetor', origem: 'Antiga (Vigília) · virou parte da Prontidão', custo: '2 PD', txt: 'No playtest beta, este efeito está dentro da <strong>Prontidão</strong> do Vigilante.' },
+  'olhar-protetor': { nome: 'Olhar Protetor', origem: 'Faz parte da Prontidão', custo: '2 PD', txt: 'Este efeito está dentro da <strong>Prontidão</strong> do Vigilante.' },
   avaliacao: { nome: 'Análise', origem: 'Perfil · Analista', custo: '1 ação', txt: 'Gaste uma ação para receber <strong>2 marcadores de análise</strong> (no máximo 4). Depois de rolar um teste, cada marcador gasto muda <strong>um dado em +1 ou −1</strong> (até o máximo do dado). Os marcadores somem no fim da cena.' },
   prontidao: { nome: 'Prontidão', origem: 'Perfil · Vigilante', custo: '2 PD', txt: 'Uma vez por rodada, quando você ou alguém perto faz um teste, gaste <strong>2 PD</strong> para rolar de novo um dos dados que <strong>não tenha dado 1</strong>. Em combate, pode agir na fase da sua ação ou numa fase depois, já sabendo o que foi rolado. Aparece no resultado do teste.' },
-  esquiva: { nome: 'Esquiva', origem: 'Vocação ou nível (fichas do beta)', custo: 'ação livre', txt: 'Uma vez por rodada, quando sofre um ataque, faça um teste de <strong>Acrobacia</strong> oposto ao ataque como ação livre. Vencendo, evita o ataque.' },
-  sorrateiro: { nome: 'Sorrateiro', origem: 'Vocação ou nível (fichas do beta)', custo: '3 PD', dado: { d: 'd8', pd: 3, pers: ['crime', 'furtividade'] }, txt: 'Num teste de <strong>Crime</strong> ou <strong>Furtividade</strong>, gaste <strong>3 PD</strong> para receber <strong>+d8</strong>.' },
-  'impeto-fervilhante': { nome: 'Ímpeto Fervilhante', origem: 'Vocação ou nível (fichas do beta)', txt: 'No início de cada cena, você enche <strong>um espaço</strong> da barra de ímpeto. (Requer Ímpeto.)' },
-  'segredo-do-aco': { nome: 'Segredo do Aço', origem: 'Vocação ou nível (fichas do beta)', txt: 'Sabe usar equipamentos marciais. Item que dá pontos de armadura dá <strong>1 ponto a mais</strong> enquanto vestido.' },
+  esquiva: { nome: 'Esquiva', origem: 'Vocação ou nível', custo: 'ação livre', txt: 'Uma vez por rodada, quando sofre um ataque, faça um teste de <strong>Acrobacia</strong> oposto ao ataque como ação livre. Vencendo, evita o ataque.' },
+  sorrateiro: { nome: 'Sorrateiro', origem: 'Vocação ou nível', custo: '3 PD', dado: { d: 'd8', pd: 3, pers: ['crime', 'furtividade'] }, txt: 'Num teste de <strong>Crime</strong> ou <strong>Furtividade</strong>, gaste <strong>3 PD</strong> para receber <strong>+d8</strong>.' },
+  'impeto-fervilhante': { nome: 'Ímpeto Fervilhante', origem: 'Vocação ou nível', txt: 'No início de cada cena, você enche <strong>um espaço</strong> da barra de ímpeto. (Requer Ímpeto.)' },
+  'segredo-do-aco': { nome: 'Segredo do Aço', origem: 'Vocação ou nível', txt: 'Sabe usar equipamentos marciais. Item que dá pontos de armadura dá <strong>1 ponto a mais</strong> enquanto vestido.' },
   antecipacao: { nome: 'Antecipação Tática', origem: 'Vocação', custo: '2 PD', gasto: { pd: 2, msg: 'agiu antes de todos nesta rodada' }, txt: 'No início de um combate, gaste <strong>2 PD</strong> para ganhar uma rodada agindo antes de todos os personagens e NPCs.' },
   'foco-mental': { nome: 'Foco Mental', origem: 'Vocação · Cientista', custo: '2 PD', dado: { d: 'd4', pd: 2, atr: 'mente' }, txt: 'Em um <strong>teste de Mente</strong>, gaste <strong>2 PD</strong> para receber <strong>+d4</strong>.' },
   'foco-emocional': { nome: 'Foco Emocional', origem: 'Vocação · Artista', custo: '2 PD', dado: { d: 'd4', pd: 2, atr: 'emocao' }, txt: 'Em um <strong>teste de Emoção</strong>, gaste <strong>2 PD</strong> para receber <strong>+d4</strong>.' },
@@ -520,36 +520,36 @@ const CAMPOS_REG = [
   ['relD', 'Dado de cada grau de relação (1, 2, 3)', 'dados3'],
   ['relMot', 'Motivar: PD que a pessoa recupera (graus 2 e 3)', 'dados3'],
   ['relLimite', 'Cada relação se invoca uma vez por…', 'sel:missao=missão|cena=cena'],
-  ['pavor', 'Dado de pavor', 'sel:beta=1 PD desce um passo, 5 PD vira bônus|alpha=2 PD para não rolar, 5 PD vira bônus (Vigília)|nenhum=não existe'],
+  ['pavor', 'Dado de pavor', 'sel:beta=1 PD desce um passo, 5 PD vira bônus|alpha=2 PD para não rolar, 5 PD vira bônus|nenhum=não existe'],
   ['sobrecarga', 'Sobrecarga mental no fim da rodada', 'bool'],
   ['lesao', 'Zerar PV', 'sel:beta=teste de lesão (Físico + Vigor) e tabela d20|alpha=teste de Vigor; falhou, morre'],
   ['trauma', 'Zerar PD', 'sel:beta=teste de trauma (Emoção + Disciplina) e tabela d20|alpha=teste de Disciplina; falhou, colapso e morte'],
   ['combate', 'Ataque', 'sel:beta=DT 7; oposto só se os dois se atacam no corpo a corpo|alpha=sempre teste oposto de Luta (dano RA armado, RB desarmado)'],
-  ['hab', 'Habilidades de perfil', 'sel:beta=do beta (Ímpeto de 5, Análise, Prontidão de 2 PD)|alpha=do alpha (Ímpeto de 3, Avaliação, Prontidão de 3 PD)'],
+  ['hab', 'Habilidades de perfil', 'sel:beta=Ímpeto de 5, Análise, Prontidão de 2 PD|alpha=Ímpeto de 3, Avaliação, Prontidão de 3 PD'],
   ['pvForm', 'Fórmula de PV máximo', 'form:pv'],
   ['pdForm', 'Fórmula de PD máximo', 'form:pd'],
   ['patamares', 'Nível em que começa cada patamar (veterano, elite, lenda)', 'pat'],
 ];
 const VERSOES = {
-  beta: { nome: 'Playtest Beta 1.1', fonte: 'O Pântano dos Afogados: livro do playtest e fichas dos personagens',
+  beta: { nome: 'Padrão', fonte: 'Relações, dado de pavor, ímpeto de 5 e Prontidão de 2 PD.',
     impetoMax: 5, relD: ['d6', 'd8', 'd12'], relMot: ['', '2d4', '2d6'], relLimite: 'missao', pavor: 'beta', sobrecarga: false, lesao: 'beta', trauma: 'beta', combate: 'beta', hab: 'beta',
     pvForm: { base: -2, fis: 2, nivel: 0, agente: 12 }, pdForm: { base: 0, mente: 1, emocao: 1, nivel: 0, agente: 10 }, patamares: [0, 0, 0],
     nomes: { pesquisar: 'Inspecionar', ocultismo: 'Bruxaria' }, ocultar: ['maquinas', 'tecnologia'], beneficios: {},
     conf: { impetoMax: 1, relD: 1, relMot: 1, relLimite: 1, pavor: 1, sobrecarga: 1, lesao: 1, trauma: 1, combate: 1, hab: 1 },
-    notas: { pvForm: 'O beta não publica fórmula. Esta sai das fichas prontas e não fecha com todas.', pdForm: 'Idem: tirada das fichas prontas, não confirmada.', patamares: 'O beta cita iniciante, veterano, elite e lenda (+1, +2, +3 nas tabelas de lesão e trauma), mas não diz em que nível cada um começa. 0 = não definido.', sobrecarga: 'Não aparece no beta.' } },
-  alpha: { nome: 'Playtest Alpha 1.1', fonte: 'A Maldição do Ídolo de Pedra, Ato I: livro do playtest e fichas dos sobreviventes',
+    notas: {} },
+  alpha: { nome: 'Alternativa', fonte: 'Sem relações nem pavor, ímpeto de 3, combate por teste oposto.',
     impetoMax: 3, relD: ['', '', ''], relMot: ['', '', ''], relLimite: 'cena', pavor: 'nenhum', sobrecarga: true, lesao: 'alpha', trauma: 'alpha', combate: 'alpha', hab: 'alpha',
     pvForm: { base: -2, fis: 2, nivel: 0, agente: 12 }, pdForm: { base: 0, mente: 1, emocao: 1, nivel: 0, agente: 10 }, patamares: [0, 0, 0],
     nomes: {}, ocultar: ['animais', 'oficio'], beneficios: {},
     conf: { impetoMax: 1, relD: 1, relMot: 1, pavor: 1, lesao: 1, trauma: 1, combate: 1, hab: 1 },
-    notas: { relD: 'O alpha não tem regra de relações (cita só que o drama terá mecânica). Sem dados.', relMot: 'Não existe no alpha.', relLimite: 'Não existe no alpha.', pavor: 'O alpha não tem dado de pavor.', sobrecarga: 'O alpha cita a "sobrecarga mental" na investigação, mas a tabela não está no PDF: os números vêm do protótipo antigo.', pvForm: 'O alpha não publica fórmula. Esta bate com Alan, Victor e Edgar, mas não com Kênia e Eloísa.', pdForm: 'Bate com Alan, Victor e Kênia, mas não com Edgar.', lesao: 'Versão simplificada do próprio alpha: Vigor DT 7 (+3 por teste); passou, continua agindo; falhou, morre.', trauma: 'Disciplina DT 7 (+3 por teste); falhou, colapso mental e morte.', combate: 'Regra simplificada do alpha: teste oposto de Luta; esquiva é Acrobacia + d6.' } },
+    notas: {} },
 };
 const clone = o => JSON.parse(JSON.stringify(o));
 /* regras provisórias da casa: preenchem o que os playtests ainda não publicaram. Valem por cima de qualquer versão e podem ser desligadas */
 const CASA_PADRAO = () => ({ ativo: true, patamares: [4, 7, 10], pvNivel: 1, pdNivel: 1, noite: 'd6', calma: 'd4', ritualFalhaCusto: true,
   beneficios: { 2: 'um poder novo', 3: '+1 passo numa perícia e uma habilidade nova', 4: '+1 passo num atributo (máx. d10)', 5: '+1 passo numa perícia e uma habilidade nova', 6: '+1 passo em duas perícias', 7: '+1 passo numa perícia e uma habilidade nova', 8: '+1 passo num atributo (máx. d12) e +1 passo numa perícia', 9: '+1 passo numa perícia e uma habilidade nova', 10: '+1 passo num atributo, +1 passo numa perícia e uma habilidade nova' }, v: 3 });
 const casaAtiva = () => !!S.regras?.casa?.ativo;
-function novaPersonalizada() { const c = clone(VERSOES.beta); Object.assign(c, { nome: 'Personalizada', fonte: 'Definida pelo mestre (começa igual ao beta, com as perícias modernas)', nomes: {}, ocultar: [], conf: {}, notas: {} }); return c; }
+function novaPersonalizada() { const c = clone(VERSOES.beta); Object.assign(c, { nome: 'Personalizada', fonte: 'Definida pelo mestre', nomes: {}, ocultar: [], conf: {}, notas: {} }); return c; }
 let RG = VERSOES.beta;
 const regConf = k => !!(RG.conf || {})[k];
 const HAB_BETA = {}, HAB_ALPHA = {
@@ -670,7 +670,7 @@ function blocoVocacoes() {
   const lista = Object.values(VOC).sort((a, b) => (a.beta ? 0 : a.custom ? 2 : 1) - (b.beta ? 0 : b.custom ? 2 : 1) || a.nome.localeCompare(b.nome));
   const card = v => {
     const x = v.hab && HAB[v.hab];
-    return h('div', { class: 'card voc' + (v.custom ? ' custom' : '') }, h('div', { class: 'card-h' }, h('b', null, v.nome), h('span', { class: 'sp' }), h('small', null, v.beta ? 'beta' : v.custom ? 'do mestre' : 'da casa'),
+    return h('div', { class: 'card voc' + (v.custom ? ' custom' : '') }, h('div', { class: 'card-h' }, h('b', null, v.nome), h('span', { class: 'sp' }), v.custom ? h('small', null, 'do mestre') : null,
         v.custom ? h('button', { class: 'mini', type: 'button', 'aria-label': 'Editar ' + v.nome, style: { width: 'auto', padding: '0 8px', height: '22px', fontSize: '11px' }, onclick: () => { const c = S.vocCustom[v.nome] || {}; UIS.vocEd = Object.assign({ antigo: v.nome, nome: v.nome }, c); renderRegras(); } }, 'Editar') : null),
       h('div', { class: 'card-b' }, v.desc ? h('p', null, v.desc) : null,
         x ? h('p', null, h('strong', null, x.nome + (x.custo ? ' (' + x.custo + ')' : '') + ': '), h('span', { html: x.txt })) : h('p', { class: 'nota-proto' }, 'Sem habilidade escolhida.'),
@@ -706,7 +706,7 @@ function blocoVocacoes() {
         campo('Perícia extra na criação', h('select', { name: 'per' }, [['', 'Nenhuma'], ['fisico', '+1 passo numa perícia física'], ['mente', '+1 passo numa perícia mental']].map(([v, n]) => h('option', { value: v, selected: (ed.per || '') === v || null }, n)))),
         campo('Requisito', h('input', { name: 'req', value: ed.req || '', maxlength: 200 })),
         campo('Limitação', h('input', { name: 'lim', value: ed.lim || '', maxlength: 300 })),
-        h('p', { class: 'nota-proto' }, 'Régua: uma habilidade só, no tamanho das do beta (+d4 num atributo por 2 PD, +d6 em duas perícias por 2 PD, ou um efeito 1×/cena). Benefício maior pede uma limitação.'),
+        h('p', { class: 'nota-proto' }, 'Régua: uma habilidade só (+d4 num atributo por 2 PD, +d6 em duas perícias por 2 PD, ou um efeito 1×/cena). Benefício maior pede uma limitação.'),
         h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'submit' }, 'Salvar vocação'),
           h('button', { class: 'btn sm', type: 'button', onclick: () => { UIS.vocEd = null; renderRegras(); } }, 'Cancelar'),
           ed.antigo ? h('button', { class: 'btn sm', type: 'button', onclick: e => {
@@ -716,7 +716,7 @@ function blocoVocacoes() {
   })() : null;
   const podeEditar = typeof PONTE === 'undefined' || !PONTE || PONTE.isGM();
   return [h('h2', null, 'Vocações'),
-    h('p', { class: 'lead', style: { fontSize: '14px' } }, Object.keys(VOC).length + ' vocações: 8 do beta, ' + Object.keys(VOC_BASE).filter(n => !VOC_BASE[n].beta).length + ' da casa e as que o mestre cadastrar. Cada uma dá uma habilidade no tamanho das do beta; as mais largas vêm com limitação.'),
+    h('p', { class: 'lead', style: { fontSize: '14px' } }, Object.keys(VOC).length + ' vocações. Cada uma dá uma habilidade; as mais fortes vêm com uma limitação. O mestre pode cadastrar outras.'),
     podeEditar && !ed ? h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', onclick: () => { UIS.vocEd = { nome: '' }; renderRegras(); } }, '+ Cadastrar vocação')) : null,
     form,
     h('div', { class: 'cards cards-voc' }, lista.map(card))];
@@ -899,7 +899,7 @@ function blocoCatalogo() {
   const tr = UIS.catTr || 'combate';
   const lista = Object.entries(HAB).filter(([, x]) => x.trilha === tr).sort((a, b) => TIER[a[1].tier][1] - TIER[b[1].tier][1]);
   return [h('h2', null, 'Poderes, NEX e rituais'),
-    h('p', { class: 'lead', style: { fontSize: '14px' } }, 'Regras da casa para São Valentim, no jeito do OP2. Começa no nível 1 e ganha um poder novo nos níveis 2, 3, 5, 7, 9 e 10, de qualquer trilha, cumprindo os requisitos. Veterano a partir do nível 4, elite a partir do 7. Habilidades marcadas com ✶ são paranormais: pedem NEX e cobram Transcender (no nível em que escolhe, não ganha o +1 PD máximo).'),
+    h('p', { class: 'lead', style: { fontSize: '14px' } }, 'Começa no nível 1 e ganha um poder novo nos níveis 2, 3, 5, 7, 9 e 10, de qualquer trilha, cumprindo os requisitos. Veterano a partir do nível 4, elite a partir do 7. Habilidades marcadas com ✶ são paranormais: pedem NEX e cobram Transcender (no nível em que escolhe, não ganha o +1 PD máximo).'),
     h('div', { class: 'card' }, h('div', { class: 'card-b' }, h('table', { class: 'tab-reg' }, h('tr', null, h('th', null, 'NEX'), h('th', null, 'Faixa'), h('th', null, 'Rituais'), h('th', null, 'O que muda')),
       NEX_FAIXAS.map(x => h('tr', null, h('td', null, x[0] + '%+'), h('td', null, x[1]), h('td', null, x[2] ? 'até ' + x[2] + 'º círculo, ' + x[3] + ' conhecidos' : 'nenhum'), h('td', null, x[4])))))),
     h('div', { class: 'mods' }, Object.entries(TRILHAS).map(([k, [n]]) => h('button', { type: 'button', class: tr === k ? 'on' : '', onclick: () => { UIS.catTr = k; renderRegras(); } }, n))),
@@ -924,18 +924,18 @@ const ITEM_CAT = {
   'Energético': { txt: 'Lata de energético: Físico sobe um passo no próximo teste (no lugar do tônico).', usar: 'insp', atr: 'fisico' },
   'Calmante natural': { txt: 'Chá de camomila ou maracujina: Emoção sobe um passo no próximo teste (no lugar do chá calmante).', usar: 'insp', atr: 'emocao' },
   'Chocolate e café': { txt: 'Uma pausa com algo doce e quente: recupera d6 PD (no lugar do elixir de mel).', usar: 'pd', d: 'd6' },
-  'Analgésico': { txt: 'Dipirona ou parecido: ignora a redução de passo de uma Contusão até o fim da cena (provisório).' },
+  'Analgésico': { txt: 'Dipirona ou parecido: ignora a redução de passo de uma Contusão até o fim da cena.' },
   'Lanterna': { txt: 'Luz forte. Tira a penumbra de uma zona; contra criaturas que fogem da luz, faz recuar.' },
   'Isqueiro': { txt: 'Fogo pequeno: acende vela, papel ou pano. Contra algumas criaturas, o fogo é o que mais machuca.' },
   'Celular': { txt: 'Lanterna fraca, câmera, gravador e mapa. A bateria acaba: a cada cena usando, role d6; no 1, apagou. Sem sinal no vale.' },
   'Câmera fotográfica': { txt: 'Registra o que o olho não vê. Revelar ou rever uma foto pode dar uma pista nova (o mestre decide).' },
-  'Gravador de voz': { txt: 'Grava conversas e sons. Ouvir de novo dá +1 passo em Recapitular sobre aquela cena (provisório).' },
+  'Gravador de voz': { txt: 'Grava conversas e sons. Ouvir de novo dá +1 passo em Recapitular sobre aquela cena.' },
   'Rádio de pilha': { txt: 'Pega as rádios da região. Às vezes, o que não devia estar no ar.' },
   'Corda': { txt: 'Amarrada lá em cima, quem vem depois sobe ou desce sem teste.' },
   'Pé de cabra': { txt: 'Um aumento de passo para arrombar. Também serve de arma (RA+2).' },
-  'Sinalizador': { txt: 'Luz vermelha forte por uma cena inteira. Disparado contra alguém, é arma de fogo (RA+2, provisório).' },
-  'Cuia de chimarrão': { txt: 'A roda de chimarrão acalma (o elixir calmante da Vigília ep. 2). Uma ação: Disciplina em você ou Persuasão em alguém; recupera PD igual ao total. Gasta a erva.', usar: 'acalmar' },
-  'Cigarro de palha': { txt: 'O cachimbo da Vigília ep. 2. Uma vez por cena, uma ação: recupera 1 PD. Depois, Vigor DT 7; falhou, crise de tosse e −1 PV.', usar: 'fumo' },
+  'Sinalizador': { txt: 'Luz vermelha forte por uma cena inteira. Disparado contra alguém, é arma de fogo (RA+2).' },
+  'Cuia de chimarrão': { txt: 'A roda de chimarrão acalma. Uma ação: Disciplina em você ou Persuasão em alguém; recupera PD igual ao total. Gasta a erva.', usar: 'acalmar' },
+  'Cigarro de palha': { txt: 'Cachimbo. Uma vez por cena, uma ação: recupera 1 PD. Depois, Vigor DT 7; falhou, crise de tosse e −1 PV.', usar: 'fumo' },
   'Mochila impermeável': { txt: 'O que está dentro não molha. Em Remanso, isso salva a fita e a câmera.' },
 };
 /* situações prontas da mesa de dados: [nome, opções do teste, explicação] */
@@ -943,22 +943,22 @@ const PRESETS = {
   comum: ['Teste comum', {}, ''],
   medo: ['Teste de medo', { per: 'disciplina', atr: 'emocao', dt: 10 }, 'Depois de um susto grande: Disciplina + Emoção contra DT 10. Quem falha recebe um dado de pavor (a ficha recebe sozinha).'],
   defesa: ['Defender-se', { per: 'acrobacia', atr: 'fisico', dt: 0, defesa: true }, 'Acrobacia + Físico + d6, oposto ao ataque (contra corpo a corpo, pode trocar Acrobacia por Luta). Vencendo, não toma dano, mas também não causa.'],
-  fugir: ['Avançar (fuga)', { per: 'atletismo', dt: 10, soma: 'RA' }, 'Perseguição do beta: Atletismo DT 10. Passou, soma a RA nos pontos de avanço; falhou, soma a RB. Esforço extra: um aumento de passo (passos do mestre) e perde d4 PV, d4 a mais a cada vez.'],
+  fugir: ['Avançar (fuga)', { per: 'atletismo', dt: 10, soma: 'RA' }, 'Perseguição: Atletismo DT 10. Passou, soma a RA nos pontos de avanço; falhou, soma a RB. Esforço extra: um aumento de passo (passos do mestre) e perde d4 PV, d4 a mais a cada vez.'],
   escalarR: ['Escalar rápido', { per: 'atletismo', dt: 8, soma: 'RA', somaFalha: 0 }, 'Subir com pressa: DT 8, soma a RA. Falhou, cai e sofre de dano os pontos que já tinha somado.'],
   escalarD: ['Escalar com cuidado', { per: 'atletismo', dt: 6, soma: 'RB', somaFalha: 0 }, 'Procurando onde pôr o pé: DT 6, soma só a RB. Falhou, cai e sofre de dano os pontos que já tinha somado.'],
   arrombar: ['Arrombar', { per: 'atletismo', dt: 7, pv: 1, soma: 'RA', somaFalha: 0 }, 'Gasta 1 PV de esforço por tentativa e testa Atletismo contra a DT do objeto. Passou, soma a RA até a pontuação alvo. Faz barulho e pode estragar o que tem dentro.'],
   recapitular: ['Recapitular', { per: 'intuicao', atr: 'emocao', dt: 10 }, 'Investigação: o personagem repassa em voz alta tudo o que o grupo achou. Passou na Intuição DT 10, o mestre dá uma pista nova. Só uma vez por cena.'],
-  compartilhar: ['Compartilhar', { per: 'pesquisar', atr: 'mente', dt: 10 }, 'Investigação: alguém explica uma pista para você, que testa Pesquisar (Inspecionar no beta) DT 10. Passou, deduz uma pista nova. Só uma vez por cena.'],
+  compartilhar: ['Compartilhar', { per: 'pesquisar', atr: 'mente', dt: 10 }, 'Investigação: alguém explica uma pista para você, que testa Pesquisar DT 10. Passou, deduz uma pista nova. Só uma vez por cena.'],
   manobra: ['Manobra', { per: 'luta', atr: 'fisico', dt: 0 }, 'Corpo a corpo, no lugar do dano: agarrar, derrubar, desarmar, empurrar ou quebrar. Teste oposto à Acrobacia ou Luta do alvo (ou ao ataque dele, se ele te atacar na rodada).'],
   examinar: ['Examinar (investigação)', { per: 'percepcao', atr: 'mente', dt: 7 }, 'Investigação: role a perícia contra as DTs do ponto de interesse. Se não receber nenhuma informação nova, perde 1 PD.'],
   atrapalhar: ['Atrapalhar', { per: 'enganacao', atr: 'emocao', dt: 0 }, 'Fase geral: perícia coerente oposta à Percepção do alvo. Vencendo, ele sofre uma redução de passo em todos os testes até o fim da rodada.'],
   fintar: ['Fintar', { per: 'enganacao', atr: 'emocao', dt: 0 }, 'Fase geral: Enganação oposta à Intuição do alvo. Vencendo, dois aumentos de passo no próximo ataque contra ele (até o fim da próxima rodada).'],
   lesao: ['Teste de lesão', { per: 'vigor', atr: 'fisico', especial: 'feri' }, 'Com 0 PV: Físico + Vigor contra DT 7, +3 a cada teste de lesão na cena. Falhou, rola d20 na tabela de lesões.'],
-  ritual: ['Ritual', { per: 'ocultismo', atr: 'mente', dt: 7 }, 'Um teste por rodada. Passou: soma a RA no alvo do ritual. Falhou: a RB vira dano de PD em todos que conjuram. (Na Vigília a perícia era Bruxaria.)'],
-  acalmar: ['Acalmar (chimarrão)', { per: 'disciplina', atr: 'emocao', dt: 0 }, 'Visto na Vigília ep. 2 (elixir calmante): Disciplina para acalmar a si mesmo, ou Persuasão para acalmar outra pessoa. Recupera PD igual ao total, sem DT.'],
-  barreira: ['Barreira de medo', { per: 'disciplina', atr: 'emocao', dt: 7 }, 'Visto na Vigília ep. 2: diante de uma porta ou sala apavorante, Disciplina DT 7. Falhou, não entra. Para entrar mesmo assim, gaste d4 PD (d8 se foi falha crítica) ou entre junto de alguém com quem tem relação.'],
-  tosse: ['Depois de fumar', { per: 'vigor', atr: 'fisico', dt: 7 }, 'Visto na Vigília ep. 2 (cachimbo): Vigor DT 7 depois de fumar. Falhou, crise de tosse: −1 PV.'],
-  arremessoArea: ['Arremesso em área', { per: 'pontaria', atr: 'fisico', dt: 7 }, 'Visto na Vigília ep. 2: barril com palha em chamas ou jarro de abelhas. Pontaria (Animais vale para as abelhas) DT 7. Acertou, pega 2 ou 3 criaturas juntas; o mestre define o dano (fogo: d6 + d4 do peso; abelhas: a RA, e elas ficam atordoadas).'],
+  ritual: ['Ritual', { per: 'ocultismo', atr: 'mente', dt: 7 }, 'Um teste por rodada. Passou: soma a RA no alvo do ritual. Falhou: a RB vira dano de PD em todos que conjuram.'],
+  acalmar: ['Acalmar (chimarrão)', { per: 'disciplina', atr: 'emocao', dt: 0 }, 'Disciplina para acalmar a si mesmo, ou Persuasão para acalmar outra pessoa. Recupera PD igual ao total, sem DT.'],
+  barreira: ['Barreira de medo', { per: 'disciplina', atr: 'emocao', dt: 7 }, 'Diante de uma porta ou sala apavorante, Disciplina DT 7. Falhou, não entra. Para entrar mesmo assim, gaste d4 PD (d8 se foi falha crítica) ou entre junto de alguém com quem tem relação.'],
+  tosse: ['Depois de fumar', { per: 'vigor', atr: 'fisico', dt: 7 }, 'Vigor DT 7 depois de fumar. Falhou, crise de tosse: −1 PV.'],
+  arremessoArea: ['Arremesso em área', { per: 'pontaria', atr: 'fisico', dt: 7 }, 'Barril com palha em chamas ou jarro de abelhas. Pontaria (Animais vale para as abelhas) DT 7. Acertou, pega 2 ou 3 criaturas juntas; o mestre define o dano (fogo: d6 + d4 do peso; abelhas: a RA, e elas ficam atordoadas).'],
   cura: ['Cura', { per: 'medicina', dt: 0, cura: 0 }, 'Cura a RA em PV (+3 com Kit de primeiros socorros). Não precisa passar de DT.'],
 };
 const FASES = ['Fase geral', 'À distância', 'Corpo a corpo'];
@@ -1072,9 +1072,9 @@ function renderCena() {
   fill($('#cena'),
     h('span', { class: 'pill', title: 'Rodadas da cena atual' }, 'Rodada ', h('b', null, c.rodada || '—')),
     c.combate ? h('button', { class: 'pill', type: 'button', title: 'Combate por fases: primeiro tudo que não é luta, depois quem ataca de longe, por último o corpo a corpo. Toque para passar de fase.', onclick: proxFase }, 'Fase: ', h('b', null, FASES[c.fase || 0]), ' ›') : null,
-    !RG.sobrecarga ? null : h('label', { class: 'chk', title: 'Regra do playtest alpha (o beta não usa): ao fim de cada rodada, todos sofrem dano emocional que cresce com o tempo' }, h('input', { type: 'checkbox', id: 'sobre', checked: c.sobre || null, onchange: e => { c.sobre = e.target.checked; salvar(); renderCena(); } }), 'Sobrecarga', c.sobre ? h('span', { style: { color: 'var(--muted)' } }, ' · próx.: ' + (prox ? prox + ' PD' : 'nada')) : null),
+    !RG.sobrecarga ? null : h('label', { class: 'chk', title: 'Ao fim de cada rodada, todos sofrem dano emocional que cresce com o tempo' }, h('input', { type: 'checkbox', id: 'sobre', checked: c.sobre || null, onchange: e => { c.sobre = e.target.checked; salvar(); renderCena(); } }), 'Sobrecarga', c.sobre ? h('span', { style: { color: 'var(--muted)' } }, ' · próx.: ' + (prox ? prox + ' PD' : 'nada')) : null),
     h('label', { class: 'chk', title: 'Mostra as fases do combate' }, h('input', { type: 'checkbox', id: 'combate', checked: c.combate || null, onchange: e => { c.combate = e.target.checked; c.fase = 0; salvar(); renderTudo(); } }), 'Combate'),
-    c.relogio ? h('span', { class: 'pill', title: 'Rodadas até a ameaça chegar (Vigília ep. 2). Desce sozinho no fim da rodada' }, 'Ameaça em ', h('b', null, c.relogio)) : null,
+    c.relogio ? h('span', { class: 'pill', title: 'Rodadas até a ameaça chegar. Desce sozinho no fim da rodada' }, 'Ameaça em ', h('b', null, c.relogio)) : null,
     h('button', { class: 'btn sm', type: 'button', onclick: fimRodada }, 'Fim da rodada'),
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Zera ímpetos, marcadores, reduções e aumentos da cena e os usos por cena', onclick: encerrarCena }, 'Encerrar cena'));
 }
@@ -1109,7 +1109,7 @@ function renderLista() {
       h('button', { class: 'btn red sm', type: 'button', onclick: () => irModo('criar') }, 'Criar passo a passo'),
       h('button', { class: 'btn sm', type: 'button', onclick: novaFicha }, '+ Em branco'),
       h('button', { class: 'btn ghost sm', type: 'button', title: 'Volta os personagens de exemplo ao estado inicial', onclick: () => { if (UIS.reset) { S = { fichas: EXEMPLOS(), sel: null, hist: [], cena: { rodada: 0, sobre: false } }; S.sel = S.fichas[0].id; UIS.reset = false; salvar(); renderTudo(); toast('Fichas de exemplo restauradas.'); } else { UIS.reset = true; renderLista(); setTimeout(() => { UIS.reset = false; renderLista(); }, 3000); } } }, UIS.reset ? 'Toque de novo' : 'Restaurar exemplos')),
-    h('p', { class: 'nota-proto' }, 'Personagens prontos do playtest, para testar. Tudo o que você muda fica salvo só neste navegador.'));
+    h('p', { class: 'nota-proto' }, 'Personagens prontos, para testar. Tudo o que você muda fica salvo só neste navegador.'));
 }
 function novaFicha() {
   const f = P({ nome: 'Novo personagem', perfil: 'executor', ocupacao: 'Cientista', atr: { fisico: 'd6', mente: 'd6', emocao: 'd6' }, per: per(), apt: apt(), pv: { v: 10, m: 10 }, pd: { v: 10, m: 10 }, hab: ['impeto', 'foco-mental'] });
@@ -1138,7 +1138,7 @@ function blocoRecurso(f, k) {
     h('div', { class: 'rec-h' }, h('b', null, nome), h('span', { class: 'val' }, r.v), h('span', { class: 'max' }, '/ ', UIS.edit ? h('input', { type: 'number', id: 'f-' + k + 'max', min: 1, max: 99, value: r.m, 'aria-label': nome + ' máximo', onchange: e => { r.m = Math.max(1, Math.min(99, +e.target.value || 1)); r.v = Math.min(r.v, r.m); salvar(); renderTudo(); } }) : r.m),
       h('span', { class: 'sp' }), h('button', { class: 'mini', type: 'button', 'aria-label': 'Perder 1 ' + nome, onclick: () => set(r.v - 1) }, '−'), h('button', { class: 'mini', type: 'button', 'aria-label': 'Recuperar 1 ' + nome, onclick: () => set(r.v + 1) }, '+')),
     caixas(r, k, set),
-    UIS.edit || sug !== r.m ? h('div', { class: 'formula-pv' }, 'Fórmula: ' + sug, h('span', { class: 'selo ' + (confF ? 'ok' : 'nc') }, confF ? 'confirmada' : 'não confirmada'),
+    UIS.edit || sug !== r.m ? h('div', { class: 'formula-pv' }, 'Fórmula: ' + sug, 
       sug !== r.m ? h('button', { class: 'btn sm ghost', type: 'button', title: 'Troca o máximo pelo valor da fórmula da versão escolhida', onclick: () => { r.m = sug; r.v = Math.min(r.v, r.m); salvar(); renderTudo(); } }, 'Usar ' + sug) : null) : null,
     k === 'pv' ? linhaPV(f) : null,
     k === 'pd' ? linhaMedo(f) : null,
@@ -1200,8 +1200,8 @@ function renderFicha() {
         h('span', { class: 'tag perfil' }, 'Perfil', perfilSel),
         h('span', { class: 'tag' }, RG.hab === 'alpha' ? 'Ocupação' : 'Vocação', ocSel),
         h('span', { class: 'tag' }, 'Nível', h('input', { type: 'number', id: 'f-nivel', min: 1, max: 10, value: f.nivel, 'aria-label': 'Nível', disabled: !UIS.edit || null, title: 'Mude pelo botão Evoluir, para ficar no histórico (ou em Editar ficha)', onchange: e => { const ant = f.nivel; set('nivel', Math.max(1, Math.min(10, +e.target.value || 1))); if (ant !== f.nivel) { f.evol.unshift({ t: Date.now(), versao: RG.nome, de: ant, para: f.nivel, mud: ['Nível mudado à mão na edição'] }); salvar(); } renderTudo(); } })),
-        patVal().some(Boolean) ? h('span', { class: 'tag', title: (RG.patamares || []).some(Boolean) ? 'Patamar das regras da campanha' : 'Patamar pela regra provisória da casa' }, PATAMAR_N[patamar(f)]) : null,
-        h('span', { class: 'tag', title: 'Exposição paranormal, separada do nível. O beta só cita o NEX (ex.: NEX 35%+ evita a Presença Aterradora do aughisk); não há tabela.' }, 'NEX', h('input', { type: 'number', id: 'f-nex', min: 0, max: 99, step: 5, value: f.nex, 'aria-label': 'NEX', onchange: e => { const ant = f.nex; set('nex', Math.max(0, Math.min(99, +e.target.value || 0))); if (ant !== f.nex) { f.evol.unshift({ t: Date.now(), versao: RG.nome, de: f.nivel, para: f.nivel, mud: ['NEX ' + ant + '% → ' + f.nex + '%'] }); salvar(); renderFicha(); } } }), '%'),
+        patVal().some(Boolean) ? h('span', { class: 'tag', title: 'Patamar' }, PATAMAR_N[patamar(f)]) : null,
+        h('span', { class: 'tag', title: 'Exposição paranormal, separada do nível.' }, 'NEX', h('input', { type: 'number', id: 'f-nex', min: 0, max: 99, step: 5, value: f.nex, 'aria-label': 'NEX', onchange: e => { const ant = f.nex; set('nex', Math.max(0, Math.min(99, +e.target.value || 0))); if (ant !== f.nex) { f.evol.unshift({ t: Date.now(), versao: RG.nome, de: f.nivel, para: f.nivel, mud: ['NEX ' + ant + '% → ' + f.nex + '%'] }); salvar(); renderFicha(); } } }), '%'),
         h('span', { class: 'tag' }, h('select', { id: 'f-tipo', 'aria-label': 'Tipo de personagem', onchange: e => { f.tipo = e.target.value; if (f.tipo === 'agente' && !Object.keys(f.ferr || {}).length) f.ferr = ferrAgente(); salvar(); renderTudo(); } }, h('option', { value: 'sobrevivente', selected: f.tipo !== 'agente' || null }, 'Sobrevivente'), h('option', { value: 'agente', selected: f.tipo === 'agente' || null }, 'Agente da Ordem')))),
       seletorCor(f),
       h('div', { class: 'recursos' }, blocoRecurso(f, 'pv'), blocoRecurso(f, 'pd')),
@@ -1239,8 +1239,8 @@ function renderFicha() {
       (f.armas || []).map((a, i) => linhaArma(f, a, i)),
       UIS.edit ? h('div', { class: 'arma' }, h('span', { class: 'row' }, h('button', { class: 'btn sm', type: 'button', onclick: () => { f.armas.push({ nome: 'Nova arma', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 0, alcance: 'corpo a corpo' }); salvar(); renderFicha(); } }, '+ Arma em branco'),
         h('select', { id: 'f-addarma', 'aria-label': 'Arma de 2016', onchange: e => { const a = ARMAS_2016[+e.target.value]; if (a) { f.armas.push(clone(a)); salvar(); renderFicha(); toast(a.nome + ' adicionada.'); } } }, h('option', { value: '' }, 'Armas de 2016…'), ARMAS_2016.map((a, i) => h('option', { value: i }, a.nome + ' (RA+' + a.bonus + ')'))))) : null),
-    RG.combate === 'alpha' ? h('p', { class: 'legenda' }, 'Combate do playtest alpha (regra simplificada): teste oposto de Luta; quem vence causa a RA armado ou a RB desarmado. Quem só se defende faz Acrobacia + d6 oposto e, vencendo, não sofre nem causa dano. Vários agressores: só um fica no oposto; os outros testam Luta DT 7.') :
-    h('p', { class: 'legenda' }, 'Combate do playtest beta: acertar é DT 7 (+3 em alcance longo, +3 com cobertura leve). Se você e o inimigo se atacam no corpo a corpo, vira teste oposto. O dano é a RA mais o bônus da arma; desarmado, a RB. Atirar em quem está no corpo a corpo: duas reduções de passo. Munição e armas modernas ainda são provisórias.'));
+    RG.combate === 'alpha' ? h('p', { class: 'legenda' }, 'Combate: teste oposto de Luta; quem vence causa a RA armado ou a RB desarmado. Quem só se defende faz Acrobacia + d6 oposto e, vencendo, não sofre nem causa dano. Vários agressores: só um fica no oposto; os outros testam Luta DT 7.') :
+    h('p', { class: 'legenda' }, 'Combate: acertar é DT 7 (+3 em alcance longo, +3 com cobertura leve). Se você e o inimigo se atacam no corpo a corpo, vira teste oposto. O dano é a RA mais o bônus da arma; desarmado, a RB. Atirar em quem está no corpo a corpo: duas reduções de passo.'));
   // itens e ferramentas
   const itens = h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Itens'), cardItens(f),
     f.tipo === 'agente' ? [h('div', { class: 'fita', style: { marginTop: '16px' } }, 'Ferramentas da Ordo Realitas'),
@@ -1294,8 +1294,8 @@ function blocoProgressao(f) {
           h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.evolAberta = { de: f.nivel, para: f.nivel, foto: fotoFicha(f), t: Date.now(), ajuste: true }; UIS.edit = true; salvar(); renderTudo(); } }, 'Registrar ajuste do mestre'))
         : [h('div', { class: 'dica' }, h('b', null, ev.ajuste ? 'Ajuste do mestre aberto.' : 'Evolução para o nível ' + ev.para + ' aberta.'),
             'A ficha está em modo de edição: mude atributos, perícias, PV, PD e habilidades. Ao concluir, tudo o que mudou entra no histórico.',
-            ben ? h('span', null, 'Benefício deste nível (' + ((RG.beneficios || {})[ev.para] ? 'regras da campanha' : 'regra provisória da casa') + '): ', h('strong', null, ben), '. Aplique à mão.') : h('span', null, 'A versão ' + RG.nome + ' não tem benefícios confirmados para este nível: nada é concedido sozinho. O mestre decide.'),
-            h('span', null, 'Fórmula de PV/PD no nível ' + ev.para + ': ' + form.pv + ' / ' + form.pd + ' (' + (regConf('pvForm') ? 'confirmada' : 'não confirmada') + ').')),
+            ben ? h('span', null, 'Benefício deste nível: ', h('strong', null, ben), '. Aplique à mão.') : h('span', null, 'Este nível não tem benefício automático. O mestre decide.'),
+            h('span', null, 'Fórmula de PV/PD no nível ' + ev.para + ': ' + form.pv + ' / ' + form.pd + '.')),
           h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', onclick: () => { const mud = difFicha(ev.foto, f); f.nivel = ev.para; f.evol.unshift({ t: Date.now(), versao: RG.nome, de: ev.de, para: ev.para, mud: mud.length ? mud : ['Sem outras mudanças'] }); delete f.evolAberta; UIS.edit = false; salvar(); renderTudo(); toast(ev.ajuste ? 'Ajuste registrado no histórico.' : f.nome + ' chegou ao nível ' + f.nivel + '.'); } }, 'Concluir e registrar'),
             h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { const a = ev.foto; Object.assign(f, { nex: a.nex, atr: a.atr, per: a.per, apt: a.apt, hab: a.hab }); f.pv.m = a.pv; f.pd.m = a.pd; f.pv.v = Math.min(f.pv.v, f.pv.m); f.pd.v = Math.min(f.pd.v, f.pd.m); delete f.evolAberta; UIS.edit = false; salvar(); renderTudo(); } }, 'Cancelar e desfazer'))],
       f.evol.length ? h('div', { class: 'evol' }, f.evol.slice(0, 12).map(e => h('div', { class: 'evol-it' }, h('b', null, new Date(e.t).toLocaleDateString('pt-BR') + ' · ' + (e.de === e.para ? 'nível ' + e.para : 'nível ' + e.de + ' → ' + e.para)), ' · ' + e.versao, h('br'), e.mud.join('; ')))) : h('p', { style: { fontSize: '12.5px', color: 'var(--muted)' } }, 'Nenhuma evolução registrada ainda.'))));
@@ -1336,8 +1336,7 @@ function cardHab(f, k) {
   const m = metaHab(k), lim = typeof m.limite === 'function' ? m.limite() : m.limite;
   const pdNec = x.dado?.pd || x.gasto?.pd || 0, pvNec = x.gasto?.pv || 0, usadaCena = x.gasto?.cena && f.usos[k];
   const disp = usadaCena ? ['usada', 'nao'] : (pdNec && f.pd.v < pdNec) || (pvNec && f.pv.v < pvNec) ? ['sem ' + (pdNec ? 'PD' : 'PV'), 'nao'] : (pdNec || pvNec || x.gasto) ? ['disponível', ''] : null;
-  acoes.unshift(h('dl', { class: 'hab-meta' }, h('dt', null, 'Categoria'), h('dd', null, m.cat), h('dt', null, 'Quando'), h('dd', null, m.momento), h('dt', null, 'Limite'), h('dd', null, lim), h('dt', null, 'Duração'), h('dd', null, m.duracao), m.req ? [h('dt', null, 'Requisito'), h('dd', null, m.req)] : null,
-    h('dt', null, 'Regra'), h('dd', null, h('span', { class: 'selo ' + (m.conf === 'mestre' || m.conf === 'casa' ? 'nc' : 'ok') }, m.conf === 'casa' ? 'regra da casa (São Valentim)' : m.conf === 'beta' ? 'confirmada no beta' : m.conf === 'alpha' ? 'confirmada no alpha' : m.conf === 'ambos' ? 'confirmada no alpha e no beta' : 'criada pelo mestre'))));
+  acoes.unshift(h('dl', { class: 'hab-meta' }, h('dt', null, 'Categoria'), h('dd', null, m.cat), h('dt', null, 'Quando'), h('dd', null, m.momento), h('dt', null, 'Limite'), h('dd', null, lim), h('dt', null, 'Duração'), h('dd', null, m.duracao), m.req ? [h('dt', null, 'Requisito'), h('dd', null, m.req)] : null,));
   if (x.custom && x.efeito === 'gasto' && !x.gasto) x.gasto = { pd: +x.custoPD || 0, pv: +x.custoPV || 0, cena: x.limite === 'cena', msg: 'usou ' + x.nome };
   return h('div', { class: 'card' }, h('div', { class: 'card-h' }, h('b', null, x.nome + (x.paranormal ? ' ✶' : '')), h('span', { class: 'sp' }), disp ? h('span', { class: 'disp ' + disp[1] }, disp[0]) : null, h('small', null, x.custo || x.origem.split(' · ')[0]),
     UIS.edit ? h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar ' + x.nome, style: { width: '20px', height: '20px', background: 'transparent', borderColor: 'rgba(255,255,255,.35)', color: '#fff' }, onclick: () => { f.hab = f.hab.filter(y => y !== k); if (x.pvMais) { f.pv.m = Math.max(1, f.pv.m - x.pvMais); f.pv.v = Math.min(f.pv.v, f.pv.m); } salvar(); renderFicha(); } }, '×') : null),
@@ -1350,7 +1349,7 @@ function linhaArma(f, a, i) {
       a.tipo !== 'corpo' && a.munMax ? h('span', { style: { fontSize: '12.5px', color: a.mun ? 'var(--paper-2)' : 'var(--red)' } }, (a.mun ?? 0) + '/' + a.munMax) : null,
       a.tipo !== 'corpo' && a.munMax ? h('button', { class: 'mini', type: 'button', title: 'Recarregar', 'aria-label': 'Recarregar ' + a.nome, onclick: () => { a.mun = a.munMax; salvar(); renderFicha(); } }, '↺') : null,
       h('button', { class: 'btn sm red', type: 'button', disabled: (a.tipo !== 'corpo' && a.munMax && !a.mun) || null, onclick: () => abrirRolagem(f, { per: a.per || (fogo ? 'pontaria' : 'luta'), dt: RG.combate === 'alpha' && !fogo && a.tipo === 'corpo' ? 0 : 7, arma: Object.assign({}, a, { idx: i, bonus }), semProf: fogo && casaAtiva() && !temHab(f, 'linha-de-tiro') && !temHab(f, 'para-bellum') }) }, 'Atacar')),
-    h('div', { class: 'meta' }, h('span', null, PER_N[a.per] || 'Luta'), h('span', null, 'dano ', h('b', null, (a.dano || 'RA') + (bonus ? ' + ' + bonus : ''))), h('span', null, a.alcance || ''), fogo && !temHab(f, 'linha-de-tiro') && !temHab(f, 'para-bellum') && !temHab(f, 'segredo-do-aco') ? h('span', { style: { color: 'var(--red)' }, title: 'Regra provisória da casa: quem não sabe usar armas de fogo ataca com uma redução de passo' }, 'sem proficiência: −1 passo (provisório)') : null)];
+    h('div', { class: 'meta' }, h('span', null, PER_N[a.per] || 'Luta'), h('span', null, 'dano ', h('b', null, (a.dano || 'RA') + (bonus ? ' + ' + bonus : ''))), h('span', null, a.alcance || ''), fogo && !temHab(f, 'linha-de-tiro') && !temHab(f, 'para-bellum') && !temHab(f, 'segredo-do-aco') ? h('span', { style: { color: 'var(--red)' }, title: 'Quem não sabe usar armas de fogo ataca com uma redução de passo' }, 'sem proficiência: −1 passo') : null)];
   if (UIS.edit) kids.push(h('div', { class: 'edit-grid' },
     h('label', null, 'Nome', h('input', { id: `f-a${i}-nome`, value: a.nome, oninput: e => { a.nome = e.target.value; salvar(); } })),
     h('label', null, 'Tipo', h('select', { id: `f-a${i}-tipo`, onchange: e => { a.tipo = e.target.value; a.per = a.tipo === 'corpo' ? 'luta' : 'pontaria'; salvar(); renderFicha(); } }, [['corpo', 'Corpo a corpo'], ['disparo', 'Disparo / arremesso'], ['fogo', 'Arma de fogo']].map(([v, n]) => h('option', { value: v, selected: a.tipo === v || null }, n)))),
@@ -1399,7 +1398,7 @@ const dtEf = r => r.dt ? r.dt + Object.keys(r.mods || {}).filter(k => r.mods[k])
 function blocoMods(r) {
   if (!r.arma && !['manobra'].includes(r.preset)) return null;
   const dist = r.arma && r.arma.tipo !== 'corpo';
-  return h('div', null, h('div', { class: 'campo', style: { marginBottom: '6px' } }, 'Situação do ataque (beta e Vigília)'),
+  return h('div', null, h('div', { class: 'campo', style: { marginBottom: '6px' } }, 'Situação do ataque'),
     h('div', { class: 'mods' }, MODS.filter(m => !m[3] || (m[3] === 'dist' ? dist : !dist)).map(([k, n]) => h('button', { type: 'button', class: r.mods[k] ? 'on' : '', 'aria-pressed': r.mods[k] ? 'true' : 'false', onclick: () => { r.mods[k] = !r.mods[k]; renderDados(); } }, n))),
     dtEf(r) !== r.dt ? h('div', { style: { fontSize: '12.5px', color: 'var(--gold)', marginTop: '4px' } }, 'DT final: ' + dtEf(r)) : null);
 }
@@ -1418,7 +1417,7 @@ function opcoesExtras(f, r) {
   if (temHab(f, 'avaliacao') && RG.hab === 'alpha') out.push({ d: 'd4', fonte: 'Avaliação', banco: 1, rot: 'Avaliação +d4', custo: 'guardado', pode: f.banco - r.extras.filter(e => e.banco).length >= 1 });
   if (temHab(f, 'impeto')) out.push({ d: 'd4', fonte: 'Ímpeto', impeto: 1, rot: 'Ímpeto +d4', custo: '1 espaço', pode: f.impeto - r.extras.filter(e => e.impeto).length >= 1 });
   for (const x of f.rel || []) if (x.pts > 0) out.push({ d: REL_D[x.pts], fonte: 'Relação: ' + (x.nome || '?'), rel: x.id, rot: (x.nome || 'Relação') + (x.neg ? ' (rancor)' : '') + ' +' + REL_D[x.pts], custo: REL_N[x.pts] + ', 1× por ' + (RG.relLimite === 'cena' ? 'cena' : 'missão'), pode: !relUsada(f, x.id) && !usados.has('Relação: ' + (x.nome || '?')) });
-  if (r.especial === 'feri' && f.nl && RG.lesao === 'beta') out.push({ d: 'd6', fonte: 'Dano não letal', rot: 'Não letal +d6', custo: 'regra do beta', pode: !usados.has('Dano não letal') });
+  if (r.especial === 'feri' && f.nl && RG.lesao === 'beta') out.push({ d: 'd6', fonte: 'Dano não letal', rot: 'Não letal +d6', custo: 'não letal', pode: !usados.has('Dano não letal') });
   for (const d of ['d4', 'd6', 'd8']) out.push({ d, fonte: 'Bônus do mestre', rot: '+' + d, custo: 'mestre', pode: true });
   return out;
 }
@@ -1519,7 +1518,7 @@ function avaliar(f, res, primeira) {
     const k = res.especial; f[k] = (f[k] || 0) + 1;
     if (k === 'trau' && temHab(f, 'estoico') && !f.usos.estoico) { f.usos.estoico = 1; f.pd.v = Math.min(f.pd.m, f.pd.v + 9); res.msgs.push('Estoico: recuperou 9 PD (primeira vez na cena).'); }
     if (k === 'feri' && RG.lesao === 'alpha') {
-      if (!c.ok) { f.morto = true; res.msgs.push('Falhou no teste de ferimento: pelas regras da versão Alpha (não confirmadas), o personagem morre.'); }
+      if (!c.ok) { f.morto = true; res.msgs.push('Falhou no teste de ferimento: o personagem morre.'); }
       else res.msgs.push('Aguentou firme. O próximo teste será DT ' + (7 + 3 * f[k]) + '.');
     } else if (k === 'feri') {
       if (c.fumble) { f.morto = true; res.msgs.push('Falha crítica no teste de lesão: o personagem morre.'); }
@@ -1527,7 +1526,7 @@ function avaliar(f, res, primeira) {
       else if (c.ok) { f.moribundo = true; res.msgs.push('Passou: fica inconsciente e moribundo. No fim de cada rodada, novo teste de lesão (DT ' + (7 + 3 * f[k]) + ').'); }
       else res.msgs.push('Falhou: sofre uma lesão. Role d20 na tabela abaixo.');
     } else if (RG.trauma === 'alpha') {
-      if (!c.ok) { f.perdido = true; res.msgs.push('Falhou no teste de Disciplina: pelas regras do alpha, colapso mental e morte.'); } else res.msgs.push('Aguentou firme. O próximo teste será DT ' + (7 + 3 * f[k]) + '.');
+      if (!c.ok) { f.perdido = true; res.msgs.push('Falhou no teste de Disciplina: colapso mental e morte.'); } else res.msgs.push('Aguentou firme. O próximo teste será DT ' + (7 + 3 * f[k]) + '.');
     } else {
       if (c.ok) res.msgs.push('Aguentou firme: nenhum efeito. O próximo teste de trauma nesta cena será DT ' + (7 + 3 * f[k]) + '.');
       else res.msgs.push('Falhou: sofre um trauma. Role d20 na tabela abaixo.');
@@ -1573,7 +1572,7 @@ function cardResultado(res) {
       res.curado ? h('span', { style: { color: 'var(--muted)' } }, '· aplicada em ' + res.curado) : h('span', { class: 'row', style: { marginTop: '6px' } }, h('select', { id: 'r-alvo', 'aria-label': 'Quem recebe a cura', style: { background: 'var(--panel-2)', border: '1px solid var(--line-2)', padding: '4px' } }, S.fichas.map(p => h('option', { value: p.id, selected: p.id === f.id || null }, p.nome))),
         h('button', { class: 'btn sm red', type: 'button', onclick: () => { const p = S.fichas.find(x => x.id === $('#r-alvo').value) || f; p.pv.v = Math.min(p.pv.m, p.pv.v + curaVal); res.curado = p.nome; salvar(); renderTudo(); toast(p.nome + ' recuperou ' + curaVal + ' PV.'); } }, 'Curar'),
         outro ? [h('select', { id: 'r-alvo2', 'aria-label': 'Segunda pessoa, para dividir a cura', style: selSt }, S.fichas.map(p => h('option', { value: p.id, selected: p === outro || null }, p.nome))),
-          h('button', { class: 'btn sm', type: 'button', title: 'Visto na Vigília ep. 2: a pomada dividida cura a RB + bônus em duas pessoas', onclick: () => { const a = S.fichas.find(x => x.id === $('#r-alvo').value) || f, b = S.fichas.find(x => x.id === $('#r-alvo2').value); if (!b || a === b) { toast('Escolha duas pessoas diferentes.'); return; } for (const p of [a, b]) p.pv.v = Math.min(p.pv.m, p.pv.v + curaRB); res.curado = a.nome + ' e ' + b.nome + ' (' + curaRB + ' cada)'; salvar(); renderTudo(); toast(a.nome + ' e ' + b.nome + ' recuperaram ' + curaRB + ' PV cada.'); } }, 'Dividir: ' + curaRB + ' em cada')] : null)) : null,
+          h('button', { class: 'btn sm', type: 'button', title: 'A pomada dividida cura a RB + bônus em duas pessoas', onclick: () => { const a = S.fichas.find(x => x.id === $('#r-alvo').value) || f, b = S.fichas.find(x => x.id === $('#r-alvo2').value); if (!b || a === b) { toast('Escolha duas pessoas diferentes.'); return; } for (const p of [a, b]) p.pv.v = Math.min(p.pv.m, p.pv.v + curaRB); res.curado = a.nome + ' e ' + b.nome + ' (' + curaRB + ' cada)'; salvar(); renderTudo(); toast(a.nome + ' e ' + b.nome + ' recuperaram ' + curaRB + ' PV cada.'); } }, 'Dividir: ' + curaRB + ' em cada')] : null)) : null,
     res.preset === 'acalmar' && !c.fumble ? h('div', { class: 'dano' }, 'Recupera ', h('b', null, c.tot), ' PD ', res.acalmado ? h('span', { style: { color: 'var(--muted)' } }, '· ' + res.acalmado) : h('span', { class: 'row', style: { marginTop: '6px' } }, h('select', { id: 'r-alvo-pd', 'aria-label': 'Quem se acalma', style: selSt }, S.fichas.map(p => h('option', { value: p.id, selected: p.id === f.id || null }, p.nome))),
       h('button', { class: 'btn sm red', type: 'button', onclick: () => { const p = S.fichas.find(x => x.id === $('#r-alvo-pd').value) || f; p.pd.v = Math.min(p.pd.m, p.pd.v + c.tot); res.acalmado = p.nome + ' recuperou ' + c.tot + ' PD'; salvar(); renderTudo(); toast(p.nome + ' recuperou ' + c.tot + ' PD.'); } }, 'Acalmar'))) : null,
     res.preset === 'barreira' && c.ok === false && !res.enfrentou ? h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', onclick: () => { res.enfrentou = 1; perdePD(f, c.fumble ? 'd8' : 'd4', 'Enfrentou a barreira de medo'); } }, 'Enfrentar o medo (−' + (c.fumble ? 'd8' : 'd4') + ' PD)')) : null,
@@ -1629,7 +1628,7 @@ function blocoSustPavor(f, r) {
   if (r.per === 'atletismo') out.push(h('label', { class: 'campo' }, 'Sustentar (segurar algo pesado)', h('select', { id: 'r-sust', onchange: e => { r.sust = +e.target.value; renderDados(); } },
     [[0, 'Não está sustentando'], [1, 'Rodada 1: gasta 1 PV'], [2, 'Rodada 2: −1 passo'], [3, 'Rodada 3: −2 passos'], [4, 'Rodada 4: −3 passos']].map(([v, n]) => h('option', { value: v, selected: r.sust === v || null }, n)))));
   if (f.pavorD && RG.pavor !== 'nenhum') out.push(h('label', { class: 'campo' }, 'Dado de pavor (' + f.pavorD + ')', h('select', { id: 'r-pavor', onchange: e => { r.pavor = e.target.value; } },
-    [['rolar', 'Rolar junto (apaga os dados abaixo dele)'], RG.pavor === 'alpha' ? ['evitar', 'Gastar 2 PD para não rolar (alpha, não confirmado)'] : ['reduzir', 'Gastar 1 PD: rolar um passo abaixo'], ['bonus', 'Gastar 5 PD: vira dado bônus']].map(([v, n]) => h('option', { value: v, selected: r.pavor === v || null, disabled: (v === 'reduzir' && (f.pd.v < 1 || f.pavorD === 'd4')) || (v === 'evitar' && f.pd.v < 2) || (v === 'bonus' && f.pd.v < 5) || null }, n)))));
+    [['rolar', 'Rolar junto (apaga os dados abaixo dele)'], RG.pavor === 'alpha' ? ['evitar', 'Gastar 2 PD para não rolar'] : ['reduzir', 'Gastar 1 PD: rolar um passo abaixo'], ['bonus', 'Gastar 5 PD: vira dado bônus']].map(([v, n]) => h('option', { value: v, selected: r.pavor === v || null, disabled: (v === 'reduzir' && (f.pd.v < 1 || f.pavorD === 'd4')) || (v === 'evitar' && f.pd.v < 2) || (v === 'bonus' && f.pd.v < 5) || null }, n)))));
   return out;
 }
 function recontar(res) {
@@ -1646,21 +1645,21 @@ function perdePD(f, d, o) {
 function calma(f) {
   const d = casaAtiva() ? S.regras.casa.calma : 'd4';
   if (f.pd.v >= f.pd.m) { f.insp.push({ atr: 'emocao', fonte: 'Calma' }); toast(f.nome + ' está com PD cheio e fica inspirado: +1 passo no próximo teste de Emoção.'); }
-  else { const v = rolar(d); f.pd.v = Math.min(f.pd.m, f.pd.v + v); toast(f.nome + ' recuperou ' + v + ' PD com a calma (' + d + ', provisório).'); }
+  else { const v = rolar(d); f.pd.v = Math.min(f.pd.m, f.pd.v + v); toast(f.nome + ' recuperou ' + v + ' PD com a calma (' + d + ').'); }
   salvar(); renderTudo();
 }
 function darPavor(f) { if (RG.pavor === 'nenhum') { toast('A versão ' + RG.nome + ' não tem dado de pavor.'); return; } f.pavorD = f.pavorD ? passo(f.pavorD, 1) : 'd6'; S.hist.unshift({ t: Date.now(), quem: f.nome, o: 'Recebeu dado de pavor', tot: '•', v: 'bad', vt: f.pavorD }); }
 function blocoDescanso(f) {
   if (!casaAtiva()) return null;
   const d = S.regras.casa.noite;
-  return h('div', { class: 'row', style: { fontSize: '12.5px', color: 'var(--muted)' } }, h('span', null, 'Descanso (provisório):'),
+  return h('div', { class: 'row', style: { fontSize: '12.5px', color: 'var(--muted)' } }, h('span', null, 'Descanso:'),
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Um momento seguro numa cena calma: recupera ' + S.regras.casa.calma + ' PD', onclick: () => calma(f) }, 'Pausa: +' + S.regras.casa.calma + ' PD'),
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Uma noite inteira de sono num lugar seguro: recupera ' + d + ' PV e ' + d + ' PD, e o dado de pavor desce um passo', onclick: () => { const a = rolar(d), b = rolar(d); f.pv.v = Math.min(f.pv.m, f.pv.v + a); f.pd.v = Math.min(f.pd.m, f.pd.v + b); if (f.pavorD) f.pavorD = f.pavorD === 'd4' ? null : passo(f.pavorD, -1); f.moribundo = false; S.hist.unshift({ t: Date.now(), quem: f.nome, o: 'Noite de sono', tot: '+', v: 'ok', det: '+' + a + ' PV · +' + b + ' PD' }); salvar(); renderTudo(); toast(f.nome + ' dormiu: +' + a + ' PV e +' + b + ' PD.'); } }, 'Noite de sono: +' + d + ' PV e PD'));
 }
 function linhaPV(f) {
   const a = f.armadura;
   return [h('div', { class: 'row', style: { fontSize: '12.5px', color: 'var(--muted)' } },
-      h('span', { title: 'Regra do beta: gaste 1 ponto como ação livre ao sofrer dano para reduzir esse dano em 10 (no playtest, não se recuperam)' }, 'Armadura: ', h('b', { style: { color: 'var(--paper)' } }, a.v + '/' + a.m)),
+      h('span', { title: 'Gaste 1 ponto como ação livre ao sofrer dano para reduzir esse dano em 10. Os pontos não se recuperam.' }, 'Armadura: ', h('b', { style: { color: 'var(--paper)' } }, a.v + '/' + a.m)),
       h('button', { class: 'btn sm ghost', type: 'button', disabled: !a.v || null, onclick: () => { a.v--; S.hist.unshift({ t: Date.now(), quem: f.nome, o: 'Gastou 1 ponto de armadura (−10 de dano)', tot: '•', v: '' }); salvar(); renderTudo(); toast('Ponto de armadura gasto: reduza o dano em 10.'); } }, 'Usar (−10 dano)'),
       UIS.edit ? [h('button', { class: 'mini', type: 'button', 'aria-label': 'Menos armadura', onclick: () => { a.m = Math.max(0, a.m - 1); a.v = Math.min(a.v, a.m); salvar(); renderFicha(); } }, '−'), h('button', { class: 'mini', type: 'button', 'aria-label': 'Mais armadura', onclick: () => { a.m++; a.v++; salvar(); renderFicha(); } }, '+')] : null,
       h('label', { class: 'chk', title: 'Marque se o dano que levou o personagem a 0 PV foi em parte não letal: o teste de lesão ganha +d6' }, h('input', { type: 'checkbox', id: 'f-nl', checked: f.nl || null, onchange: e => { f.nl = e.target.checked ? 1 : 0; salvar(); } }), 'parte do dano foi não letal')),
@@ -1714,14 +1713,14 @@ function blocoRelacoes(f) {
         r.pts ? h('span', { style: { fontSize: '11.5px', color: relUsada(f, r.id) ? 'var(--muted)' : 'var(--gold)' }, title: relUsada(f, r.id) ? 'Já invocada' : 'Disponível' }, (r.neg ? 'Negativa · ' : '') + REL_N[r.pts] + ' ' + REL_D[r.pts] + (relUsada(f, r.id) ? ' · usada' : ' · disponível')) : null,
         REL_MOT[r.pts] ? h('button', { class: 'btn sm', type: 'button', disabled: relUsada(f, r.id) || null, title: 'Gasta a invocação desta missão e uma ação: a pessoa recupera ' + REL_MOT[r.pts] + ' PD', onclick: () => { const v = rolarExpr(REL_MOT[r.pts]), alvo = r.fid ? S.fichas.find(x => x.id === r.fid) : S.fichas.find(x => x.id !== f.id && x.nome.trim().toLowerCase() === (r.nome || '').trim().toLowerCase()); marcarRel(f, r.id); r.log.unshift({ t: Date.now(), txt: 'Motivou: +' + v + ' PD' }); if (alvo) alvo.pd.v = Math.min(alvo.pd.m, alvo.pd.v + v); salvar(); renderTudo(); toast((alvo ? alvo.nome : r.nome || 'A pessoa') + ' recupera ' + v + ' PD (' + REL_MOT[r.pts] + ').'); } }, 'Motivar') : null,
         h('button', { class: 'btn sm', type: 'button', disabled: deu || r.pts >= max || null, title: 'Depois de uma interação marcante. Um ponto por cena.', onclick: () => { r.pts++; f.usos.relup = 1; salvar(); renderFicha(); toast('Relação com ' + (r.nome || 'alguém') + ' subiu para ' + REL_N[r.pts] + '.'); } }, '+1'),
-        UIS.edit ? [h('button', { class: 'mini', type: 'button', title: r.neg ? 'Relação negativa (rancor): vale em testes contra a pessoa. Toque para voltar a positiva' : 'Virar relação negativa (rancor), como na Vigília ep. 2', 'aria-label': 'Alternar relação negativa', 'aria-pressed': r.neg ? 'true' : 'false', onclick: () => { r.neg = !r.neg; salvar(); renderFicha(); } }, r.neg ? '−' : '±'),
+        UIS.edit ? [h('button', { class: 'mini', type: 'button', title: r.neg ? 'Relação negativa (rancor): vale em testes contra a pessoa. Toque para voltar a positiva' : 'Virar relação negativa (rancor)', 'aria-label': 'Alternar relação negativa', 'aria-pressed': r.neg ? 'true' : 'false', onclick: () => { r.neg = !r.neg; salvar(); renderFicha(); } }, r.neg ? '−' : '±'),
           h('button', { class: 'mini', type: 'button', title: 'Perdeu esta pessoa: perde PD igual ao dado da relação (' + (REL_D[r.pts] || 'sem dado') + ')', 'aria-label': 'Perdeu esta pessoa', disabled: !r.pts || !REL_D[r.pts] || null, onclick: () => perdePD(f, REL_D[r.pts], 'Perdeu ' + (r.nome || 'alguém querido')) }, '✝'),
           h('button', { class: 'mini', type: 'button', title: 'Sacrificar um ponto para sempre (ritual)', 'aria-label': 'Sacrificar um ponto para sempre', disabled: !r.pts || null, onclick: () => { r.pts--; r.perd = (r.perd || 0) + 1; salvar(); renderFicha(); } }, '⊘'),
           h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar relação', onclick: () => { f.rel.splice(i, 1); salvar(); renderFicha(); } }, '×')] : null)); }),
       h('div', { class: 'item' }, h('span', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.rel.push(rl('', 1)); salvar(); renderFicha(); setTimeout(() => $('#f-rel-' + (f.rel.length - 1))?.focus(), 20); } }, '+ Relação'),
         h('button', { class: 'btn sm ghost', type: 'button', title: 'Começo de missão (ou de ato): as relações podem ser invocadas de novo', onclick: () => { f.relUsos = {}; salvar(); renderFicha(); toast('Relações de ' + f.nome + ' prontas para invocar de novo.'); } }, 'Nova missão')))),
-    h('p', { class: 'legenda' }, 'Na Vigília ep. 2, relação é vínculo, não carinho: pode virar negativa (±, no modo editar) e continua valendo em testes contra a pessoa. Só quem sente usa o dado. Perder alguém querido custa o dado da relação em PD (✝).'),
-    h('p', { class: 'legenda' }, 'Graus do playtest beta: 1 Afinidade (+d6), 2 Vínculo (+d8), 3 Devoção (+d12) num teste ligado à pessoa. Cada relação se invoca uma vez por missão (na campanha, uma vez por ato). Vínculo e Devoção também podem motivar a pessoa (2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvá-la se estiver em perigo. Para invocar, descreva o que sente por ela.'));
+    h('p', { class: 'legenda' }, 'Relação é vínculo, não carinho: pode virar negativa (±, no modo editar) e continua valendo em testes contra a pessoa. Só quem sente usa o dado. Perder alguém querido custa o dado da relação em PD (✝).'),
+    h('p', { class: 'legenda' }, 'Graus: 1 Afinidade (+d6), 2 Vínculo (+d8), 3 Devoção (+d12) num teste ligado à pessoa. Cada relação se invoca uma vez por missão (na campanha, uma vez por ato). Vínculo e Devoção também podem motivar a pessoa (2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvá-la se estiver em perigo. Para invocar, descreva o que sente por ela.'));
 }
 /* investigação do beta: o dado da perícia diz o que se recebe de graça */
 function blocoInvestigar() {
@@ -1776,8 +1775,8 @@ function blocoSomaProl(f, res, c) {
 const ABAS = { mesa: [['lista', 'Fichas'], ['ficha', 'Ficha'], ['dados', 'Dados']], jogar: [['guia', 'Guia'], ['dados', 'Dados']], criar: [], regras: [] };
 const ABA_INICIAL = { mesa: 'ficha', jogar: 'guia', criar: 'criar', regras: 'regras' };
 function renderModos() {
-  const mk = $('#marca'); if (mk) mk.textContent = 'ORDEM PARANORMAL 2 · 2016 · ' + RG.nome.toUpperCase();
-  fill($('#modos'), [['mesa', 'Fichas'], ['criar', 'Criar personagem'], ['jogar', 'Como jogar'], ['regras', 'Regras']].map(([k, n]) => h('button', { type: 'button', class: UIS.modo === k ? 'on' : '', 'aria-pressed': UIS.modo === k ? 'true' : 'false', onclick: () => irModo(k) }, n)));
+  const mk = $('#marca'); if (mk) mk.textContent = 'ORDEM PARANORMAL 2 · 2016';
+  fill($('#modos'), [['mesa', 'Fichas'], ['criar', 'Criar personagem'], ['jogar', 'Como jogar'], ['regras', 'Regras']].filter(([k]) => k !== 'regras' || !PONTE || PONTE.isGM()).map(([k, n]) => h('button', { type: 'button', class: UIS.modo === k ? 'on' : '', 'aria-pressed': UIS.modo === k ? 'true' : 'false', onclick: () => irModo(k) }, n)));
   fill($('#abas'), ABAS[UIS.modo].map(([id, n]) => h('button', { type: 'button', class: UIS.aba === id ? 'on' : '', onclick: () => irAba(id) }, n)));
 }
 function irAba(a) {
@@ -1786,6 +1785,7 @@ function irAba(a) {
   renderModos();
 }
 function irModo(m) {
+  if (m === 'regras' && PONTE && !PONTE.isGM()) m = 'mesa';
   UIS.modo = m; try { localStorage.setItem(KEY + '.modo', m); } catch {}
   $('#app').dataset.modo = m; UIS.aba = ABA_INICIAL[m];
   renderTudo(); irAba(UIS.aba);
@@ -1852,13 +1852,13 @@ function GUIA(f) {
         Li('<strong>Atirar perto de um aliado</strong> (ep. 2): <strong>com cuidado</strong>, duas reduções de passo e nenhum risco; <strong>sem cuidado</strong>, teste normal, mas se passar com a RA ímpar, acerta o aliado. As duas opções estão na mesa de dados.'),
         Li('<strong>Arremesso em área</strong> (ep. 2): barril com palha em chamas, jarro de abelhas. Pontaria DT 7 (Animais vale para as abelhas) e pega 2 ou 3 criaturas juntas.'),
         Li('<strong>Lança:</strong> o primeiro ataque contra quem ainda não agiu na rodada ganha um aumento de passo. <strong>Terreno elevado</strong> dá mais um para quem atira.'),
-        Li('Entregar um item é a sua ação. Acender uma lamparina é ação livre. Flechas e pedras são contadas uma a uma (na mesa da Vigília, palitos e feijões).'),
+        Li('Entregar um item é a sua ação. Acender uma lamparina é ação livre. Flechas e pedras são contadas uma a uma.'),
         Li('Uma habilidade de <strong>vigilante</strong> deixa esperar a rolagem do inimigo antes de decidir se defende. Sem ela, testes opostos rolam juntos.'),
         Li('Arrombar com uma arma pode usar Luta no lugar de Atletismo, mas custa o mesmo 1 PV de esforço.')),
       fala(['Mestre', 'Fase geral: quem vai fazer algo que não é atacar?'], ['Jogador', 'Eu continuo procurando os livros.'], ['Mestre', 'Agora o corpo a corpo. Rola Luta contra ela.']),
       row(bt(S.cena.combate ? 'Combate ligado (veja a fase no topo)' : 'Ligar o modo combate', () => { S.cena.combate = true; S.cena.fase = 0; salvar(); renderTudo(); }, S.cena.combate ? '' : 'red'), bt('Atacar com Luta (DT 7)', () => abrirRolagem(f, { per: 'luta', dt: 7, arma: armaCorpo(f) })), bt('Defender-se', () => usarPreset(f, 'defesa')), bt('Arremesso em área', () => usarPreset(f, 'arremessoArea')), bt('Avançar (fuga)', () => usarPreset(f, 'fugir')))] },
     { t: 'Terreno e posição', c: [
-      Pp('Tudo isto apareceu na Vigília ep. 2 e entra como <strong>passos do mestre</strong> na mesa de dados.'),
+      Pp('Tudo isto entra como <strong>passos do mestre</strong> na mesa de dados.'),
       h('ul', null, Li('<strong>Terreno hostil:</strong> no pântano, quem tinha Sobrevivência abaixo de d8 fazia os testes de Físico um passo abaixo. Nas ruínas, a penalidade sumiu.'), Li('<strong>Usar o ambiente a favor</strong> (o fogo contra os afogados): um aumento de passo.'), Li('<strong>Ajudar quem conhece o lugar:</strong> dois aumentos de passo no teste do outro.'), Li('<strong>Segurar para o outro passar:</strong> quem sustenta gasta 1 PV e dá um aumento de passo; na rodada seguinte, cansado, esse passo vira redução.'), Li('Quem tem a perícia alta o bastante nem rola: o mestre só entrega a informação (Bruxaria d8 reconheceu o símbolo sem teste).')),
       row(bt('Rolar Sobrevivência', () => abrirRolagem(f, { per: 'sobrevivencia' }))) ] },
     { t: 'Combate em massa (aldeões)', c: mgAldeoes(f) },
@@ -1888,19 +1888,19 @@ function GUIA(f) {
     { t: 'Ferido, abalado e curado', c: [
       Pp('Chegou a <strong>0 PV</strong>, ou tomou dano já em 0: <strong>teste de lesão</strong> (Físico + Vigor, DT 7, e +3 a cada novo teste na cena). Passou: fica inconsciente e moribundo. Falhou: rola d20 na <strong>tabela de lesões</strong>, que vai de uma cicatriz à morte. Falha crítica: morre.'),
       Pp('Chegou a <strong>0 PD</strong>: <strong>teste de trauma</strong> (Emoção + Disciplina, mesma conta). Falhou: d20 na <strong>tabela de traumas</strong> (pânico, estupor, perder pedaços da mente). A mesa de dados rola as tabelas para você.'),
-      Pp('Cura: o <strong>Kit de primeiros socorros</strong> gasta uma ação e pede um teste de Medicina; cura a <strong>RA + 3</strong> PV, mesmo sem passar de DT. Descansar com as feridas tratadas também recupera PV (na Vigília, 8).'),
+      Pp('Cura: o <strong>Kit de primeiros socorros</strong> gasta uma ação e pede um teste de Medicina; cura a <strong>RA + 3</strong> PV, mesmo sem passar de DT. Descansar com as feridas tratadas também recupera PV.'),
       fala(['Jogadora', 'Tirei 6, a rolagem alta foi 5.'], ['Mestre', 'Cinco mais três: você recupera oito pontos de vida.']),
       Pp('<strong>Ep. 2:</strong> dá para <strong>dividir</strong> a pomada: cura a <strong>RB + 3</strong> em duas pessoas, em vez da RA + 3 numa só (o botão Dividir aparece no resultado). Ervas estranhas também viram pomada, com DT mais alta. O elixir calmante (aqui, a cuia de chimarrão) recupera PD igual ao total de Disciplina, ou de Persuasão em outra pessoa.'),
       row(pomada >= 0 ? bt('Usar o kit de primeiros socorros de ' + f.nome, () => usarItem(f, pomada), 'red') : bt('Dar um kit de primeiros socorros para ' + f.nome, () => { const ex = f.itens.find(x => x.nome === 'Kit de primeiros socorros'); if (ex) ex.qtd = (ex.qtd ?? 0) + 1; else f.itens.push({ nome: 'Kit de primeiros socorros', qtd: 1 }); salvar(); renderTudo(); toast('Kit de primeiros socorros na mochila de ' + f.nome + '.'); }, 'red'),
         bt('Teste de lesão', () => abrirRolagem(f, { per: 'vigor', atr: 'fisico', especial: 'feri', dt: 7 + 3 * f.feri })))] },
     { t: 'Rituais', c: [
-      Pp('O playtest beta ainda não trouxe regras de ritual; isto é o que apareceu na Vigília. Um ritual é um teste prolongado de <strong>Ocultismo</strong> (Bruxaria no beta) contra DT 7, uma rodada por vez. Passou: a <strong>RA</strong> soma no alvo. Falhou: a <strong>RB</strong> vira dano de PD em <strong>todos</strong> que estão conjurando.'),
+      Pp('Um ritual é um teste prolongado de <strong>Ocultismo</strong> contra DT 7, uma rodada por vez. Passou: a <strong>RA</strong> soma no alvo. Falhou: a <strong>RB</strong> vira dano de PD em <strong>todos</strong> que estão conjurando.'),
       Pp('Quem não quiser perder o PD pode <strong>sacrificar para sempre</strong> um ponto de relação com alguém ou um passo numa perícia de Mente. Ritual completo: quem conjurou recupera 4 PD.'),
       Pp('Aprender com alguém também sobe perícia: depois de uma aula com o druida, a Bruxaria de um personagem passou de d4 para d6 de vez.'),
       row(bt('Começar um ritual (alvo 20)', () => { novoProl('Acender a fogueira sagrada', 20, 'ritual'); usarPreset(f, 'ritual'); }, 'red'))] },
     { t: 'Relações e fim de cena', c: [
       Pp('Cada relação tem um grau: <strong>Afinidade</strong> (1), <strong>Vínculo</strong> (2) ou <strong>Devoção</strong> (3). Para <strong>invocar</strong>, você descreve o que sente pela pessoa e ganha +d6, +d8 ou +d12 num teste ligado a ela. Cada relação se invoca <strong>uma vez por missão</strong>, então guarde para a hora certa.'),
-      Pp('Vínculo e Devoção também servem para <strong>motivar</strong> a pessoa (ela recupera 2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvar quem está em perigo. Na Vigília, uma interação marcante subia a relação em um ponto. O preço: se algo acontecer com quem você ama, o trauma é maior.'),
+      Pp('Vínculo e Devoção também servem para <strong>motivar</strong> a pessoa (ela recupera 2d4 ou 2d6 PD), e a Devoção dá uma ação extra para salvar quem está em perigo. O preço: se algo acontecer com quem você ama, o trauma é maior.'),
       Pp('<strong>Ep. 2:</strong> relação mede vínculo, não carinho. Ela pode virar <strong>negativa</strong> e continua valendo em testes contra a pessoa. É de mão única: só quem sente usa o dado (pedir que a outra pessoa use a relação dela com você não vale). Com a relação, dá para <strong>acalmar</strong> alguém em pânico (Persuasão + o dado) e levá-lo junto por uma barreira de medo. Perder alguém querido custou o dado da relação em PD: Devoção, d12.'),
       Pp('<strong>Fim de cena:</strong> ímpetos e marcadores de análise zeram, reduções da cena somem e as habilidades de uma vez por cena voltam. O dado de pavor fica até cair 1.'),
       row(bt('Ver as relações de ' + f.nome, () => irModo('mesa')), bt('Encerrar a cena', encerrarCena))] },
@@ -1911,7 +1911,7 @@ function renderGuia() {
   const passos = GUIA(f);
   fill($('#guia'),
     h('div', { class: 'guia-top' }, h('h1', null, 'Como é jogar'),
-      h('p', { class: 'lead' }, 'Um passeio pelas regras do playtest beta 1.1 de Ordem Paranormal 2 (O Pântano dos Afogados), mais o que apareceu na mesa da Vigília, com botões para testar cada uma. Os testes caem na mesa de dados ao lado (no celular, na aba Dados). O beta é medieval, então aqui ficam os nomes modernos: Pesquisar é o Inspecionar do beta, e Ocultismo é a Bruxaria.'),
+      h('p', { class: 'lead' }, 'Um passeio pelas regras, com botões para testar cada uma. Os testes caem na mesa de dados ao lado (no celular, na aba Dados).'),
       h('div', { class: 'quem-joga' }, 'Jogando com', h('select', { id: 'g-ficha', 'aria-label': 'Personagem do guia', onchange: e => { S.sel = e.target.value; UIS.mg = {}; salvar(); renderTudo(); } }, S.fichas.map(x => h('option', { value: x.id, selected: x.id === f.id || null }, x.nome))),
         h('span', null, 'PV ' + f.pv.v + '/' + f.pv.m + ' · PD ' + f.pd.v + '/' + f.pd.m + (f.impeto ? ' · ímpeto ' + f.impeto : ''))),
       h('nav', { class: 'indice', 'aria-label': 'Partes do guia' }, passos.map((p, i) => h('a', { href: '#g' + i, onclick: e => { e.preventDefault(); $('#g' + i)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, (i + 1) + '. ' + p.t)))),
@@ -1924,7 +1924,7 @@ function ganhaPD(f, n, o) { f.pd.v = Math.min(f.pd.m, f.pd.v + n); S.hist.unshif
 const aldeoesConta = (vals, bom, ruim) => ({ caem: vals.filter(v => v === bom).length, levados: vals.filter(v => v === ruim).length });
 function mgAldeoes(f) {
   const m = UIS.mg.ald ||= { inim: 12, dados: ['d8', 'd8'], bom: 7, ruim: 3, log: [], ult: null };
-  const intro = [Pp('Visto na Vigília ep. 2, no ataque dos afogados à vila. No fim de cada rodada, os jogadores rolam dados <strong>pelos aldeões</strong> (cada um escolhe quem rola um). Quanto menos inimigos sobravam, maiores ficavam os dados: d8, depois d12, e mais um d4 quando a criatura maior entrou. Cada <strong>7</strong> derrubava um afogado; cada <strong>3</strong> fazia alguém da vila ser arrastado, e um d20 dizia quem.'), Pp('Os números e os dados são do mestre da Vigília, não do livro: ajuste à sua mesa.')];
+  const intro = [Pp('Num ataque em massa, no fim de cada rodada, os jogadores rolam dados <strong>pelos aldeões</strong> (cada um escolhe quem rola um). Quanto menos inimigos sobravam, maiores ficavam os dados: d8, depois d12, e mais um d4 quando a criatura maior entrou. Cada <strong>7</strong> derrubava um afogado; cada <strong>3</strong> fazia alguém da vila ser arrastado, e um d20 dizia quem.'), Pp('Ajuste os números e os dados à sua mesa.')];
   return [intro, h('div', { class: 'mg' },
     h('div', { class: 'calc' },
       h('label', null, 'Inimigos', h('input', { type: 'number', id: 'g-ald-n', min: 0, max: 99, value: m.inim, onchange: e => { m.inim = Math.max(0, +e.target.value || 0); renderGuia(); } })),
@@ -1942,7 +1942,7 @@ const logicaDado = (f, i) => ESCADA[Math.min(i, Math.max(0, ESCADA.indexOf(atrEf
 const logicaRer = f => Math.max(1, Math.floor(faces(perDie(f, 'oficio')) / 2));
 function mgLogica(f) {
   const m = UIS.mg.lg;
-  const intro = Pp('Visto na Vigília ep. 2, para remontar uma tabuleta quebrada. Você rola dados em sequência, um passo maior a cada vez (d4, d6, d8…) até o dado da sua <strong>Mente</strong>; dali em diante repete esse dado. Cada resultado tem que ser <strong>igual ou maior</strong> que o anterior. Fique com o valor ou role de novo, gastando uma das chances. Na mesa, as chances eram metade das faces do dado de <strong>Ofício</strong> (d4: 2, d6: 3), e quem ajudou trouxe mais. São 4 peças.');
+  const intro = Pp('Para remontar algo quebrado, você rola dados em sequência, um passo maior a cada vez (d4, d6, d8…) até o dado da sua <strong>Mente</strong>; dali em diante repete esse dado. Cada resultado tem que ser <strong>igual ou maior</strong> que o anterior. Fique com o valor ou role de novo, gastando uma das chances. Na mesa, as chances eram metade das faces do dado de <strong>Ofício</strong> (d4: 2, d6: 3), e quem ajudou trouxe mais. São 4 peças.');
   if (!m || m.fid !== f.id) return [intro, row(bt('Montar a tabuleta', () => { UIS.mg.lg = { fid: f.id, seq: [], atual: null, rer: logicaRer(f), alvo: 4, fim: null, log: [] }; renderGuia(); }, 'red'))];
   const i = m.seq.length, d = logicaDado(f, i), min = i ? m.seq[i - 1] : 1;
   const rolarAtual = () => { m.atual = rolar(d); m.log.unshift(d + ': ' + m.atual + (m.atual < min ? ' (abaixo de ' + min + ')' : '')); if (m.atual < min && !m.rer) m.fim = 'bad'; renderGuia(); };
@@ -2000,7 +2000,7 @@ const TENT_CRIME = { d4: 1, d6: 2, d8: 3, d10: 4, d12: 5 };
 const FB_TXT = { exato: 'exato', alto: 'alto', baixo: 'baixo' };
 function mgDestrancar(f) {
   const porR = TENT_CRIME[perDie(f, 'crime')] || 1, m = UIS.mg.tr;
-  const intro = Pp('O mestre rola dados escondidos: é a senha. Você monta os mesmos dados virando as faces na mão, sem rolar. Para cada posição, o mestre diz <strong>alto</strong>, <strong>baixo</strong> ou <strong>exato</strong>. Na Vigília, afinar a lira do bardo usou a mesma ideia com sons. As tentativas por rodada vêm de Crime: ' + f.nome + ' (' + perDie(f, 'crime') + ') tem ' + porR + '. Depois de 3 rodadas, a fechadura quebra.');
+  const intro = Pp('O mestre rola dados escondidos: é a senha. Você monta os mesmos dados virando as faces na mão, sem rolar. Para cada posição, o mestre diz <strong>alto</strong>, <strong>baixo</strong> ou <strong>exato</strong>. As tentativas por rodada vêm de Crime: ' + f.nome + ' (' + perDie(f, 'crime') + ') tem ' + porR + '. Depois de 3 rodadas, a fechadura quebra.');
   if (!m || m.fid !== f.id) return [intro, h('div', { class: 'mg' }, h('div', { class: 'linha' },
       h('select', { id: 'g-tranca', 'aria-label': 'Tipo de tranca' }, [['3d4', 'Cadeado simples (3 d4)'], ['3d6', 'Fechadura (3 d6)'], ['4d6', 'Tranca reforçada (4 d6)']].map(([v, t]) => h('option', { value: v }, t))),
       h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'g-sons' }), 'Modo sons (tic, toc, clique)'),
@@ -2026,7 +2026,7 @@ function mgDestrancar(f) {
 }
 function mgProcurar(f) {
   const m = UIS.mg.fl;
-  const intro = Pp('É o esconderijo ao contrário: o mestre rola <strong>3 d6 escondidos</strong> (as flores no campo) e você chuta números. Antes, você rola Percepção + Mente: com <strong>RB de 4 para cima</strong> chuta 2 números por rodada; abaixo disso, 1. São 3 rodadas. Na Vigília, ajudar a colher flores rendeu pontos de relação com a dona da cesta.');
+  const intro = Pp('É o esconderijo ao contrário: o mestre rola <strong>3 d6 escondidos</strong> (as flores no campo) e você chuta números. Antes, você rola Percepção + Mente: com <strong>RB de 4 para cima</strong> chuta 2 números por rodada; abaixo disso, 1. São 3 rodadas.');
   if (!m || m.fid !== f.id) return [intro, row(bt('Ir colher flores', () => { const a = rolar(atrEf(f, 'mente')), b = rolar(perDie(f, 'percepcao')), rb = Math.min(a, b), ch = rb >= 4 ? 2 : 1;
     UIS.mg.fl = { fid: f.id, flores: [rolar('d6'), rolar('d6'), rolar('d6')], achou: [false, false, false], rodada: 1, chutes: ch, restam: ch, usados: [], acertos: [], log: ['Percepção: ' + a + ' e ' + b + ' (RB ' + rb + '): ' + ch + (ch > 1 ? ' chutes' : ' chute') + ' por rodada.'], fim: null }; renderGuia(); }, 'red'))];
   const chuta = n => {
@@ -2078,10 +2078,10 @@ const CR_ETAPA = [
     h('div', { class: 'campo' }, 'Tipo de personagem'),
     h('div', { class: 'opcoes' }, [['sobrevivente', 'Sobrevivente', 'Gente comum que esbarrou no paranormal. Começa no nível 1, com 5 passos de atributo e 7 de perícia.'], ['agente', 'Agente da Ordem', 'Investigador treinado da Ordo Realitas, nível 6, com as ferramentas da Ordem. 6 passos de atributo, 16 de perícia e uma habilidade de nível.']]
       .map(([k, n, t]) => opc(c.tipo === k, () => { if (c.tipo !== k) { c.tipo = k; c.atr = { fisico: 'd4', mente: 'd4', emocao: 'd4' }; c.per = per(); c.apt = apt(); c.nivelHab = ''; c.pvM = c.pdM = null; } renderCriar(); }, h('b', null, n), h('span', null, t)))),
-    h('p', { class: 'legenda' }, 'Os números de passos vêm das fichas prontas do playtest (todas os seguem). Trocar o tipo zera a distribuição.')],
+    h('p', { class: 'legenda' }, 'Trocar o tipo zera a distribuição.')],
   (c) => [h('h2', null, 'Perfil'), h('p', { class: 'lead' }, 'O perfil é o seu jeito de encarar o perigo. Ele dá a primeira habilidade.'),
     h('div', { class: 'opcoes' }, Object.entries(PERFIS).map(([k, [n, t, habs]]) => opc(c.perfil === k, () => { c.perfil = k; renderCriar(); }, h('b', null, n), h('span', null, t), habs.map(habTxt))))],
-  (c) => { const out = [h('h2', null, 'Vocação'), h('p', { class: 'lead' }, 'O que você tem tendência a fazer bem (o playtest beta trocou ocupação por vocação). Dá a segunda habilidade.'),
+  (c) => { const out = [h('h2', null, 'Vocação'), h('p', { class: 'lead' }, 'O que você tem tendência a fazer bem. Dá a segunda habilidade.'),
       h('div', { class: 'opcoes' }, Object.entries(OCUP).map(([k, hk]) => opc(c.ocupacao === k, () => { c.ocupacao = k; c.ocPer = ''; renderCriar(); }, h('b', null, k), VOC[k]?.desc ? h('small', { class: 'voc-desc' }, VOC[k].desc) : null, hk ? habTxt(hk) : null, VOC[k]?.lim ? h('small', { class: 'voc-lim' }, 'Limitação: ' + VOC[k].lim) : null, VOC[k]?.req ? h('small', { class: 'voc-desc' }, 'Requisito: ' + VOC[k].req) : null)))];
     if (OC_PER[c.ocupacao]) { const fis = OC_PER[c.ocupacao] === 'fisico', lista = fis ? perVis().filter(p => p[2] === 'fisico').map(p => [p[0], PER_N[p[0]]]) : [...perVis().filter(p => p[2] === 'mente').map(p => [p[0], PER_N[p[0]]]), ...APT.map(([k, n]) => ['apt:' + k, 'Aptidão (' + n + ')'])];
       out.push(h('label', { class: 'cr-campo' }, 'Qual perícia ' + (fis ? 'física' : 'mental') + ' sobe um passo?', h('select', { id: 'cr-ocper', onchange: e => { c.ocPer = e.target.value; renderCriar(); } }, h('option', { value: '' }, 'Escolha…'), lista.map(([k, n]) => h('option', { value: k, selected: c.ocPer === k || null }, n))))); }
@@ -2097,7 +2097,7 @@ const CR_ETAPA = [
       sobraEl(sobra),
       h('div', { class: 'dist-grupos' }, ATR.map(([a, an]) => h('div', { class: 'dist' }, h('h3', null, an), perVis().filter(p => p[2] === a).map(([k]) => ln(k, PER_N[k])), a === 'mente' ? APT.map(([k, n]) => ln('apt:' + k, 'Aptidão (' + n + ')')) : null)))]; },
   (c) => { const s = crSug(c), tot = c.rel.reduce((a, r) => a + r.pts, 0);
-    return [h('h2', null, 'Vida e laços'), h('p', { class: 'lead' }, 'O playtest não publicou fórmula de PV e PD. Os valores abaixo vêm da fórmula da versão ' + RG.nome + ' (' + (regConf('pvForm') ? 'confirmada' : 'não confirmada') + '), que o mestre pode mudar em Regras. Mude aqui se quiser.'),
+    return [h('h2', null, 'Vida e laços'), h('p', { class: 'lead' }, 'Os valores abaixo vêm da fórmula das regras, que o mestre pode mudar em Regras. Mude aqui se quiser.'),
       h('div', { class: 'linha-cr' },
         h('label', { class: 'cr-campo' }, 'PV (vida)', h('input', { type: 'number', id: 'cr-pv', min: 1, max: 99, value: c.pvM ?? s.pv, onchange: e => { c.pvM = Math.max(1, Math.min(99, +e.target.value || 1)); renderCriar(); } })),
         h('label', { class: 'cr-campo' }, 'PD (determinação)', h('input', { type: 'number', id: 'cr-pd', min: 1, max: 99, value: c.pdM ?? s.pd, onchange: e => { c.pdM = Math.max(1, Math.min(99, +e.target.value || 1)); renderCriar(); } }))),
@@ -2176,28 +2176,27 @@ function editorReg(k, tipo, V) {
 }
 function blocoCasa() {
   const C = S.regras.casa, up = () => { salvar(); aplicarVersao(); renderTudo(); };
-  const linha = (n, ctrl, txt) => h('tr', null, h('td', null, n), h('td', null, ctrl), h('td', null, h('span', { class: 'selo nc' }, 'provisória'), h('div', { style: { fontSize: '12px', color: 'var(--muted)', marginTop: '3px' } }, txt)));
+  const linha = (n, ctrl, txt) => h('tr', null, h('td', null, n), h('td', null, ctrl), h('td', null, h('div', { style: { fontSize: '12px', color: 'var(--muted)', marginTop: '3px' } }, txt)));
   const sel = (k, ops) => h('select', { style: { width: 'auto' }, onchange: e => { C[k] = e.target.value; up(); } }, ops.map(v => h('option', { value: v, selected: C[k] === v || null }, v)));
   const num = k => h('input', { type: 'number', min: 0, max: 10, value: C[k], onchange: e => { C[k] = Math.max(0, +e.target.value || 0); up(); } });
-  return [h('h2', null, 'Regras provisórias da casa'),
-    h('p', { style: { margin: 0, fontSize: '13.5px', color: 'var(--paper-2)', maxWidth: '72ch' } }, 'Preenchem o que os playtests ainda não publicaram, para a mesa ser jogável já. Valem em qualquer versão, só onde a versão não tem regra própria, e saem quando o livro definitivo chegar.'),
-    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'g-casa', checked: C.ativo || null, onchange: e => { C.ativo = e.target.checked; up(); } }), 'Usar as regras provisórias da casa'),
+  return [h('h2', null, 'Regras complementares'),
+    h('p', { style: { margin: 0, fontSize: '13.5px', color: 'var(--paper-2)', maxWidth: '72ch' } }, 'Completam o que as regras não cobrem. Valem só onde a versão escolhida não tem regra própria.'),
+    h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'g-casa', checked: C.ativo || null, onchange: e => { C.ativo = e.target.checked; up(); } }), 'Usar as regras complementares'),
     C.ativo ? h('div', { class: 'card casa' }, h('div', { class: 'card-b' }, h('table', { class: 'tab-reg' }, h('tr', null, h('th', null, 'Regra'), h('th', null, 'Valor'), h('th', null, 'Por quê')),
-      linha('Patamares (nível em que começa veterano, elite, lenda)', h('span', { class: 'row' }, [0, 1, 2].map(i => h('input', { type: 'number', min: 1, max: 10, value: C.patamares[i], 'aria-label': PATAMAR_N[i + 1], onchange: e => { C.patamares[i] = Math.max(1, Math.min(10, +e.target.value || 1)); up(); } }))), 'O beta usa os patamares nas tabelas de lesão e trauma, mas não diz quando cada um começa.'),
-      linha('PV e PD a mais por nível', h('span', { class: 'row' }, 'PV ', num('pvNivel'), ' PD ', num('pdNivel')), 'Os playtests dizem que os números crescem pouco com o nível. +1 por nível mantém a escala pequena.'),
-      linha('Pausa numa cena calma', sel('calma', ['d4', 'd6']), 'Recupera PD. É o "momento de calma" da Vigília.'),
-      linha('Noite de sono num lugar seguro', sel('noite', ['d4', 'd6', 'd8']), 'Recupera PV e PD, e o dado de pavor desce um passo. O beta ainda não tem descanso.'),
+      linha('Patamares (nível em que começa veterano, elite, lenda)', h('span', { class: 'row' }, [0, 1, 2].map(i => h('input', { type: 'number', min: 1, max: 10, value: C.patamares[i], 'aria-label': PATAMAR_N[i + 1], onchange: e => { C.patamares[i] = Math.max(1, Math.min(10, +e.target.value || 1)); up(); } }))), 'Os patamares entram nas tabelas de lesão e trauma.'),
+      linha('PV e PD a mais por nível', h('span', { class: 'row' }, 'PV ', num('pvNivel'), ' PD ', num('pdNivel')), 'Os números crescem pouco com o nível.'),
+      linha('Pausa numa cena calma', sel('calma', ['d4', 'd6']), 'Recupera PD.'),
+      linha('Noite de sono num lugar seguro', sel('noite', ['d4', 'd6', 'd8']), 'Recupera PV e PD, e o dado de pavor desce um passo.'),
       linha('Armas de fogo sem treino', 'uma redução de passo', 'Policial, militar e Segredo do Aço sabem usar; o resto ataca pior.'),
-      linha('Armas e itens de 2016', 'catálogo na ficha', 'Bônus de dano na escala do beta (arco RA+1, machado RA+3); pistola RA+3, espingarda RA+5 de perto.'),
-      linha('Rituais', 'teste estendido de Ocultismo, DT 7', 'Soma a RA até a pontuação alvo (10 simples, 20 médio, 30 grande). Falhou: a RB vira dano de PD em quem conjura. Veio da Vigília.')),
+      linha('Armas e itens de 2016', 'catálogo na ficha', 'Arco RA+1, machado RA+3, pistola RA+3, espingarda RA+5 de perto.'),
+      linha('Rituais', 'teste estendido de Ocultismo, DT 7', 'Soma a RA até a pontuação alvo (10 simples, 20 médio, 30 grande). Falhou: a RB vira dano de PD em quem conjura.')),
       h('div', { class: 'campo', style: { marginTop: '8px' } }, 'Benefício de cada nível (aplicado à mão na evolução)'),
       h('table', { class: 'tab-reg' }, Array.from({ length: 9 }, (_, i) => i + 2).map(n => h('tr', null, h('td', { style: { width: '40px' } }, n), h('td', null, h('input', { class: 'larga', value: C.beneficios[n] || '', onchange: e => { C.beneficios[n] = e.target.value; salvar(); } }))))),
       h('div', { class: 'row', style: { marginTop: '8px' } }, h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { S.regras.casa = CASA_PADRAO(); up(); } }, 'Voltar aos valores sugeridos')))) : null];
 }
 function renderRegras() {
   const R0 = S.regras, cust = R0.versao === 'custom', V = RG;
-  const linhas = CAMPOS_REG.map(([k, n, tipo]) => h('tr', null, h('td', null, n), h('td', null, cust ? editorReg(k, tipo, V) : valorReg(k, V)),
-    h('td', null, h('span', { class: 'selo ' + (regConf(k) ? 'ok' : 'nc') }, cust ? 'definida pelo mestre' : regConf(k) ? 'confirmada' : 'não confirmada'), V.notas?.[k] ? h('div', { style: { fontSize: '12px', color: 'var(--muted)', marginTop: '3px' } }, V.notas[k]) : null)));
+  const linhas = CAMPOS_REG.map(([k, n, tipo]) => h('tr', null, h('td', null, n), h('td', null, cust ? editorReg(k, tipo, V) : valorReg(k, V))));
   const nomesL = cust ? h('div', { class: 'row' }, ...['pesquisar', 'ocultismo'].map(k => h('label', { class: 'campo' }, k === 'pesquisar' ? 'Nome de Pesquisar' : 'Nome de Ocultismo', h('input', { value: V.nomes[k] || '', placeholder: k === 'pesquisar' ? 'Pesquisar' : 'Ocultismo', onchange: e => { V.nomes[k] = e.target.value.trim(); salvar(); aplicarVersao(); renderTudo(); } }))))
     : h('label', { class: 'chk' }, h('input', { type: 'checkbox', id: 'g-modernos', checked: R0.modernos || null, onchange: e => { R0.modernos = e.target.checked; salvar(); aplicarVersao(); renderTudo(); } }), 'Mostrar os nomes modernos das perícias (Pesquisar e Ocultismo no lugar de Inspecionar e Bruxaria). Só muda o nome.');
   const visL = cust ? h('div', { class: 'mods' }, PER.map(([k, n]) => h('button', { type: 'button', class: V.ocultar.includes(k) ? '' : 'on', onclick: () => { V.ocultar = V.ocultar.includes(k) ? V.ocultar.filter(x => x !== k) : [...V.ocultar, k]; salvar(); aplicarVersao(); renderTudo(); } }, n)))
@@ -2206,12 +2205,12 @@ function renderRegras() {
     : h('p', { style: { margin: 0, fontSize: '13px', color: 'var(--muted)' } }, 'Nenhuma tabela de evolução (XP, requisitos ou benefícios por nível) foi publicada nesta versão. A evolução fica manual, pelo mestre. Para escrever uma tabela própria, use a versão Personalizada.');
   fill($('#regras'),
     h('div', { class: 'guia-top' }, h('h1', null, 'Regras da campanha'),
-      h('p', { class: 'lead' }, 'Escolha qual versão das regras a mesa usa. Trocar de versão não apaga nada das fichas: só muda como as regras são aplicadas. Cada linha diz se a regra foi confirmada no material oficial que está aqui: os livros e as fichas dos playtests alpha 1.1 e beta 1.1.')),
-    h('div', { class: 'opcoes' }, [['beta', VERSOES.beta.nome, VERSOES.beta.fonte], ['alpha', VERSOES.alpha.nome, VERSOES.alpha.fonte], ['custom', 'Personalizada', 'O mestre define cada valor. Começa igual ao beta, com as perícias modernas.']].map(([k, n, t]) => opc(R0.versao === k, () => { R0.versao = k; salvar(); aplicarVersao(); renderTudo(); }, h('b', null, n), h('span', null, t)))),
-    h('div', { class: 'card' }, h('div', { class: 'card-b' }, h('table', { class: 'tab-reg' }, h('tr', null, h('th', null, 'Regra'), h('th', null, 'Valor'), h('th', null, 'Origem')), linhas))),
+      h('p', { class: 'lead' }, 'Escolha qual versão das regras a mesa usa. Trocar de versão não apaga nada das fichas: só muda como as regras são aplicadas.')),
+    h('div', { class: 'opcoes' }, [['beta', VERSOES.beta.nome, VERSOES.beta.fonte], ['alpha', VERSOES.alpha.nome, VERSOES.alpha.fonte], ['custom', 'Personalizada', 'O mestre define cada valor.']].map(([k, n, t]) => opc(R0.versao === k, () => { R0.versao = k; salvar(); aplicarVersao(); renderTudo(); }, h('b', null, n), h('span', null, t)))),
+    h('div', { class: 'card' }, h('div', { class: 'card-b' }, h('table', { class: 'tab-reg' }, h('tr', null, h('th', null, 'Regra'), h('th', null, 'Valor')), linhas))),
     h('h2', null, 'Perícias'), nomesL, visL,
     h('h2', null, 'Evolução por nível'), benL,
-    cust ? h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { R0.custom = novaPersonalizada(); salvar(); aplicarVersao(); renderTudo(); } }, 'Recomeçar a personalizada do beta')) : null,
+    cust ? h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { R0.custom = novaPersonalizada(); salvar(); aplicarVersao(); renderTudo(); } }, 'Recomeçar a personalizada')) : null,
     ...blocoVocacoes(),
     ...blocoCatalogo(),
     blocoCasa(),
@@ -2242,21 +2241,21 @@ function rodarTestes() {
   ok('Todo poder tem trilha, nível e texto', Object.values(PODERES).every(x => TRILHAS[x.trilha] && TIER[x.tier] && x.txt && x.nome));
   ok('Todo ritual tem círculo e elemento', Object.values(RITUAIS).every(R => CIRCULO[R.c] && ELEM[R.el] && R.ok));
   const vAnt = S.regras.versao; S.regras.versao = 'beta'; aplicarVersao();
-  ok('Beta: relações d6 / d8 / d12 e motivar 2d4 / 2d6', REL_D.join() === ',d6,d8,d12' && REL_MOT[2] === '2d4' && REL_MOT[3] === '2d6');
-  ok('Beta: ímpeto com 5 espaços', RG.impetoMax === 5);
+  ok('Padrão: relações d6 / d8 / d12 e motivar 2d4 / 2d6', REL_D.join() === ',d6,d8,d12' && REL_MOT[2] === '2d4' && REL_MOT[3] === '2d6');
+  ok('Padrão: ímpeto com 5 espaços', RG.impetoMax === 5);
   const fx = P({ nome: 'teste', atr: { fisico: 'd8', mente: 'd6', emocao: 'd6' }, per: per(), apt: apt(), pv: { v: 1, m: 1 }, pd: { v: 1, m: 1 }, hab: [], nivel: 1 });
   ok('Fórmula de PV/PD da versão aplica (14 / 12 com Físico d8, Mente d6, Emoção d6)', (() => { const x = formulaPVPD(fx); return x.pv === 14 && x.pd === 12; })());
   ok('Relação usada uma vez por missão (não volta ao fim da cena)', (() => { marcarRel(fx, 'r1'); const u = relUsada(fx, 'r1'); fx.usos = {}; return u && relUsada(fx, 'r1'); })());
-  ok('Patamar sem regra definida (e sem a casa) fica em iniciante', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = false; const r = patamar(Object.assign({}, fx, { nivel: 9 })) === 0; S.regras.casa.ativo = a; return r; })());
+  ok('Patamar sem regra definida (e sem as complementares) fica em iniciante', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = false; const r = patamar(Object.assign({}, fx, { nivel: 9 })) === 0; S.regras.casa.ativo = a; return r; })());
   ok('Diferença da evolução registra atributo e perícia', (() => { const a = fotoFicha(fx); fx.atr.mente = 'd8'; fx.per.luta = 'd6'; const d = difFicha(a, fx); return d.some(x => x.startsWith('Mente')) && d.some(x => x.startsWith('Luta')); })());
   S.regras.versao = 'alpha'; aplicarVersao();
-  ok('Alpha: ímpeto de 3 espaços e sem relações nem pavor', RG.impetoMax === 3 && !REL_D[1] && RG.pavor === 'nenhum');
-  ok('Alpha: Prontidão volta a ser 3 PD para agir antes', HAB.prontidao.custo === '3 PD');
+  ok('Alternativa: ímpeto de 3 espaços e sem relações nem pavor', RG.impetoMax === 3 && !REL_D[1] && RG.pavor === 'nenhum');
+  ok('Alternativa: Prontidão volta a ser 3 PD para agir antes', HAB.prontidao.custo === '3 PD');
   S.regras.versao = 'beta'; aplicarVersao();
-  ok('Beta: Prontidão volta a ser 2 PD para rolar de novo', HAB.prontidao.custo === '2 PD' && !HAB.prontidao.gasto);
+  ok('Padrão: Prontidão volta a ser 2 PD para rolar de novo', HAB.prontidao.custo === '2 PD' && !HAB.prontidao.gasto);
   S.regras.versao = vAnt; aplicarVersao();
-  ok('Casa: patamares provisórios valem quando a versão não define', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = true; const r = patamar(Object.assign({}, fx, { nivel: 7 })) === 2; S.regras.casa.ativo = a; return r; })());
-  ok('Casa: PV +1 por nível (nível 3 = fórmula + 2)', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = true; const b = formulaPVPD(Object.assign({}, fx, { nivel: 1 })).pv, c = formulaPVPD(Object.assign({}, fx, { nivel: 3 })).pv; S.regras.casa.ativo = a; return c - b === 2 * S.regras.casa.pvNivel; })());
+  ok('Complementar: patamares valem quando a versão não define', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = true; const r = patamar(Object.assign({}, fx, { nivel: 7 })) === 2; S.regras.casa.ativo = a; return r; })());
+  ok('Complementar: PV +1 por nível (nível 3 = fórmula + 2)', (() => { const a = S.regras.casa.ativo; S.regras.casa.ativo = true; const b = formulaPVPD(Object.assign({}, fx, { nivel: 1 })).pv, c = formulaPVPD(Object.assign({}, fx, { nivel: 3 })).pv; S.regras.casa.ativo = a; return c - b === 2 * S.regras.casa.pvNivel; })());
   ok('Ep. 2: sem cuidado, passar com RA ímpar acerta o aliado', tiroAliado({ ok: true, ra: 7 }) && !tiroAliado({ ok: true, ra: 8 }) && !tiroAliado({ ok: false, ra: 7 }));
   ok('Ep. 2: com cuidado tira 2 passos e terreno elevado dá 1', modPassos({ mods: { corpo: true, alto: true } }) === -1);
   ok('Ep. 2: aldeões, cada 7 derruba e cada 3 arrasta', (() => { const r = aldeoesConta([7, 7, 3, 5], 7, 3); return r.caem === 2 && r.levados === 1; })());
@@ -2398,6 +2397,7 @@ if (PONTE) {
   addEventListener('pagehide', () => { try { off(); off2(); } catch (e) {} });
   for (const f of S.fichas) sincronizado[f.id] = JSON.stringify(f);
 }
+if (UIS.modo === 'regras' && PONTE && !PONTE.isGM()) UIS.modo = 'mesa';
 $('#app').dataset.modo = UIS.modo; UIS.aba = ABA_INICIAL[UIS.modo];
 renderTudo(); irAba(UIS.aba);
 </script>
