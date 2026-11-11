@@ -1262,7 +1262,7 @@ function renderFicha() {
           UIS.edit ? h('button', { class: 'mini', type: 'button', 'aria-label': 'Recarregar', onclick: () => { f.ferr[k] = max; salvar(); renderFicha(); } }, '↺') : null)
           : h('span', { style: { fontSize: '12px', color: 'var(--muted)' } }, 'uso livre'))))] : null);
   const notas = h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Anotações'), h('textarea', { class: 'notas', id: 'f-notas', 'aria-label': 'Anotações', placeholder: 'História, contatos, pistas, medos…', oninput: e => { f.notas = e.target.value; salvar(); } }, f.notas || ''));
-  const apagar = UIS.edit ? h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', style: UIS.apagar === f.id ? { borderColor: 'var(--red)', color: 'var(--red)' } : null, onclick: () => { if (UIS.apagar === f.id) { S.fichas = S.fichas.filter(x => x.id !== f.id); if (!S.fichas.length) S.fichas = EXEMPLOS(); S.sel = S.fichas[0].id; UIS.apagar = null; UIS.edit = false; salvar(); renderTudo(); toast('Ficha apagada.'); } else { UIS.apagar = f.id; renderFicha(); setTimeout(() => { if (UIS.apagar === f.id) { UIS.apagar = null; renderFicha(); } }, 3000); } } }, UIS.apagar === f.id ? 'Toque de novo para apagar' : 'Apagar esta ficha')) : null;
+  const apagar = UIS.edit ? h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', style: UIS.apagar === f.id ? { borderColor: 'var(--red)', color: 'var(--red)' } : null, onclick: () => { if (UIS.apagar === f.id) { S.fichas = S.fichas.filter(x => x.id !== f.id); if (!S.fichas.length && !PONTE) S.fichas = EXEMPLOS(); S.sel = S.fichas[0]?.id || null; UIS.apagar = null; UIS.edit = false; salvar(); renderTudo(); toast('Ficha apagada.'); } else { UIS.apagar = f.id; renderFicha(); setTimeout(() => { if (UIS.apagar === f.id) { UIS.apagar = null; renderFicha(); } }, 3000); } } }, UIS.apagar === f.id ? 'Toque de novo para apagar' : 'Apagar esta ficha')) : null;
   fill($('#ficha'), cab, h('div', { class: 'duas' }, h('div', { class: 'pilha' }, atr, pericias), h('div', { class: 'pilha' }, habs, blocoRituais(f), blocoRelacoes(f), armas, itens, blocoProgressao(f), blocoApresentacao(f), notas)), apagar);
 }
 function formHab(f) {
@@ -2431,6 +2431,19 @@ if (PONTE) {
     temaPessoal();
     const f = F(); if (!f) return;
     const gm = PONTE.isGM(), noMapa = PONTE.temPeca(f.id);
+    /* apagar: dois cliques (o primeiro pede confirmação, volta sozinho em 5 s) */
+    const confirmando = UIS.apagarP === f.id;
+    const apagarBt = h('button', { class: 'btn sm' + (confirmando ? ' red' : ' ghost'), type: 'button', id: 'apagar-ficha',
+      title: 'Apaga a ficha da mesa. Não dá para desfazer.',
+      onclick: () => {
+        if (!confirmando) { UIS.apagarP = f.id; renderFicha(); setTimeout(() => { if (UIS.apagarP === f.id) { UIS.apagarP = null; renderFicha(); } }, 5000); return; }
+        const nome = f.nome || 'Sem nome';
+        UIS.apagarP = null; UIS.edit = false; UIS.roll = null; UIS.res = null;
+        S.fichas = S.fichas.filter(x => x.id !== f.id);
+        S.sel = S.fichas[0]?.id || null;
+        salvar(); ponteSalvar(true); renderTudo(); toast(nome + ' foi apagada.');
+      } }, confirmando ? 'Confirmar: apagar ' + (f.nome || 'esta ficha') + '?' : 'Apagar ficha');
+    const cancelarBt = confirmando ? h('button', { class: 'btn sm', type: 'button', onclick: () => { UIS.apagarP = null; renderFicha(); } }, 'Cancelar') : null;
     const mapa = h('button', { class: 'btn sm', type: 'button', onclick: () => { ponteSalvar(true); PONTE.porNoMapa(f.id); } }, noMapa ? 'Ver no mapa' : 'Pôr no mapa');
     let barra;
     if (gm) {
@@ -2442,9 +2455,9 @@ if (PONTE) {
             PONTE.jogadores().map(j => h('option', { value: j.uid, selected: f.dono === j.uid || null }, j.nome)),
             f.dono && !PONTE.jogadores().some(j => j.uid === f.dono) ? h('option', { value: f.dono, selected: true }, PONTE.nomeDe(f.dono)) : null))
         : h('label', { title: 'Mostra o nome, a foto e a peça no mapa para os jogadores. A ficha continua só sua.' }, h('input', { type: 'checkbox', checked: f.visivel || null, onchange: e => { f.visivel = e.target.checked; salvar(); renderTudo(); } }), 'Visível para os jogadores');
-      barra = h('div', { class: 'ponte' }, h('label', null, 'Na mesa', papel), extra, h('span', { class: 'sp' }), mapa);
+      barra = h('div', { class: 'ponte' }, h('label', null, 'Na mesa', papel), extra, h('span', { class: 'sp' }), mapa, apagarBt, cancelarBt);
     } else {
-      barra = h('div', { class: 'ponte' }, h('span', { class: 'tag-papel' }, 'SUA FICHA'), h('span', null, 'Salva na mesa. O mestre vê as mudanças na hora.'), h('span', { class: 'sp' }), mapa);
+      barra = h('div', { class: 'ponte' }, h('span', { class: 'tag-papel' }, 'SUA FICHA'), h('span', null, 'Salva na mesa. O mestre vê as mudanças na hora.'), h('span', { class: 'sp' }), mapa, apagarBt, cancelarBt);
     }
     $('#ficha').prepend(barra);
   };
