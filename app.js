@@ -42,7 +42,7 @@
   };
 
   /* ---------- o que vem do banco ---------- */
-  const D = { users: {}, online: {}, fichas: {}, npcs: {}, pecas: {}, pecasGM: {}, travas: {}, cena3d: null, mural: {}, pedidos: {}, rolagens: {}, regras: null, banidos: {} };
+  const D = { users: {}, online: {}, fichas: {}, npcs: {}, pecas: {}, pecasGM: {}, travas: {}, cena3d: null, mural: {}, pedidos: {}, rolagens: {}, regras: null, modo: '', banidos: {} };
   const ouvintes = {};
   const ouve = (k, f) => { (ouvintes[k] ||= new Set()).add(f); return () => ouvintes[k].delete(f); };
   const avisa = k => { for (const f of [...(ouvintes[k] || [])]) { try { f(D[k]); } catch (e) { ouvintes[k].delete(f); console.warn(e); } } };
@@ -88,7 +88,7 @@
     if (SV.isGM) db.on('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
     db.on('mesa/cena3d', v => { D.cena3d = v || null; avisa('cena3d'); });
-    db.on('mesa/regras', v => { D.regras = v && v.json ? v.json : null; avisa('regras'); });
+    db.on('mesa/regras', v => { const j = v && v.json ? v.json : null, m = (v && typeof v.modo === 'string' && v.modo) || ''; if (j !== D.regras || !D.regrasOk) { D.regras = j; D.regrasOk = true; avisa('regras'); } if (m !== D.modo) { D.modo = m; avisa('modo'); } });
     db.on('mesa/mural', v => {
       const antes = D.mural; D.mural = v || {};
       if (!SV.isGM && antes.__ok) for (const [id, m] of Object.entries(D.mural)) if (!antes[id] && m && m.texto) SV.toast('Novo aviso do mestre no mural.');
@@ -234,7 +234,11 @@
     regras: () => D.regras,
     onRegras(cb) { return ouve('regras', () => cb(D.regras)); },
     tema: cor => SV.tema(cor),
-    salvarRegras(json) { if (SV.isGM && json !== D.regras) { D.regras = json; SV.db.set('mesa/regras', { json, t: Date.now() }).catch(() => {}); } }
+    salvarRegras(json) { if (SV.isGM && json !== D.regras) { D.regras = json; SV.db.update('mesa/regras', { json, t: Date.now() }).catch(() => {}); } },
+    /* modo da cena (livre, combate ou investigação): o mestre escolhe e a ficha de cada jogador se reorganiza */
+    modo: () => D.modo || '',
+    onModo(cb) { return ouve('modo', () => cb(D.modo || '')); },
+    setModo(m) { m = m === 'combate' || m === 'invest' ? m : ''; if (!SV.isGM || m === (D.modo || '')) return; D.modo = m; avisa('modo'); SV.db.update('mesa/regras', { modo: m }).catch(() => {}); }
   };
 
   /* ---------- tema: a cor da ficha do jogador pinta o site inteiro ---------- */
@@ -355,7 +359,7 @@
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
     if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=9' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=21' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=22' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
     if (a === 'notas') abaNotas();

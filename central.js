@@ -212,7 +212,33 @@
     const lv = nivel(v, m, rec === 'pv' ? +cfg.pvBaixo : +cfg.pdBaixo, rec === 'pv' ? +cfg.pvCrit : +cfg.pdCrit);
     return `<div class="c-med ${rec} ${lv}"><span class="c-med-n">${rec.toUpperCase()}</span><span class="c-barra"><i style="width:${pct(v, m)}%"></i></span><span class="c-med-v"><b>${v}</b>/${m}</span></div>`;
   };
-  const conds = f => { const l = Array.isArray(f._cond) ? f._cond : []; return l.length ? `<div class="c-conds">${l.map(c => `<span class="c-cond${/morto|perdida|moribundo|zerad|−|-\d/i.test(c) ? ' mal' : /\+|inspirad/i.test(c) ? ' bem' : /pavor/i.test(c) ? ' pavor' : ''}">${esc(c)}</span>`).join('')}</div>` : ''; };
+  /* condições: a ficha manda cada uma com tom, resumo e efeito (f._est); fichas antigas mandam só o nome (f._cond) */
+  const estDe = f => Array.isArray(f._est) && f._est.length ? f._est.filter(e => e && e.n) : (Array.isArray(f._cond) ? f._cond : []).map(c => ({ n: c, t: /morto|perdida|moribundo|zerad|−|-\d/i.test(c) ? 'mal' : /\+|inspirad/i.test(c) ? 'bem' : /pavor/i.test(c) ? 'pavor' : '' }));
+  const conds = f => { const l = estDe(f); return l.length ? `<div class="c-conds">${l.map(e => `<span class="c-cond ${esc(e.t || '')}" tabindex="0" title="${esc([e.c, e.e, e.d ? 'Duração: ' + e.d : ''].filter(Boolean).join(' '))}">${esc(e.n)}</span>`).join('')}</div>` : ''; };
+  /* um estado geral por personagem (o mais grave) e a lista do que pede atenção */
+  const ORD_EG = { fora: 5, critico: 4, perigo: 3, pavor: 2, alerta: 1, normal: 0 };
+  function estadoDe(f) {
+    const lpv = nivel(+f.pv.v, +f.pv.m, +C.cfg.pvBaixo, +C.cfg.pvCrit), lpd = nivel(+f.pd.v, +f.pd.m, +C.cfg.pdBaixo, +C.cfg.pdCrit), l = estDe(f), mot = [];
+    const pavor = f.pavorD ? String(f.pavorD) : (l.find(e => e.t === 'pavor') ? 'sim' : '');
+    if (f.morto) mot.push(['fora', 'Morto']); else if (f.perdido) mot.push(['fora', 'Mente perdida']); else if (f.moribundo) mot.push(['critico', 'Moribundo: teste de lesão no fim da rodada']);
+    if (!f.morto && lpv === 'zero') mot.push(['critico', 'PV zerado']); else if (lpv === 'crit') mot.push(['perigo', 'PV crítico (' + f.pv.v + '/' + f.pv.m + ')']);
+    if (lpd === 'zero') mot.push(['perigo', 'PD zerado']); else if (lpd === 'crit') mot.push(['alerta', 'PD muito baixo (' + f.pd.v + '/' + f.pd.m + ')']);
+    if (pavor) mot.push(['pavor', 'Dado de pavor' + (pavor !== 'sim' ? ' ' + pavor : '')]);
+    if (lpv === 'baixo') mot.push(['alerta', 'PV baixo (' + f.pv.v + '/' + f.pv.m + ')']);
+    if (lpd === 'baixo') mot.push(['alerta', 'PD baixo (' + f.pd.v + '/' + f.pd.m + ')']);
+    const neg = l.filter(e => e.t === 'mal' && !/^(morto|mente perdida|moribundo|pv zerado|pd zerado)$/i.test(e.n));
+    if (neg.length) mot.push(['alerta', neg.length === 1 ? neg[0].n : neg.length + ' desvantagens: ' + neg.map(e => e.n).join(', ')]);
+    mot.sort((a, b) => ORD_EG[b[0]] - ORD_EG[a[0]]);
+    const n = mot.length ? mot[0][0] : 'normal';
+    return { n, txt: { fora: 'Fora de cena', critico: 'Crítico', perigo: 'Em perigo', pavor: 'Com pavor', alerta: 'Atenção', normal: 'Estável' }[n], mot, pavor, lpv, lpd };
+  }
+  const MODOS = [['', 'Cena livre'], ['combate', 'Combate'], ['invest', 'Investigação']];
+  const barraModo = () => { const m = (SV.F.modo && SV.F.modo()) || ''; return `<div class="c-modo" role="group" aria-label="Modo da cena"><span>Modo da cena</span>${MODOS.map(([k, n]) => `<button type="button" data-c="cena-modo" data-m="${k}" class="${m === k ? 'on' : ''}" aria-pressed="${m === k}">${n}</button>`).join('')}<small>${m ? 'A ficha de cada jogador está no modo de ' + (m === 'combate' ? 'combate' : 'investigação') + '.' : 'Abra um modo e a ficha dos jogadores põe na frente o que importa.'}</small></div>`; };
+  function atencao(l) {
+    const linhas = l.map(f => ({ f, e: estadoDe(f) })).filter(x => x.e.mot.length).sort((a, b) => ORD_EG[b.e.n] - ORD_EG[a.e.n]);
+    if (!linhas.length) return `<section class="c-atencao ok"><b>Ninguém precisa de atenção agora.</b></section>`;
+    return `<section class="c-atencao" aria-label="Quem precisa de atenção"><h2>Atenção agora <small>${linhas.length} de ${l.length}</small></h2><ul>${linhas.map(({ f, e }) => `<li class="${e.n}"><button type="button" data-c="abrir" data-fid="${esc(f.id)}" title="Abrir a ficha de ${esc(f.nome)}"><b>${esc(f.nome || 'Sem nome')}</b><span class="c-eg ${e.n}">${e.txt}</span><span class="c-mot">${e.mot.map(m => esc(m[1])).join(' · ')}</span></button></li>`).join('')}</ul></section>`;
+  }
   function acoesDe(f, n) {
     const out = [];
     for (const l of Object.values(_.D.rolagens || {})) if (l && typeof l === 'object') for (const r of Object.values(l)) if (r && (r.fid ? r.fid === f.id : r.quem === f.nome)) out.push(r);
@@ -223,10 +249,11 @@
   const online = uid => !!(_.D.online && _.D.online[uid]);
   function cardBase(f, extra) {
     const ult = acoesDe(f, 1)[0], alerta = Object.values(C.ev).filter(e => ativo(e) && !e.lida && e.fid === f.id).length;
-    const lpv = nivel(+f.pv.v, +f.pv.m, +C.cfg.pvBaixo, +C.cfg.pvCrit);
-    return `<article class="c-card ${lpv}" data-fid="${esc(f.id)}">
-      <header><span class="av"${f.cor ? ` style="--cor-f:${esc(f.cor)}"` : ''}>${f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(_.ini(f.nome))}</span>
+    const eg = estadoDe(f), lpv = eg.lpv;
+    return `<article class="c-card ${lpv} eg-${eg.n}${eg.pavor ? ' tem-pavor' : ''}${eg.lpd === 'crit' || eg.lpd === 'zero' ? ' pd-mal' : ''}" data-fid="${esc(f.id)}">
+      <header data-c="abrir" data-fid="${esc(f.id)}" title="Abrir a ficha de ${esc(f.nome)}"><span class="av"${f.cor ? ` style="--cor-f:${esc(f.cor)}"` : ''}>${f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(_.ini(f.nome))}</span>
         <div class="c-quem"><b>${esc(f.nome || 'Sem nome')}</b><small><span class="ponto${online(f.dono) ? ' on' : ''}"></span>${esc(jogadorDe(f))} · nv ${esc(f.nivel || 1)} · NEX ${esc(f.nex || 0)}%</small></div>
+        <span class="c-eg ${eg.n}" title="${esc(eg.mot.map(m => m[1]).join(' · ') || 'Sem alertas')}">${eg.txt}</span>
         ${alerta ? `<button class="c-alerta" type="button" data-c="ver-notif" data-fid="${esc(f.id)}" title="Notificações não lidas de ${esc(f.nome)}">${alerta}</button>` : ''}</header>
       ${extra.medidores}
       ${conds(f)}
@@ -239,12 +266,15 @@
     const jog = Object.keys(_.D.users || {}).filter(u => !_.ehGM(u)), on = jog.filter(online).length;
     const crit = l.filter(f => { const e = C.est[f.id] || {}; return e.pv === 'crit' || e.pv === 'zero' || e.pd === 'crit' || e.pd === 'zero'; }).length;
     const ult = evs().filter(([, e]) => ativo(e)).slice(0, 8);
-    return `<div class="c-resumo">
+    const comPavor = l.filter(f => estadoDe(f).pavor).length;
+    return `${barraModo()}<div class="c-resumo">
         <div class="c-kpi"><b>${on}<small>/${jog.length}</small></b><span>jogadores online</span></div>
         <div class="c-kpi${nAt ? ' tem' : ''}"><b>${nAt}</b><span>notificações não lidas</span></div>
         <div class="c-kpi${crit ? ' mal' : ''}"><b>${crit}</b><span>em estado crítico</span></div>
+        <div class="c-kpi${comPavor ? ' pavor' : ''}"><b>${comPavor}</b><span>com dado de pavor</span></div>
         <div class="c-kpi"><b>Sessão ${esc(C.cfg.sessao)}</b><span><button class="btn sm${C.sessaoConf ? ' red' : ''}" type="button" data-c="nova-sessao">${C.sessaoConf ? 'Confirmar: começar a sessão ' + (+C.cfg.sessao + 1) + '?' : 'Nova sessão'}</button></span></div>
       </div>
+      ${l.length ? atencao(l) : ''}
       ${l.length ? `<div class="c-grade">${l.map(f => cardBase(f, { medidores: medidor('pv', +f.pv.v, +f.pv.m, C.cfg) + medidor('pd', +f.pd.v, +f.pd.m, C.cfg), fim: `<div class="c-pe"><button class="btn sm" type="button" data-c="abrir" data-fid="${esc(f.id)}">Abrir ficha</button></div>` })).join('')}</div>`
         : '<p class="vazio">Nenhuma ficha de jogador ainda. Quando os jogadores criarem as fichas, elas aparecem aqui.</p>'}
       <section class="cartao c-ultimos"><h2>Últimos acontecimentos <small>${ult.length ? '' : 'nada ainda'}</small></h2>
@@ -274,7 +304,7 @@
       }
       return cardBase(f, { medidores: ajuste('pv') + ajuste('pd'), fim });
     };
-    return `<div class="c-barra-top"><label class="c-check"><input type="checkbox" data-c="extras"${C.extras ? ' checked' : ''}> Mostrar NPCs e inimigos visíveis</label><span class="vazio">Os botões − e + mudam a ficha na hora, e o jogador vê.</span></div>
+    return `${barraModo()}<div class="c-barra-top"><label class="c-check"><input type="checkbox" data-c="extras"${C.extras ? ' checked' : ''}> Mostrar NPCs e inimigos visíveis</label><span class="vazio">Os botões − e + mudam a ficha na hora, e o jogador vê.</span></div>
       ${lista.length ? `<div class="c-grade combate">${lista.map(card).join('')}</div>` : '<p class="vazio">Nenhuma ficha para acompanhar.</p>'}`;
   }
   function vJogadores() {
@@ -482,6 +512,7 @@
     if (a.startsWith('rel-') && cliqueRel(a, b)) return;
     if (a === 'nota-rapida') { e.stopPropagation(); _.notaRapida(); }
     else if (a === 'abrir') SV.F.abrir(fid);
+    else if (a === 'cena-modo') { if (SV.F.setModo) { SV.F.setModo(b.dataset.m || ''); SV.toast(b.dataset.m ? 'Modo de ' + (b.dataset.m === 'combate' ? 'combate' : 'investigação') + ' aberto para a mesa.' : 'Cena livre.'); } desenha(); }
     else if (a === 'menos' || a === 'mais') ajusta(fid, b.dataset.r, a === 'mais' ? 1 : -1);
     else if (a === 'expandir') { C.abertos[fid] = !C.abertos[fid]; desenha(); }
     else if (a === 'ver-notif') { C.f.fid = fid; C.f.modo = 'ativas'; ver('notif'); }

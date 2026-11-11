@@ -665,6 +665,121 @@ input:focus, select:focus, textarea:focus { border-color: var(--red); outline: n
 select, input, textarea { accent-color: var(--blood); }
 ::selection { background: var(--blood); color: var(--on-blood); }
 .cards-voc { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+/* ===== estado do personagem: atmosfera, condições, modos de cena ===== */
+#ficha { transition: box-shadow .7s ease; }
+#ficha[data-atm="pavor"] { box-shadow: inset 0 0 0 1px rgba(142, 107, 191, .32), inset 0 0 150px rgba(48, 22, 92, .5); }
+#ficha[data-atm="perigo"] { box-shadow: inset 0 0 0 1px rgba(229, 72, 77, .3), inset 0 0 130px rgba(120, 14, 18, .34); }
+#ficha[data-atm="critico"] { box-shadow: inset 0 0 0 1px rgba(229, 72, 77, .55), inset 0 0 170px rgba(140, 10, 14, .5); animation: atmPulsa 2.6s ease-in-out infinite; }
+#ficha[data-atm="alerta"] { box-shadow: inset 0 0 0 1px rgba(216, 154, 58, .22), inset 0 0 110px rgba(110, 70, 10, .2); }
+#ficha[data-atm="fora"] { box-shadow: inset 0 0 200px rgba(0, 0, 0, .75); }
+#ficha[data-atm="fora"] .sec-corpo { filter: grayscale(.75); }
+@keyframes atmPulsa { 50% { box-shadow: inset 0 0 0 1px rgba(229, 72, 77, .3), inset 0 0 120px rgba(140, 10, 14, .3); } }
+#ficha[data-atm="pavor"] .topo-f { border-color: rgba(142, 107, 191, .7); background: linear-gradient(180deg, rgba(60, 32, 110, .26), var(--panel)); box-shadow: 0 0 22px rgba(142, 107, 191, .18); }
+#ficha[data-atm="pavor"] .topo-f::before { background: #8e6bbf; }
+#ficha[data-atm="pavor"] .tf-foto { filter: saturate(.7) hue-rotate(18deg); animation: pavorTreme 5s steps(1) infinite; }
+@keyframes pavorTreme { 0%, 91%, 100% { transform: none; } 92% { transform: translate(1px, -1px) skewX(-1.5deg); } 94% { transform: translate(-1px, 1px); } 96% { transform: skewX(1deg); } }
+#ficha[data-atm="critico"] .topo-f, #ficha[data-atm="perigo"] .topo-f { border-color: rgba(229, 72, 77, .7); }
+#ficha[data-atm="alerta"] .topo-f { border-color: rgba(216, 154, 58, .55); }
+body.fx-off #ficha[data-atm] { animation: none; }
+body.fx-off #ficha[data-atm="pavor"] { box-shadow: inset 0 0 0 1px rgba(142, 107, 191, .4); }
+body.fx-off #ficha[data-atm="perigo"], body.fx-off #ficha[data-atm="critico"] { box-shadow: inset 0 0 0 1px rgba(229, 72, 77, .5); }
+body.fx-off #ficha[data-atm="alerta"] { box-shadow: inset 0 0 0 1px rgba(216, 154, 58, .35); }
+body.fx-off #ficha[data-atm="fora"] { box-shadow: none; }
+body.fx-off #ficha .tf-foto { animation: none; }
+/* PD com identidade própria: a faixa amarela continua, e avisa quando está acabando */
+.med.pd { --cor-m: #d8b23a; }
+.med.pd .med-n { color: #d8b23a; }
+.med.pd.baixo { --cor-m: #e08a2c; }
+.med.pd.critico { --cor-m: #e0662c; }
+.med.pd.critico .med-seg i.on { box-shadow: 0 0 6px #e0662c; }
+.med.pd.zerado .med-seg i { border-color: #e0662c; }
+.med.pd.dano .med-v b { animation: valorPisca .9s ease-out; }
+@keyframes valorPisca { 0%, 60% { color: #ffd76a; text-shadow: 0 0 10px rgba(255, 215, 106, .7); } }
+.med-al { grid-column: 2 / -1; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: #e08a2c; margin-top: -3px; }
+.med.pv .med-al { color: #e5484d; }
+/* estado geral + condições */
+.tf-estado { display: grid; gap: 8px; }
+.tf-conds { align-items: center; }
+.eg { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 8px; font: 700 11px var(--f-body); letter-spacing: .09em; text-transform: uppercase; border: 1px solid var(--line-2); color: var(--paper-2); clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); padding-inline: 14px; }
+.eg::before { content: ''; width: 7px; height: 7px; background: currentColor; transform: rotate(45deg); }
+.eg.normal { color: var(--ok); border-color: rgba(127, 191, 106, .4); }
+.eg.alerta { color: #e5a23c; border-color: rgba(216, 154, 58, .6); background: rgba(216, 154, 58, .08); }
+.eg.perigo { color: #ff6b6b; border-color: rgba(229, 72, 77, .7); background: rgba(229, 72, 77, .1); }
+.eg.critico { color: #fff; border-color: #e5484d; background: #a3161b; }
+.eg.pavor { color: #d9c6ff; border-color: #8e6bbf; background: rgba(142, 107, 191, .16); }
+.eg.fora { color: var(--muted); background: #0c0909; }
+button.cond { background: transparent; cursor: pointer; font-family: var(--f-body); min-height: 26px; padding: 3px 9px 3px 6px; transition: transform .15s, box-shadow .15s, background .15s; }
+button.cond::before { display: none; }
+button.cond:hover, button.cond:focus-visible { transform: translateY(-1px); background: color-mix(in srgb, currentColor 10%, transparent); }
+button.cond.on { background: color-mix(in srgb, currentColor 16%, transparent); }
+button.cond.nova { animation: condNova 1.4s ease-out; }
+@keyframes condNova { 0% { transform: scale(.7); opacity: 0; } 25% { transform: scale(1.12); opacity: 1; box-shadow: 0 0 0 0 currentColor; } 60% { box-shadow: 0 0 0 7px transparent; } 100% { transform: none; } }
+.est-ico { display: inline-flex; flex: none; } .est-ico svg { width: 15px; height: 15px; }
+.est-card { border: 1px solid var(--line-2); border-left: 3px solid var(--cor-e, var(--line-2)); background: var(--panel-2); padding: 10px 12px; display: grid; gap: 6px; animation: secEntra .2s ease-out; }
+.est-card.mal { --cor-e: #e5484d; } .est-card.bem { --cor-e: var(--ok); } .est-card.pavor { --cor-e: #8e6bbf; background: linear-gradient(90deg, rgba(60, 32, 110, .22), var(--panel-2)); }
+.est-card header { display: flex; align-items: center; gap: 8px; color: var(--cor-e, var(--paper)); }
+.est-card header .est-ico svg { width: 20px; height: 20px; }
+.est-card header b { font: 17px/1.1 var(--f-display); letter-spacing: .04em; text-transform: uppercase; color: var(--paper); }
+.est-on { margin-left: auto; font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--cor-e, var(--muted)); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.est-on::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+.est-curto { margin: 0; font-size: 13px; color: var(--paper-2); }
+.est-l { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; font-size: 13px; margin: 0; }
+.est-l dt { color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding-top: 2px; }
+.est-l dd { margin: 0; color: var(--paper); }
+.est-completo { margin: 0; padding-top: 6px; border-top: 1px dashed var(--line-2); font-size: 12.5px; line-height: 1.5; color: var(--paper-2); }
+.est-card .row { gap: 6px; }
+.est-lista { display: grid; gap: 8px; }
+/* modo da cena */
+.tf-foco { display: inline-flex; margin-left: auto; border: 1px solid var(--line-2); }
+.tf-foco button { background: transparent; border: 0; color: var(--muted); padding: 5px 10px; font: 600 11.5px var(--f-body); letter-spacing: .05em; cursor: pointer; min-height: 30px; }
+.tf-foco button + button { border-left: 1px solid var(--line-2); }
+.tf-foco button.on { color: var(--on-blood); background: var(--blood); }
+.tf-foco button:hover:not(.on) { color: var(--paper); }
+.secoes button.foco { color: var(--gold); gap: 6px; }
+.secoes button.foco.on { border-bottom-color: var(--gold); color: var(--paper); }
+.secoes button.foco::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 8px #e5484d; align-self: center; animation: segPulsa 1.4s ease-in-out infinite; }
+.secoes button.foco.invest::before { background: #5aa9d6; box-shadow: 0 0 8px #5aa9d6; }
+.foco-v { display: grid; gap: 16px; }
+.foco-cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding: 8px 12px; border: 1px solid var(--line-2); border-left: 3px solid #e5484d; background: linear-gradient(90deg, rgba(229, 72, 77, .12), transparent 60%); }
+.foco-v.invest .foco-cab { border-left-color: #5aa9d6; background: linear-gradient(90deg, rgba(90, 169, 214, .12), transparent 60%); }
+.foco-cab b { font: 20px/1 var(--f-display); letter-spacing: .05em; text-transform: uppercase; }
+.foco-cab span { font-size: 12.5px; color: var(--gold); }
+.foco-cab .foco-dica { color: var(--muted); }
+.at-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.at { display: grid; gap: 2px; text-align: left; padding: 9px 12px; min-height: 52px; border: 1px solid var(--line-2); border-left: 3px solid var(--red); background: var(--panel-2); color: var(--paper); cursor: pointer; transition: transform .15s, border-color .15s, background .15s; }
+.at b { font: 600 14px var(--f-body); }
+.at small { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+.at:hover:not(:disabled), .at:focus-visible { transform: translateY(-1px); border-color: var(--red); background: color-mix(in srgb, var(--blood) 14%, var(--panel-2)); }
+.at:disabled { opacity: .5; cursor: not-allowed; }
+.at.def { border-left-color: #7fa7c9; } .at.hab { border-left-color: var(--gold); } .at.pre { border-left-color: var(--line-2); }
+.rapidos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.rap { display: flex; align-items: center; gap: 8px; text-align: left; padding: 6px 10px; min-height: 44px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--paper); cursor: pointer; font: 600 13px var(--f-body); transition: transform .15s, border-color .15s; }
+.rap span { display: grid; } .rap small { font: 11px var(--f-body); color: var(--muted); }
+.rap:hover, .rap:focus-visible { transform: translateY(-1px); border-color: var(--red); }
+.recolhe { border: 1px solid var(--line); padding: 0 12px; }
+.recolhe > summary { cursor: pointer; padding: 10px 0; font: 600 13px var(--f-body); letter-spacing: .04em; color: var(--paper-2); }
+.recolhe[open] { padding-bottom: 12px; } .recolhe[open] > summary { color: var(--paper); }
+.inv-dt { display: flex; gap: 10px; align-items: center; }
+.hist.curto .hist-it { padding: 4px 6px; font-size: 12.5px; }
+/* avisos temporários: o que acabou de mudar */
+.avisos { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); right: 12px; z-index: 70; display: grid; gap: 6px; width: min(calc(100vw - 24px), 380px); pointer-events: none; }
+.aviso { padding: 9px 14px; background: #1b1414; border: 1px solid var(--line-2); border-left: 3px solid var(--gold); color: var(--paper); font-size: 13.5px; line-height: 1.4; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); animation: avisoEntra .25s ease-out, avisoSai .4s ease-in 4.8s forwards; }
+.aviso.mal { border-left-color: #e5484d; } .aviso.bem { border-left-color: var(--ok); } .aviso.pavor { border-left-color: #8e6bbf; background: #17111f; } .aviso.pd { border-left-color: #d8b23a; }
+@keyframes avisoEntra { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes avisoSai { to { opacity: 0; transform: translateY(-6px); } }
+/* rolagem com dado de pavor */
+.mesa-anim.pavor { background: radial-gradient(ellipse at center, rgba(40, 18, 80, .6), rgba(8, 3, 16, .88)); }
+.mesa-anim.pavor .ma-mesa { box-shadow: 0 0 0 1px rgba(142, 107, 191, .6), 0 0 44px rgba(142, 107, 191, .3); }
+.modal-rolar.com-pavor .mr-caixa { box-shadow: 0 0 0 1px rgba(142, 107, 191, .65), 0 0 40px rgba(142, 107, 191, .22); }
+@media (max-width: 640px) {
+  .tf-foco { margin-left: 0; width: 100%; } .tf-foco button { flex: 1; min-height: 38px; }
+  .at-lista { grid-template-columns: minmax(0, 1fr); } .rapidos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .est-on { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ficha[data-atm], #ficha .tf-foto, button.cond.nova, .secoes button.foco::before, .med.pd.dano .med-v b, .est-card { animation: none !important; }
+  .aviso { animation: none; }
+}
 .card.voc.custom { border-color: var(--line-2); }
 .voc-desc { display: block; color: var(--paper-2); font-size: 12.5px; }
 .voc-lim { display: block; color: var(--red); font-size: 12px; }
@@ -1448,7 +1563,7 @@ function animarDados(itens, fim, final) {
     return `<svg viewBox="0 0 24 24" aria-hidden="true"><g class="ma-gira" style="transform-origin:12px 12px"><polygon points="${pts}" fill="${c}" fill-opacity=".92" stroke="${c}" stroke-width="1.2" stroke-linejoin="round"/></g><text x="12" y="${x.d === 'd4' ? 17.4 : 15.8}" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="800" font-size="${String(x.v).length > 1 ? 8.6 : 10.5}" fill="#fff">${esc(x.v)}</text></svg>`; };
   const ds = itens.map((x, i) => h('div', { class: 'ma-d ' + (x.tipo || ''), style: { '--sx': Math.round((Math.random() - 0.5) * 320) + 'px', '--rot': (360 * (2 + Math.floor(Math.random() * 3)) * (Math.random() < .5 ? -1 : 1)) + 'deg', '--dur': dur + 'ms', '--dly': i * passo + 'ms' }, 'data-v': x.v, 'data-d': x.d, html: forma(x) }, h('small', null, (x.rot ? x.rot + ' · ' : '') + x.d)));
   const resEl = h('div', { class: 'ma-res', 'aria-live': 'polite' });
-  const ov = h('div', { id: 'mesa-anim', class: 'mesa-anim', role: 'status', 'aria-label': 'Rolando ' + itens.map(x => x.d).join(', ') },
+  const ov = h('div', { id: 'mesa-anim', class: 'mesa-anim' + (itens.some(x => x.tipo === 'pavor') ? ' pavor' : ''), role: 'status', 'aria-label': 'Rolando ' + itens.map(x => x.d).join(', ') },
     h('div', { class: 'ma-mesa' }, h('div', { class: 'ma-tit' }, itens.length > 1 ? 'Rolando ' + itens.length + ' dados' : 'Rolando ' + itens[0].d), h('div', { class: 'ma-pista' }, ds), resEl, h('div', { class: 'ma-dica' }, 'Toque para pular')));
   document.body.append(ov);
   somDados(itens.length, dur);
@@ -1464,7 +1579,8 @@ function cfgAnim() {
   const set = m => { ANIM.modo = m; try { localStorage.setItem('sv.anim', m); } catch (e) {} renderDados(); };
   return h('div', { class: 'anim-cfg', role: 'group', 'aria-label': 'Animação dos dados' }, 'Animação:',
     [['completa', 'Completa'], ['rapida', 'Rápida'], ['off', 'Desligada']].map(([k, n]) => h('button', { type: 'button', id: 'anim-' + k, class: ANIM.modo === k ? 'on' : '', 'aria-pressed': ANIM.modo === k ? 'true' : 'false', onclick: () => set(k) }, n)),
-    h('label', null, h('input', { type: 'checkbox', id: 'anim-som', checked: ANIM.som || null, onchange: e => { ANIM.som = e.target.checked; try { localStorage.setItem('sv.animSom', ANIM.som ? '1' : '0'); } catch (x) {} } }), 'Som'));
+    h('label', null, h('input', { type: 'checkbox', id: 'anim-som', checked: ANIM.som || null, onchange: e => { ANIM.som = e.target.checked; try { localStorage.setItem('sv.animSom', ANIM.som ? '1' : '0'); } catch (x) {} } }), 'Som'),
+    h('label', { title: 'Vinheta de pavor, pulso de perigo e tremor do retrato. Desligado, ficam só as bordas e os indicadores.' }, h('input', { type: 'checkbox', id: 'fx-intenso', checked: FX.intenso || null, onchange: e => { FX.intenso = e.target.checked; try { localStorage.setItem('sv.fx', FX.intenso ? '1' : '0'); } catch (x) {} renderFicha(); } }), 'Efeitos de estado'));
 }
 const rolarExpr = e => { const m = /^(\d*)d(\d+)$/.exec(String(e)); if (!m) return +e || 0; let s = 0; for (let i = 0; i < (+m[1] || 1); i++) s += 1 + Math.floor(Math.random() * +m[2]); return s; };
 
@@ -1480,7 +1596,7 @@ function renderCena() {
     h('span', { class: 'pill', title: 'Rodadas da cena atual' }, 'Rodada ', h('b', null, c.rodada || '—')),
     c.combate ? h('button', { class: 'pill', type: 'button', title: 'Combate por fases: primeiro tudo que não é luta, depois quem ataca de longe, por último o corpo a corpo. Toque para passar de fase.', onclick: proxFase }, 'Fase: ', h('b', null, FASES[c.fase || 0]), ' ›') : null,
     !RG.sobrecarga ? null : h('label', { class: 'chk', title: 'Ao fim de cada rodada, todos sofrem dano emocional que cresce com o tempo' }, h('input', { type: 'checkbox', id: 'sobre', checked: c.sobre || null, onchange: e => { c.sobre = e.target.checked; salvar(); renderCena(); } }), 'Sobrecarga', c.sobre ? h('span', { style: { color: 'var(--muted)' } }, ' · próx.: ' + (prox ? prox + ' PD' : 'nada')) : null),
-    h('label', { class: 'chk', title: 'Mostra as fases do combate' }, h('input', { type: 'checkbox', id: 'combate', checked: c.combate || null, onchange: e => { c.combate = e.target.checked; c.fase = 0; salvar(); renderTudo(); } }), 'Combate'),
+    h('label', { class: 'chk', title: 'Mostra as fases do combate' }, h('input', { type: 'checkbox', id: 'combate', checked: c.combate || null, onchange: e => { c.fase = 0; setFoco(e.target.checked ? 'combate' : ''); } }), 'Combate'),
     c.relogio ? h('span', { class: 'pill', title: 'Rodadas até a ameaça chegar. Desce sozinho no fim da rodada' }, 'Ameaça em ', h('b', null, c.relogio)) : null,
     h('button', { class: 'btn sm', type: 'button', onclick: fimRodada }, 'Fim da rodada'),
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Zera ímpetos, marcadores, reduções e aumentos da cena e os usos por cena', onclick: encerrarCena }, 'Encerrar cena'));
@@ -1501,7 +1617,9 @@ function fimRodada() {
 }
 function encerrarCena() {
   for (const f of S.fichas) { f.red = {}; f.boost = {}; f.usos = {}; f.relCena = []; f.relCenaId = ''; f.impeto = temHab(f, 'impeto-fervilhante') ? 1 : 0; f.banco = 0; f.feri = 0; f.trau = 0; if (RG.lesao === 'beta' && !f.morto && f.pv.v <= 0) { f.pv.v = 1; f.moribundo = false; } }
-  Object.assign(S.cena, { rodada: 0, fase: 0, combate: false, relogio: 0 }); salvar(); renderTudo(); toast('Cena encerrada: ímpetos, marcadores de análise, reduções, testes de lesão e trauma e usos por cena foram zerados. O dado de pavor continua até cair 1.');
+  Object.assign(S.cena, { rodada: 0, fase: 0, combate: false, relogio: 0 });
+  if (UIS.foco) { UIS.foco = ''; UIS.focoVer = false; const Pt = PTR(); if (Pt && Pt.isGM() && Pt.setModo) Pt.setModo(''); }
+  salvar(); renderTudo(); toast('Cena encerrada: ímpetos, marcadores de análise, reduções, testes de lesão e trauma e usos por cena foram zerados. O dado de pavor continua até cair 1.');
 }
 
 /* ===================== lista de fichas ===================== */
@@ -1594,7 +1712,8 @@ function seletorCor(f) {
 /* ===================== ficha por abas, topo sempre à vista e painel de combate ===================== */
 const SECOES = [['personagem', 'Personagem'], ['combate', 'Combate'], ['habilidades', 'Habilidades'], ['inventario', 'Inventário'], ['relacoes', 'Relações'], ['historico', 'Histórico']];
 try { UIS.sec = localStorage.getItem(KEY + '.sec') || 'personagem'; } catch (e) { UIS.sec = 'personagem'; }
-function irSecao(k) { UIS.sec = k; try { localStorage.setItem(KEY + '.sec', k); } catch (e) {} renderFicha(); const el = $('#ficha'); if (el && el.scrollTop > 200) el.scrollTop = 0; }
+UIS.foco = S.cena && S.cena.combate ? 'combate' : ''; UIS.focoVer = !!UIS.foco;
+function irSecao(k) { UIS.sec = k; UIS.focoVer = false; try { localStorage.setItem(KEY + '.sec', k); } catch (e) {} renderFicha(); const el = $('#ficha'); if (el && el.scrollTop > 200) el.scrollTop = 0; }
 /* o estado do personagem em palavras curtas (o mesmo cálculo vale para o mestre) */
 function condicoes(f) {
   const out = [];
@@ -1607,7 +1726,177 @@ function condicoes(f) {
   for (const [a, n] of Object.entries(f.red || {})) if (n) out.push(['−' + n + ' passo em ' + ATR_N[a], 'mal']);
   for (const [a, n] of Object.entries(f.boost || {})) if (n) out.push(['+' + n + ' passo em ' + ATR_N[a], 'bem']);
   for (const x of f.insp || []) out.push(['Inspirado: ' + ATR_N[x.atr], 'bem']);
+  for (const q of f.seq || []) out.push([q.nome, 'mal']);
   return out;
+}
+/* ===== estados: cada condição ou desvantagem com ícone, resumo, efeito e duração. Tudo lido dos dados que a ficha já tem ===== */
+const ICO_EST = {
+  caveira: '<path d="M12 3a7 7 0 0 0-4 12.7V19h8v-3.3A7 7 0 0 0 12 3z"/><circle cx="9.5" cy="11" r="1.2"/><circle cx="14.5" cy="11" r="1.2"/><path d="M10 19v-2M14 19v-2"/>',
+  mente: '<path d="M9 4a4 4 0 0 0-4 4 4 4 0 0 0 0 6 4 4 0 0 0 4 5h1V4zM15 4a4 4 0 0 1 4 4 4 4 0 0 1 0 6 4 4 0 0 1-4 5h-1V4z"/>',
+  coracao: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.4A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M5 12h4l1.5-3 2.5 6 1.5-3H19"/>',
+  olho: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/>',
+  baixo: '<path d="M12 4v14M6 12l6 6 6-6"/>',
+  cima: '<path d="M12 20V6M6 12l6-6 6 6"/>',
+  brilho: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/>',
+  cicatriz: '<path d="M5 19L19 5M8 12l4 4M11 9l4 4M14 6l4 4"/>',
+  gota: '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+};
+const icoEst = k => h('span', { class: 'est-ico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICO_EST[k] || ICO_EST.baixo) + '</svg>' });
+const nivelRec = r => r.v <= 0 ? 'zerado' : r.v <= Math.ceil(r.m / 4) ? 'critico' : r.v <= Math.ceil(r.m / 2) ? 'baixo' : 'ok';
+function estados(f) {
+  const out = [], add = o => out.push(o), tLes = RG.lesao === 'alpha' ? 'ferimento' : 'lesão';
+  const testeLes = () => abrirRolagem(f, { per: 'vigor', atr: 'fisico', especial: 'feri', dt: 7 + 3 * (f.feri || 0) });
+  const testeTrau = () => abrirRolagem(f, { per: 'disciplina', atr: 'emocao', especial: 'trau', dt: 7 + 3 * (f.trau || 0) });
+  if (f.morto) add({ id: 'morto', nome: 'Morto', tom: 'mal', ico: 'caveira', curto: 'O personagem morreu.', efeito: 'Fora de cena: não age e não rola.', dura: 'Definitivo',
+    completo: 'A morte vem de uma falha crítica no teste de ' + tLes + ' ou de um resultado de morte na tabela de lesões. Se existe algum caminho de volta, quem decide é o mestre.' });
+  else if (f.perdido) add({ id: 'perdido', nome: 'Mente perdida', tom: 'mal', ico: 'mente', curto: 'Colapso total: a mente se perdeu.', efeito: 'O personagem vira uma casca vazia e sai de jogo.', dura: 'Definitivo',
+    completo: 'É o resultado Colapso total da tabela de traumas, rolada depois de falhar no teste de trauma com 0 PD.' });
+  else if (f.moribundo) add({ id: 'moribundo', nome: 'Moribundo', tom: 'mal', ico: 'coracao', curto: 'Inconsciente, à beira da morte.', efeito: 'Não age. Novo teste de ' + tLes + ' no fim de cada rodada (DT ' + (7 + 3 * (f.feri || 0)) + ').', dura: 'Até um sucesso crítico no teste, uma noite de sono ou o fim da cena',
+    completo: 'Chegou a 0 PV e passou no teste de lesão (Físico + Vigor, DT 7, e +3 a cada novo teste na cena): fica inconsciente e moribundo. No fim de cada rodada o teste se repete. Falhou: d20 na tabela de lesões. Falha crítica: morre. Sucesso crítico: recupera 1 PV e acorda.', acao: ['Teste de ' + tLes, testeLes] });
+  if (!f.morto && !f.moribundo && f.pv.v <= 0) add({ id: 'pv0', nome: 'PV zerado', tom: 'mal', ico: 'coracao', curto: 'Sem pontos de vida.', efeito: 'Faça o teste de ' + tLes + ': ' + (RG.lesao === 'alpha' ? 'Vigor' : 'Físico + Vigor') + ', DT ' + (7 + 3 * (f.feri || 0)) + '.', dura: 'Até recuperar PV',
+    completo: 'Chegou a 0 PV, ou tomou dano já em 0: teste de lesão (DT 7, e +3 a cada novo teste na cena). Passou: fica inconsciente e moribundo. Falhou: d20 na tabela de lesões, que vai de uma cicatriz à morte. Falha crítica: morre.', acao: ['Teste de ' + tLes, testeLes] });
+  if (!f.morto && !f.perdido && f.pd.v <= 0) add({ id: 'pd0', nome: 'PD zerado', tom: 'mal', ico: 'gota', curto: 'Sem PD: a mente está no limite.', efeito: 'Faça o teste de trauma: ' + (RG.trauma === 'alpha' ? 'Disciplina' : 'Emoção + Disciplina') + ', DT ' + (7 + 3 * (f.trau || 0)) + '.', dura: 'Até recuperar PD',
+    completo: 'Chegou a 0 PD: teste de trauma (DT 7, e +3 a cada novo teste na cena). Falhou: d20 na tabela de traumas (pânico, estupor, perder pedaços da mente). Sem PD também não dá para pagar habilidades, rituais nem as opções do dado de pavor.', acao: ['Teste de trauma', testeTrau] });
+  if (f.pavorD && RG.pavor !== 'nenhum') add({ id: 'pavor', nome: 'Dado de pavor ' + f.pavorD, tom: 'pavor', ico: 'olho', curto: 'O medo rola junto com você.', efeito: 'Entra em todo teste e apaga os dados menores que ele.', dura: 'Some quando o dado de pavor cair 1',
+    completo: 'Recebido ao falhar num teste de medo ou pelo trauma Pânico. Se receber de novo, o dado sobe um passo. Na hora de rolar você pode ' + (RG.pavor === 'alpha' ? 'gastar 2 PD para não rolar o dado' : 'gastar 1 PD para rolar o dado um passo abaixo') + ', ou gastar 5 PD para ele virar dado bônus.' + (casaAtiva() ? ' Uma noite de sono desce o dado um passo.' : '') });
+  for (const [a, n] of Object.entries(f.red || {})) if (n) add({ id: 'red:' + a, nome: '−' + n + (n > 1 ? ' passos em ' : ' passo em ') + ATR_N[a], tom: 'mal', ico: 'baixo', curto: ATR_N[a] + ' enfraquecido.', efeito: atrEf(f, a) !== f.atr[a] ? ATR_N[a] + ' rola ' + atrEf(f, a) + ' em vez de ' + f.atr[a] + '.' : ATR_N[a] + ' rola ' + n + ' passo abaixo.', dura: 'Até o fim da cena',
+    completo: 'Redução de passo: o dado do atributo desce na escada d4 · d6 · d8 · d10 · d12, e vale para todo teste com ' + ATR_N[a] + '. Vem de uma falha crítica (Machucado, Desatenção, Irritação), de uma Contusão na tabela de lesões ou de outro efeito da cena. Zera quando o mestre encerra a cena.' });
+  for (const [a, n] of Object.entries(f.boost || {})) if (n) add({ id: 'boost:' + a, nome: '+' + n + (n > 1 ? ' passos em ' : ' passo em ') + ATR_N[a], tom: 'bem', ico: 'cima', curto: ATR_N[a] + ' mais forte nesta cena.', efeito: atrEf(f, a) !== f.atr[a] ? ATR_N[a] + ' rola ' + atrEf(f, a) + ' em vez de ' + f.atr[a] + '.' : ATR_N[a] + ' rola ' + n + ' passo acima.', dura: 'Até o fim da cena',
+    completo: 'Aumento de passo vindo do Ímpeto: o dado do atributo sobe na escada d4 · d6 · d8 · d10 · d12. Zera quando o mestre encerra a cena.' });
+  (f.insp || []).forEach((x, i) => add({ id: 'insp:' + x.atr + ':' + i, nome: 'Inspirado: ' + ATR_N[x.atr], tom: 'bem', ico: 'brilho', curto: 'Um empurrão para o próximo teste.', efeito: '+1 passo no próximo teste de ' + ATR_N[x.atr] + '.', dura: 'Até o próximo teste de ' + ATR_N[x.atr],
+    completo: 'Fonte: ' + (x.fonte || 'inspiração') + '. O aumento de passo é gasto sozinho no próximo teste que usar ' + ATR_N[x.atr] + '.' }));
+  for (const q of f.seq || []) add({ id: 'seq:' + q.id, nome: q.nome, tom: 'mal', ico: q.tab === 'trauma' ? 'mente' : 'cicatriz', curto: q.tab === 'trauma' ? 'Sequela de trauma.' : 'Sequela de lesão.', efeito: q.txt,
+    dura: /para sempre/i.test(q.txt) ? 'Para sempre' : /até ser tratado/i.test(q.txt) ? 'Até ser tratado' : /próxima rodada/i.test(q.txt) ? 'Próxima rodada' : 'Enquanto o mestre mantiver',
+    completo: 'Resultado ' + q.v + ' na tabela de ' + (q.tab === 'trauma' ? 'traumas' : 'lesões') + '. A ficha só anota a sequela: o efeito não entra sozinho nas rolagens, então lembre dele na hora do teste.',
+    acao: ['Tirar da ficha', () => { f.seq = (f.seq || []).filter(x => x.id !== q.id); UIS.estAberto = null; salvar(); renderTudo(); }] });
+  return out;
+}
+function anotarSeq(f, nome, txt, tab, v) {
+  (f.seq ||= []).push({ id: uid(), nome, txt, tab, v, t: Date.now() });
+  S.hist.unshift({ t: Date.now(), quem: f.nome, fid: f.id, cat: 'cond', o: 'Sequela: ' + nome, tot: '•', v: 'bad', det: txt });
+}
+/* um único estado geral, o mais importante agora; os demais continuam visíveis como indicadores */
+function estadoGeral(f) {
+  const pv = nivelRec(f.pv), pd = nivelRec(f.pd), pavor = f.pavorD && RG.pavor !== 'nenhum';
+  if (f.morto) return { n: 'fora', txt: 'Morto' };
+  if (f.perdido) return { n: 'fora', txt: 'Mente perdida' };
+  if (f.moribundo) return { n: 'critico', txt: 'Moribundo' };
+  if (pv === 'zerado') return { n: 'critico', txt: 'PV zerado' };
+  if (pv === 'critico') return { n: 'perigo', txt: 'Em perigo: PV crítico' };
+  if (pd === 'zerado') return { n: 'perigo', txt: 'PD zerado' };
+  if (pavor) return { n: 'pavor', txt: 'Com dado de pavor' };
+  if (pd === 'critico') return { n: 'alerta', txt: 'PD acabando' };
+  if (pv === 'baixo') return { n: 'alerta', txt: 'Ferido' };
+  if (pd === 'baixo') return { n: 'alerta', txt: 'PD pela metade' };
+  if (Object.values(f.red || {}).some(Boolean) || (f.seq || []).length) return { n: 'alerta', txt: 'Com desvantagem' };
+  return { n: 'normal', txt: 'Estável' };
+}
+const FX = { intenso: true };
+try { FX.intenso = localStorage.getItem('sv.fx') !== '0'; } catch (e) {}
+function aviso(txt, tom) {
+  let box = $('#avisos'); if (!box) { box = h('div', { id: 'avisos', class: 'avisos', role: 'status', 'aria-live': 'polite' }); document.body.append(box); }
+  if ([...box.children].some(c => c.textContent === txt)) return;
+  while (box.children.length >= 3) box.firstChild.remove();
+  const el = h('div', { class: 'aviso ' + (tom || '') }, txt); box.append(el); setTimeout(() => el.remove(), 5300);
+}
+const EST_ANT = {}, NIV_ANT = {};
+const estVisto = k => { try { const l = JSON.parse(localStorage.getItem('sv.estVisto') || '[]'); if (l.includes(k)) return true; l.push(k); localStorage.setItem('sv.estVisto', JSON.stringify(l)); } catch (e) {} return false; };
+function cartaoEstado(f, e, aberto) {
+  return h('div', { class: 'est-card ' + e.tom, 'data-est': e.id },
+    h('header', null, icoEst(e.ico), h('b', null, e.nome), h('span', { class: 'est-on' }, 'Efeito ativo')),
+    h('p', { class: 'est-curto' }, e.curto),
+    h('dl', { class: 'est-l' }, h('dt', null, 'Efeito'), h('dd', null, e.efeito), e.dura ? [h('dt', null, 'Duração'), h('dd', null, e.dura)] : null),
+    aberto ? h('p', { class: 'est-completo' }, e.completo) : null,
+    h('div', { class: 'row' },
+      h('button', { class: 'btn sm ghost', type: 'button', 'aria-expanded': aberto ? 'true' : 'false', onclick: () => { UIS.estAberto = aberto ? null : e.id; UIS.estOnde = 'lista'; renderFicha(); } }, aberto ? 'Fechar a regra' : 'Ver a regra completa'),
+      e.acao ? h('button', { class: 'btn sm' + (e.id.startsWith('seq:') ? ' ghost' : ' red'), type: 'button', onclick: e.acao[1] }, e.acao[0]) : null));
+}
+function blocoEstado(f) {
+  const l = estados(f), eg = estadoGeral(f), ids = l.map(e => e.id), ant = EST_ANT[f.id]; EST_ANT[f.id] = ids;
+  const novas = ant ? ids.filter(i => !ant.includes(i)) : [];
+  for (const e of l) if (novas.includes(e.id)) { aviso((e.tom === 'bem' ? 'Novo efeito: ' : 'Nova condição: ') + e.nome + '. ' + e.efeito, e.tom); if (!estVisto(e.id.split(':')[0]) && !UIS.estAberto) { UIS.estAberto = e.id; UIS.estOnde = 'topo'; } }
+  const nv = { pv: nivelRec(f.pv), pd: nivelRec(f.pd) }, na = NIV_ANT[f.id], ORD = { ok: 0, baixo: 1, critico: 2, zerado: 3 }; NIV_ANT[f.id] = nv;
+  if (na) for (const k of ['pv', 'pd']) if (ORD[nv[k]] > ORD[na[k]]) aviso(k.toUpperCase() + (nv[k] === 'zerado' ? ' zerado' : nv[k] === 'critico' ? ' em nível crítico' : ' baixo') + ': ' + f[k].v + ' de ' + f[k].m + '.', k === 'pd' ? 'pd' : 'mal');
+  const ab = l.find(e => e.id === UIS.estAberto);
+  return h('div', { class: 'tf-estado' },
+    h('div', { class: 'tf-conds', 'aria-label': 'Estado do personagem' },
+      h('span', { class: 'eg ' + eg.n, id: 'eg', title: 'Estado geral do personagem' }, eg.txt),
+      l.map(e => h('button', { type: 'button', class: 'cond ' + e.tom + (novas.includes(e.id) ? ' nova' : '') + (ab === e ? ' on' : ''), 'data-est': e.id, title: e.curto + ' ' + e.efeito + ' Toque para ver a regra.', 'aria-expanded': ab === e ? 'true' : 'false', onclick: () => { UIS.estAberto = ab === e ? null : e.id; UIS.estOnde = 'topo'; renderFicha(); } }, icoEst(e.ico), e.nome))),
+    ab && UIS.estOnde !== 'lista' ? cartaoEstado(f, ab, true) : null);
+}
+function blocoCondicoes(f) {
+  const l = estados(f);
+  return h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Condições ativas'),
+    l.length ? h('div', { class: 'est-lista' }, l.map(e => cartaoEstado(f, e, UIS.estAberto === e.id && UIS.estOnde === 'lista'))) : h('p', { class: 'legenda' }, 'Nenhuma condição ou desvantagem agora.'));
+}
+/* ===== modos da cena: a mesma ficha, com o que importa para combate ou para investigação na frente ===== */
+const FOCO_N = { combate: 'combate', invest: 'investigação' };
+function setFoco(m, deFora) {
+  m = FOCO_N[m] ? m : '';
+  const P = PTR(), gm = !P || P.isGM();
+  if ((UIS.foco || '') === m) { if (m && !deFora) { UIS.focoVer = true; renderFicha(); } return; }
+  UIS.foco = m; UIS.focoVer = !!m;
+  if (gm) { S.cena.combate = m === 'combate'; salvar(); }
+  if (!deFora && P && P.isGM() && P.setModo) P.setModo(m);
+  if (deFora && !gm) aviso(m ? 'O mestre abriu uma cena de ' + FOCO_N[m] + '.' : 'A cena voltou ao modo livre.', m === 'combate' ? 'mal' : '');
+  renderTudo();
+}
+function seletorFoco() {
+  const P = PTR(), gm = P && P.isGM();
+  return h('div', { class: 'tf-foco', role: 'group', 'aria-label': 'Modo da cena' }, [['', 'Livre'], ['combate', 'Combate'], ['invest', 'Investigação']].map(([k, n]) =>
+    h('button', { type: 'button', id: 'foco-' + (k || 'livre'), class: (UIS.foco || '') === k ? 'on' : '', 'aria-pressed': (UIS.foco || '') === k ? 'true' : 'false', title: gm ? 'Muda o modo da cena para todos os jogadores' : P ? 'Muda só a sua tela. O mestre também pode abrir o modo para a mesa toda.' : 'Põe na frente o que importa para este tipo de cena', onclick: () => setFoco(k) }, n)));
+}
+const recolhe = (id, titulo, ...kids) => h('details', { class: 'recolhe', id, open: (UIS.rec ||= {})[id] || null, ontoggle: e => { UIS.rec[id] = e.target.open; } }, h('summary', null, titulo), kids);
+function ultimasAcoes(f, n) {
+  const l = S.hist.filter(x => x && (x.fid ? x.fid === f.id : x.quem === f.nome)).slice(0, n);
+  return h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Últimas ações'),
+    l.length ? h('div', { class: 'hist curto' }, l.map(x => h('div', { class: 'hist-it' }, h('span', { class: 't' }, x.tot), h('span', { class: 'w' }, h('b', null, x.o), h('small', null, [x.det || '', new Date(x.t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })].filter(Boolean).join(' · '))), h('span', { class: 'v ' + (x.v || '') }, x.vt || ''))))
+      : h('p', { class: 'legenda' }, 'Os testes e as ações de ' + (f.nome || 'o personagem') + ' aparecem aqui.'));
+}
+function testesRapidos(f, lista, titulo) {
+  const vis = perVis().map(p => p[0]);
+  return h('div', { class: 'bloco' }, h('div', { class: 'fita' }, titulo), h('div', { class: 'rapidos' }, lista.filter(k => vis.includes(k)).map(k =>
+    h('button', { type: 'button', class: 'rap', id: 'rap-' + k, title: 'Rolar ' + PER_N[k] + ' + ' + ATR_N[PER_ATR[k]], onclick: () => abrirRolagem(f, { per: k }) }, dado(perDie(f, k), null, 24), h('span', null, PER_N[k], h('small', null, ATR_N[PER_ATR[k]] + ' ' + atrEf(f, PER_ATR[k])))))));
+}
+const botoesPreset = (f, lista, titulo) => h('div', { class: 'bloco' }, h('div', { class: 'fita' }, titulo), h('div', { class: 'at-lista' }, lista.filter(k => PRESETS[k]).map(k =>
+  h('button', { type: 'button', class: 'at pre', id: 'pre-' + k, onclick: () => usarPreset(f, k) }, h('b', null, PRESETS[k][0]), h('small', null, PRESETS[k][2])))));
+function visaoCombate(f, p) {
+  const agir = painelCombate(f), lista = armasDe(f), c = S.cena, P = PTR(), gm = !P || P.isGM();
+  const habs = (f.hab || []).filter(k => HAB[k] && (HAB[k].gasto || HAB[k].dado));
+  const ataques = h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Ataques e defesa'), h('div', { class: 'at-lista' },
+    lista.map((a, i) => { const o = optsAtaque(f, a), sm = semMunicao(a);
+      return h('button', { type: 'button', class: 'at', id: 'at-' + i, disabled: sm || null, onclick: () => abrirRolagem(f, o) }, h('b', null, a.nome),
+        h('small', null, [PER_N[o.per] + ' ' + perDie(f, o.per), 'dano ' + (a.dano || 'RA') + (o.arma.bonus ? ' + ' + o.arma.bonus : ''), a.tipo !== 'corpo' && a.munMax ? 'munição ' + (a.mun ?? 0) + '/' + a.munMax : '', o.semProf ? 'sem proficiência: −1 passo' : '', sm ? 'sem munição' : ''].filter(Boolean).join(' · '))); }),
+    h('button', { type: 'button', class: 'at def', id: 'at-defender', onclick: () => usarPreset(f, 'defesa') }, h('b', null, 'Defender-se'), h('small', null, 'Acrobacia ' + perDie(f, 'acrobacia') + ' + Físico ' + atrEf(f, 'fisico') + ' + d6, oposto ao ataque'))));
+  const habRap = habs.length ? h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Habilidades prontas'), h('div', { class: 'at-lista' }, habs.map(k => { const x = HAB[k];
+    const usada = x.gasto?.cena && f.usos[k], falta = (x.gasto?.pd && f.pd.v < x.gasto.pd) || (x.gasto?.pv && f.pv.v < x.gasto.pv) || (x.dado?.pd && f.pd.v < x.dado.pd);
+    const custo = x.gasto ? ([x.gasto.pd ? x.gasto.pd + ' PD' : '', x.gasto.pv ? x.gasto.pv + ' PV' : ''].filter(Boolean).join(' e ') || 'sem custo') : '+' + x.dado.d + (x.dado.pd ? ' por ' + x.dado.pd + ' PD' : ', sem custo');
+    return h('button', { type: 'button', class: 'at hab', id: 'hr-' + k, disabled: usada || falta || null, title: String(x.txt || '').replace(/<[^>]+>/g, ''), onclick: () => x.gasto ? usarGasto(f, k) : rolarComHab(f, k) }, h('b', null, x.nome), h('small', null, custo + (usada ? ' · já usada nesta cena' : falta ? ' · falta ' + (x.gasto?.pv && f.pv.v < x.gasto.pv ? 'PV' : 'PD') : ''))); }))) : null;
+  return h('div', { class: 'foco-v combate' },
+    h('div', { class: 'foco-cab' }, h('b', null, 'Combate'), c.combate && gm ? h('span', null, 'Rodada ' + (c.rodada || 1) + ' · ' + FASES[c.fase || 0]) : null, h('span', { class: 'foco-dica' }, 'O que você mais usa numa luta. O resto da ficha continua nas abas.')),
+    h('div', { class: 'duas' },
+      h('div', { class: 'pilha' }, ataques, habRap, agir, testesRapidos(f, ['acrobacia', 'atletismo', 'luta', 'pontaria', 'vigor', 'percepcao', 'furtividade', 'disciplina'], 'Testes rápidos')),
+      h('div', { class: 'pilha' }, blocoCondicoes(f), ultimasAcoes(f, 5), botoesPreset(f, ['manobra', 'fintar', 'atrapalhar', 'medo'], 'Outras ações'),
+        recolhe('foco-rec', 'PV, PD, armadura e medo', p.recursos), recolhe('foco-per', 'Todas as perícias', p.pericias))));
+}
+function painelInvest(f) {
+  const ops = [...perVis().map(([x]) => [x, PER_N[x]]), ...APT.map(([x, n]) => ['apt:' + x, 'Aptidão (' + n + ')'])], k = ops.some(o => o[0] === UIS.invPer) ? UIS.invPer : 'percepcao', d = perDie(f, k);
+  return h('div', { class: 'bloco painel-combate' }, h('div', { class: 'fita' }, 'Investigar'),
+    h('div', { class: 'card pc' },
+      h('label', { class: 'campo' }, 'Perícia', h('select', { id: 'i-per', onchange: e => { UIS.invPer = e.target.value; renderFicha(); } }, ops.map(([x, n]) => h('option', { value: x, selected: x === k || null }, n)))),
+      h('p', { class: 'pc-info inv-dt' }, dado(d, null, 28), h('span', null, 'Diga "' + d + '": o mestre entrega de graça toda informação com DT até ' + faces(d) + '. Para ir além, examine.')),
+      h('div', { class: 'row' }, h('button', { class: 'btn red', type: 'button', id: 'i-examinar', onclick: () => usarPreset(f, 'examinar', { per: k, atr: PER_ATR[k] }) }, 'Examinar'),
+        h('button', { class: 'btn sm ghost', type: 'button', id: 'i-nada', title: 'Examinou e não recebeu nenhuma informação nova', onclick: () => perdePD(f, '1', 'Examinou sem achar nada novo') }, 'Nada novo: −1 PD'),
+        h('button', { class: 'btn sm ghost', type: 'button', title: PRESETS.recapitular[2], onclick: () => usarPreset(f, 'recapitular') }, 'Recapitular'),
+        h('button', { class: 'btn sm ghost', type: 'button', title: PRESETS.compartilhar[2], onclick: () => usarPreset(f, 'compartilhar') }, 'Compartilhar'))));
+}
+function visaoInvest(f, p) {
+  const lista = ['percepcao', 'pesquisar', 'intuicao', 'ocultismo', 'medicina', 'tecnologia', 'crime', 'sobrevivencia', 'persuasao', 'enganacao', 'intimidar', 'furtividade', 'maquinas', 'animais'].sort((a, b) => faces(perDie(f, b)) - faces(perDie(f, a)));
+  return h('div', { class: 'foco-v invest' },
+    h('div', { class: 'foco-cab' }, h('b', null, 'Investigação'), h('span', { class: 'foco-dica' }, 'Examinar, perguntar e juntar pistas. As perícias mais fortes vêm primeiro.')),
+    h('div', { class: 'duas' },
+      h('div', { class: 'pilha' }, painelInvest(f), testesRapidos(f, lista, 'Perícias para investigar'), botoesPreset(f, ['barreira', 'medo'], 'Quando o medo aparece')),
+      h('div', { class: 'pilha' }, blocoCondicoes(f), p.notas, p.itens, ultimasAcoes(f, 5), recolhe('foco-per', 'Todas as perícias', p.pericias))));
 }
 const MED_ANT = {};
 function medidor(f, k) {
@@ -1621,10 +1910,10 @@ function medidor(f, k) {
     h('span', { class: 'med-seg', role: 'meter', 'aria-label': k.toUpperCase() + ' ' + r.v + ' de ' + r.m + (zero ? ', zerado' : crit ? ', crítico' : baixo ? ', baixo' : ''), 'aria-valuemin': 0, 'aria-valuemax': r.m, 'aria-valuenow': r.v, title: r.v + ' de ' + r.m + ' (' + pct + '%)' }, Array.from({ length: n }, (_, i) => h('i', { class: i < on ? 'on' : '' }))),
     h('span', { class: 'med-v' }, h('b', null, r.v), ' / ' + r.m),
     h('button', { class: 'mini', type: 'button', 'aria-label': 'Perder 1 ' + k.toUpperCase(), onclick: () => set(r.v - 1) }, '−'),
-    h('button', { class: 'mini', type: 'button', 'aria-label': 'Recuperar 1 ' + k.toUpperCase(), onclick: () => set(r.v + 1) }, '+'));
+    h('button', { class: 'mini', type: 'button', 'aria-label': 'Recuperar 1 ' + k.toUpperCase(), onclick: () => set(r.v + 1) }, '+'),
+    zero || crit ? h('span', { class: 'med-al' }, k === 'pv' ? (zero ? 'Sem vida: teste de lesão' : 'Vida em nível crítico') : (zero ? 'Sem PD: teste de trauma' : 'PD quase no fim')) : null);
 }
 function topoFicha(f, nomeRow) {
-  const conds = condicoes(f);
   const resumo = [PERFIS[f.perfil]?.[0], f.ocupacao, 'Nível ' + f.nivel, 'NEX ' + (f.nex || 0) + '%'].filter(Boolean).join(' · ');
   return h('div', { class: 'topo-f' },
     h('div', { class: 'tf-foto', 'aria-hidden': 'true' }, f.retrato ? h('img', { src: f.retrato, alt: '' }) : h('span', null, ini(f.nome))),
@@ -1633,8 +1922,8 @@ function topoFicha(f, nomeRow) {
       h('div', { class: 'tf-linha' },
         h('div', { class: 'tf-atr', role: 'group', 'aria-label': 'Atributos: toque para rolar' }, ATR.map(([k, n]) => { const ef = atrEf(f, k), mud = ef !== f.atr[k];
           return h('button', { type: 'button', class: 'tf-a' + (mud ? (f.boost[k] ? ' bem' : ' mal') : ''), id: 'tf-atr-' + k, title: 'Rolar ' + n + ' (' + ef + ')', onclick: () => abrirRolagem(f, { atr: k, per: '' }) }, dado(ef, null, 24, mud ? (f.boost[k] ? 'var(--gold)' : '#e5484d') : 'var(--red)'), n); })),
-        trilhasTopo(f)),
-      conds.length ? h('div', { class: 'tf-conds', 'aria-label': 'Estado do personagem' }, conds.map(([t, c]) => h('span', { class: 'cond ' + c }, t))) : null));
+        trilhasTopo(f), seletorFoco()),
+      blocoEstado(f)));
 }
 function trilhasTopo(f) {
   const out = [], tr = (rot, v, m, cls, tit) => h('span', { class: 'tf-trilha ' + cls, title: tit || rot + ': ' + v + ' de ' + m, role: 'meter', 'aria-label': rot, 'aria-valuemin': 0, 'aria-valuemax': m, 'aria-valuenow': v }, rot, h('span', { class: 'seg' }, Array.from({ length: m }, (_, i) => h('i', { class: i < v ? 'on' : '' }))));
@@ -1646,7 +1935,9 @@ function trilhasTopo(f) {
 const ICO_SEC = { personagem: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>', combate: '<path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2"/>', habilidades: '<path d="M12 3l2.2 5.6L20 9l-4.5 3.8L17 19l-5-3.2L7 19l1.5-6.2L4 9l5.8-.4z"/>', inventario: '<path d="M4 8h16v12H4zM9 8V5h6v3"/>', relacoes: '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M3 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5M11 19c.8-3 2.8-4.5 5-4.5s4.2 1.5 5 4.5"/>', historico: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>' };
 function barraSecoes(f, sec) {
   const n = { habilidades: (f.hab || []).length + (f.rit || []).length, inventario: (f.itens || []).reduce((a, it) => a + ((it.qtd ?? 1) > 0 ? 1 : 0), 0), relacoes: (f.rel || []).length };
-  return h('nav', { class: 'secoes', role: 'tablist', 'aria-label': 'Partes da ficha' }, SECOES.map(([k, nome]) =>
+  return h('nav', { class: 'secoes', role: 'tablist', 'aria-label': 'Partes da ficha' },
+    UIS.foco ? h('button', { type: 'button', role: 'tab', id: 'sec-foco', class: 'foco ' + UIS.foco + (UIS.focoVer ? ' on' : ''), 'aria-selected': UIS.focoVer ? 'true' : 'false', onclick: () => { UIS.focoVer = true; renderFicha(); } }, 'Em ' + FOCO_N[UIS.foco]) : null,
+    SECOES.map(([k, nome]) =>
     h('button', { type: 'button', role: 'tab', id: 'sec-' + k, class: sec === k ? 'on' : '', 'aria-selected': sec === k ? 'true' : 'false', onclick: () => irSecao(k) }, h('span', { 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (ICO_SEC[k] || '') + '</svg>', style: { display: 'inline-flex' } }), nome, n[k] ? h('small', null, n[k]) : null)));
 }
 function historicoFicha(f) {
@@ -1808,7 +2099,12 @@ function renderFicha() {
     relacoes: [blocoRelacoes(f)],
     historico: [h('div', { class: 'duas' }, h('div', { class: 'pilha' }, historicoFicha(f)), h('div', { class: 'pilha' }, blocoProgressao(f)))],
   }[sec];
-  fill($('#ficha'), topoFicha(f, nomeRow), barraSecoes(f, sec), h('div', { class: 'sec-corpo', 'data-sec': sec }, corpo), apagar);
+  const emFoco = !!UIS.foco && UIS.focoVer;
+  const corpoV = emFoco ? [UIS.foco === 'combate' ? visaoCombate(f, { recursos, pericias }) : visaoInvest(f, { pericias, itens, notas })] : corpo;
+  const elF = $('#ficha');
+  fill(elF, topoFicha(f, nomeRow), barraSecoes(f, emFoco ? '' : sec), h('div', { class: 'sec-corpo', 'data-sec': emFoco ? 'foco' : sec }, corpoV), apagar);
+  elF.dataset.atm = estadoGeral(f).n; elF.dataset.foco = emFoco ? UIS.foco : '';
+  document.body.classList.toggle('fx-off', !FX.intenso);
 }
 function formHab(f) {
   const c = UIS.nh ||= { nome: '', cat: 'Personalizada', origem: 'Mestre', custoPD: 0, custoPV: 0, momento: '', req: '', limite: 'livre', duracao: '', txt: '', efeito: 'nenhum', d: 'd4', alvo: 'todos' };
@@ -2076,6 +2372,7 @@ function renderRolar() {
   const abrindo = m.hidden || m.dataset.modo !== modo, cx = m.querySelector('.mr-caixa'), st = cx && !abrindo ? cx.scrollTop : 0;
   const foco = document.activeElement && m.contains(document.activeElement) ? document.activeElement.id : '';
   m.hidden = false; m.dataset.modo = modo; document.body.classList.add('com-modal');
+  m.classList.toggle('com-pavor', modo === 'res' ? !!UIS.res.pavor : !!(f.pavorD && RG.pavor !== 'nenhum'));
   fill(m, h('div', { class: 'mr-caixa', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': modo === 'res' ? 'rs-titulo' : 'mr-titulo' },
     h('button', { class: 'mr-fechar', type: 'button', id: 'mr-fechar', 'aria-label': 'Fechar', onclick: fecharRolar }, '×'),
     modo === 'res' ? [cardResultado(UIS.res), h('div', { class: 'row mr-pe' },
@@ -2258,9 +2555,9 @@ function blocoTabela(f, res) {
   const les = res.especial === 'feri', tab = les ? LESOES : TRAUMAS, nome = les ? 'lesões' : 'traumas';
   const bon = patamar(f), dois = les && f.nl;
   if (!res.tab) return h('div', { class: 'tabela-fc' }, 'Tabela de ' + nome + ' (d20' + (bon ? ' +' + bon + ' de patamar' : '') + (dois ? ', dano não letal: rola 2 e fica com o melhor' : '') + '). ', h('button', { class: 'btn sm red', type: 'button', onclick: () => { { const a1 = rolar('d20'), a2 = dois ? rolar('d20') : 0; res.tab = Math.max(a1, a2) + bon; salvar(); animarDados([{ d: 'd20', v: a1, rot: 'Tabela', depois: dois && a2 > a1 ? 'fora' : '' }, ...(dois ? [{ d: 'd20', v: a2, rot: 'Tabela', depois: a1 >= a2 ? 'fora' : '' }] : [])], () => renderDados(), [h('b', null, res.tab), h('span', null, bon ? 'com +' + bon + ' de patamar' : 'na tabela')]); } } }, 'Rolar d20'));
-  const [, nm, txt, ef] = naTabela(tab, res.tab);
+  const [, nm, txt, ef0] = naTabela(tab, res.tab), ef = ef0 || {}, anota = !ef0 || !!ef0.pvMax;
   return h('div', { class: 'tabela-fc' }, h('b', null, res.tab + ' · ' + nm + ': '), txt, ' ',
-    ef && !res.tabAplicado ? h('button', { class: 'btn sm', type: 'button', onclick: () => {
+    !res.tabAplicado ? h('button', { class: 'btn sm', type: 'button', id: 'tab-aplicar', onclick: () => {
       if (ef.red) f.red[ef.red] = (f.red[ef.red] || 0) + 1;
       if (ef.pvMax) { f.pv.m = Math.max(1, f.pv.m - ef.pvMax); f.pv.v = Math.min(f.pv.v, f.pv.m); }
       if (ef.pv) f.pv.v = Math.min(f.pv.m, f.pv.v + ef.pv);
@@ -2268,8 +2565,9 @@ function blocoTabela(f, res) {
       if (ef.pdMais) f.pd.v = Math.min(f.pd.m, f.pd.v + ef.pdMais);
       if (ef.pavor) darPavor(f);
       if (ef.morto) f.morto = true; if (ef.perdido) f.perdido = true; if (les && !ef.morto) f.moribundo = false;
-      res.tabAplicado = true; salvar(); renderTudo(); toast(nm + ' aplicado na ficha.');
-    } }, 'Aplicar na ficha') : res.tabAplicado ? h('span', { style: { color: 'var(--muted)' } }, ' Aplicado.') : null);
+      if (anota) anotarSeq(f, nm, txt, les ? 'lesao' : 'trauma', res.tab);
+      res.tabAplicado = true; salvar(); renderTudo(); toast(nm + (ef0 ? ' aplicado na ficha.' : ' anotado na ficha.'));
+    } }, ef0 ? 'Aplicar na ficha' : 'Anotar na ficha') : res.tabAplicado ? h('span', { style: { color: 'var(--muted)' } }, ' Aplicado.') : null);
 }
 function blocoFalhaCritica(f, res) {
   if (!res.fc) return h('div', { class: 'tabela-fc' }, 'Falha crítica: o mestre escolhe uma consequência ou rola 1d8. ', h('button', { class: 'btn sm red', type: 'button', onclick: () => { res.fc = rolar('d8'); salvar(); animarDados([{ d: 'd8', v: res.fc, rot: 'Falha crítica' }], () => renderDados(), [h('b', null, res.fc), h('span', null, 'tabela de falha crítica')]); } }, 'Rolar 1d8'));
@@ -3097,7 +3395,7 @@ function ponteSalvar(ja) {
       for (const e of S.hist) if (e && e.t > ultimoHist) ultimoHist = e.t;
       for (const e of novas) { if (!e.fid) { const q = S.fichas.find(f => f.nome === e.quem); if (q) e.fid = q.id; } PONTE.rolou(e); }
       /* o estado em palavras (morto, pavor, passos...) vai junto, para a central do mestre não precisar recalcular */
-      for (const f of S.fichas) { try { f._cond = condicoes(f).map(c => c[0]); f._habN = (f.hab || []).map(k => (HAB[k] && HAB[k].nome) || k); f._ritN = (f.rit || []).map(k => (RITUAIS[k] && RITUAIS[k].nome) || k); } catch (e) {} }
+      for (const f of S.fichas) { try { f._cond = condicoes(f).map(c => c[0]); f._habN = (f.hab || []).map(k => (HAB[k] && HAB[k].nome) || k); f._ritN = (f.rit || []).map(k => (RITUAIS[k] && RITUAIS[k].nome) || k); f._est = estados(f).map(e => ({ n: e.nome, t: e.tom, c: e.curto, e: e.efeito, d: e.dura || '' })); } catch (e) {} }
       PONTE.salvar(S.fichas);
       for (const f of S.fichas) sincronizado[f.id] = JSON.stringify(f);
       if (PONTE.isGM()) { const r = JSON.stringify({ regras: S.regras, habCustom: S.habCustom, vocCustom: S.vocCustom || {} }); if (r !== ultimaRegra) { ultimaRegra = r; PONTE.salvarRegras(r); } }
@@ -3459,7 +3757,10 @@ if (PONTE) {
     ultimaRegra = r;
     try { const R = JSON.parse(r); if (R.regras) S.regras = R.regras; S.habCustom = R.habCustom || {}; for (const [k, x] of Object.entries(S.habCustom)) HAB[k] = x; S.vocCustom = R.vocCustom || {}; refazVoc(); aplicarVersao(); salvarLocal(); renderTudo(); } catch (e) {}
   });
-  addEventListener('pagehide', () => { try { off(); off2(); } catch (e) {} });
+  /* modo da cena: o mestre escolhe (livre, combate, investigação) e a ficha de todos se reorganiza */
+  if (PONTE.modo) { UIS.foco = PONTE.modo(); UIS.focoVer = !!UIS.foco; if (PONTE.isGM()) S.cena.combate = UIS.foco === 'combate'; }
+  const offM = PONTE.onModo && PONTE.onModo(m => setFoco(m, true));
+  addEventListener('pagehide', () => { try { off(); off2(); offM && offM(); } catch (e) {} });
   for (const f of S.fichas) sincronizado[f.id] = JSON.stringify(f);
 }
 if (UIS.modo === 'regras' && PONTE && !PONTE.isGM()) UIS.modo = 'mesa';

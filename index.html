@@ -318,6 +318,51 @@ main { position: relative; min-height: 0; }
 .c-quem .ponto, .c-jog .ponto { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
 .c-quem .ponto.on, .c-jog .ponto.on { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
 .c-alerta { min-width: 26px; height: 26px; border-radius: 13px; border: 0; background: var(--blood); color: var(--on-blood); font: 700 12px var(--f-body); cursor: pointer; }
+/* estado geral de cada personagem, atenção e modo da cena */
+.c-card { transition: border-color .4s, box-shadow .5s, background .5s; }
+.c-card header[data-c] { cursor: pointer; }
+.c-card header[data-c]:hover .c-quem b { color: var(--red); }
+.c-eg { flex: none; font: 700 10.5px var(--f-body); letter-spacing: .09em; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--line-2); color: var(--paper-2); white-space: nowrap; }
+.c-eg.normal { color: var(--ok); border-color: rgba(127, 191, 106, .4); }
+.c-eg.alerta { color: #e5a23c; border-color: rgba(216, 154, 58, .6); background: rgba(216, 154, 58, .08); }
+.c-eg.perigo { color: #ff6b6b; border-color: rgba(229, 72, 77, .7); background: rgba(229, 72, 77, .1); }
+.c-eg.critico { color: #fff; border-color: #e5484d; background: #a3161b; }
+.c-eg.pavor { color: #d9c6ff; border-color: #8e6bbf; background: rgba(142, 107, 191, .16); }
+.c-eg.fora { color: var(--muted); background: #0c0909; }
+.c-card.eg-alerta { border-left-color: #d89a3a; }
+.c-card.eg-perigo { border-left-color: #e5484d; box-shadow: inset 0 0 40px rgba(140, 10, 14, .22); }
+.c-card.eg-critico { border-color: #e5484d; border-left-color: #e5484d; box-shadow: inset 0 0 60px rgba(140, 10, 14, .38); animation: cCrit 2.4s ease-in-out infinite; }
+.c-card.eg-pavor { border-left-color: #8e6bbf; }
+.c-card.tem-pavor { background: linear-gradient(180deg, rgba(60, 32, 110, .24), var(--panel) 70%); box-shadow: inset 0 0 0 1px rgba(142, 107, 191, .35); }
+.c-card.eg-critico.tem-pavor, .c-card.eg-perigo.tem-pavor { box-shadow: inset 0 0 0 1px rgba(142, 107, 191, .35), inset 0 0 50px rgba(140, 10, 14, .3); }
+.c-card.eg-fora { opacity: .72; filter: grayscale(.6); }
+@keyframes cCrit { 50% { box-shadow: inset 0 0 30px rgba(140, 10, 14, .2); } }
+.c-card .c-med.pd .c-med-n { color: #d8b23a; }
+.c-card .c-med.pd .c-barra i { background: #d8b23a; }
+.c-card .c-med.pd.baixo .c-barra i { background: #e08a2c; } .c-card .c-med.pd.crit .c-barra i { background: #e0662c; }
+.c-card .c-med.pv.baixo .c-barra i { background: #d89a3a; } .c-card .c-med.pv.crit .c-barra i { background: #e5484d; box-shadow: 0 0 6px #e5484d; }
+.c-card header { flex-wrap: wrap; } .c-card .c-quem { min-width: 120px; }
+.c-barra i { transition: width .45s ease, background .4s; }
+.c-cond { cursor: help; }
+.c-kpi.pavor b { color: #c9b3f0; }
+.c-modo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 12px; font-size: 13px; color: var(--paper-2); }
+.c-modo > span { font: 700 11px var(--f-body); letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+.c-modo button { background: var(--panel); border: 1px solid var(--line-2); color: var(--paper-2); padding: 7px 14px; min-height: 36px; font: 600 13px var(--f-body); cursor: pointer; }
+.c-modo button.on { background: var(--blood); border-color: var(--blood); color: var(--on-blood); }
+.c-modo button:hover:not(.on) { border-color: var(--red); color: var(--paper); }
+.c-modo small { color: var(--muted); flex-basis: 100%; }
+.c-atencao { margin: 12px 0; border: 1px solid var(--line-2); border-left: 3px solid #e5484d; background: var(--panel); padding: 10px 12px; max-height: 240px; overflow: auto; }
+.c-atencao.ok { border-left-color: var(--ok); color: var(--paper-2); font-size: 13px; }
+.c-atencao.ok b { font-weight: 600; }
+.c-atencao h2 { margin: 0 0 6px; font: 18px/1.1 var(--f-display); letter-spacing: .04em; }
+.c-atencao h2 small { font: 12px var(--f-body); color: var(--muted); }
+.c-atencao ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.c-atencao li button { width: 100%; display: grid; grid-template-columns: minmax(90px, 170px) auto minmax(0, 1fr); gap: 10px; align-items: center; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--line); color: var(--paper); padding: 6px 4px; min-height: 38px; cursor: pointer; font: 14px var(--f-body); }
+.c-atencao li button:hover { background: var(--panel-2); }
+.c-atencao li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.c-mot { font-size: 12.5px; color: var(--paper-2); }
+@media (max-width: 700px) { .c-atencao li button { grid-template-columns: minmax(0, 1fr) auto; } .c-mot { grid-column: 1 / -1; } }
+@media (prefers-reduced-motion: reduce) { .c-card.eg-critico { animation: none; } }
 .c-med { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
 .c-med-n { font: 15px/1 var(--f-display); color: var(--red); }
 .c-barra { height: 8px; background: var(--panel-2); border: 1px solid var(--line-2); position: relative; overflow: hidden; }
@@ -471,7 +516,7 @@ main { position: relative; min-height: 0; }
 <script src="core.js?v=6"></script>
 <script src="voz.js?v=2"></script>
 <script src="sons.js?v=2"></script>
-<script src="app.js?v=13"></script>
-<script src="central.js?v=3"></script>
+<script src="app.js?v=14"></script>
+<script src="central.js?v=4"></script>
 </body>
 </html>
