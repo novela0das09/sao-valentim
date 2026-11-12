@@ -2129,7 +2129,7 @@ let modoEstr = false, estrPronta = false, salvoEstr = null, chaoE = null, estrHe
 const ESTR = { x0: -6.2, x1: 6.2, z0: 0.55, z1: 3.05, piso: 1.12, teto: 3.22, zb: 1.8, v: 14 };
 const E_ = { esteira: [], rodas: [], teto: null, onibus: null, carro: null, faroisL: [], luzInt: [], texCampo: null, texPista: null, texAcost: null, vidro: null, destino: null, painel: null };
 const dentroOnibus = (x, z) => x > ESTR.x0 + 0.3 && x < ESTR.x1 - 0.3 && z > ESTR.z0 + 0.15 && z < ESTR.z1 - 0.15;
-const ondaE = (x, z) => { const d = Math.max(0, Math.abs(z) - 10); return d ? d * d * 0.0035 + 0.8 * Math.sin(x * 0.018 + z * 0.04) * Math.min(1, d / 30) : 0; };
+const ondaE = (x, z) => { const d = Math.max(0, Math.abs(z) - 10); return d ? Math.min(d, 70) ** 2 * 0.0028 + (2.2 * Math.sin(x * 0.018 + z * 0.031) + 1.2 * Math.sin(x * 0.041 - z * 0.023)) * Math.min(1, d / 40) : 0; }; // coxilhas suaves, sem paredão no fim do campo
 const altE = (x, z) => dentroOnibus(x, z) ? ESTR.piso : ondaE(x, z);
 const cenaAqui = () => modoMata ? 'mata' : modoEstr ? 'estrada' : 'vale';
 const grupoCena = cn => cn === 'mata' ? gMata : cn === 'estrada' ? gEstr : scene;
