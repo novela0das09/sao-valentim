@@ -2156,7 +2156,7 @@ function quadroEstrada(t, dt) {
   E_.onibus.position.y = estrAndando ? Math.sin(t * 9) * 0.01 + Math.sin(t * 2.3) * 0.006 : 0;
   E_.onibus.rotation.x = estrAndando ? Math.sin(t * 1.7) * 0.003 : 0;
   estrCarroX += ((estrAndando ? ESTR.v : 0) + 17) * dt; if (E_.carro) E_.carro.position.x = 320 - (estrCarroX % 900);
-  E_.teto.visible = camera.position.y < ESTR.teto + 0.4;
+  { const c = camera.position, nx = Math.max(ESTR.x0, Math.min(ESTR.x1, c.x)), nz = Math.max(ESTR.z0, Math.min(ESTR.z1, c.z)), dy = c.y - ESTR.teto; E_.teto.visible = !(dy > 0.4 && dy > 0.6 * Math.hypot(c.x - nx, c.z - nz)); } // o teto some só quando se olha o ônibus de cima
   const alvo = controls.target; estrSol.position.set(alvo.x - 30, alvo.y + 60, alvo.z + 25); estrSol.target.position.copy(alvo);
   for (const s of standees) {
     if (s.cena !== 'estrada') continue;
