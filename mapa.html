@@ -1934,8 +1934,29 @@ function montaMata() {
     planta(tPin, cPin, mPinC, pins, ['#ffffff', '#e6efe4', '#cfdccd', '#f2f6ea']);
     planta(tFol, cFol, mFolC, fols, ['#ffffff', '#e9ecd2', '#d2dcc0', '#e8c98a', '#f0e2b0']);
   }
-  espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 0.8 + rnd() * 0.8, 'mato', null, 'mata'); return true; });
-  espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'mato', null, 'mata'); return true; });
+  {
+    /* samambaias e capim: folhas pintadas com recorte, em três planos cruzados */
+    const folhaTex = (tipo) => telaTex(256, 256, (g, w, h) => {
+      g.clearRect(0, 0, w, h);
+      if (tipo === 'samambaia') {
+        for (let f = 0; f < 7; f++) { const a = -Math.PI / 2 + (f - 3) * 0.32, L = 150 + rnd() * 70, bx = w / 2, by = h - 4;
+          g.strokeStyle = '#3f5a2c'; g.lineWidth = 3; g.beginPath(); g.moveTo(bx, by); const ex = bx + Math.cos(a) * L, ey = by + Math.sin(a) * L; g.quadraticCurveTo(bx + Math.cos(a) * L * 0.5 + (f - 3) * 8, by + Math.sin(a) * L * 0.6, ex, ey); g.stroke();
+          for (let k = 0.12; k < 1; k += 0.07) { const px = bx + (ex - bx) * k, py = by + (ey - by) * k, tam = (1 - k) * 26 + 5; for (const lado of [-1, 1]) { g.fillStyle = k > 0.8 ? '#7d9a4a' : rnd() < 0.5 ? '#4f7034' : '#5d7d3c'; g.save(); g.translate(px, py); g.rotate(a + lado * 1.2); g.beginPath(); g.ellipse(tam / 2, 0, tam / 2, tam / 6, 0, 0, TAU); g.fill(); g.restore(); } } }
+      } else {
+        for (let i = 0; i < 70; i++) { const bx = w / 2 + (rnd() - 0.5) * 120, L = 70 + rnd() * 150, inc = (rnd() - 0.5) * 70; g.strokeStyle = rnd() < 0.3 ? '#9a9450' : rnd() < 0.5 ? '#5f7a38' : '#4a6430'; g.lineWidth = 2 + rnd() * 2.5; g.beginPath(); g.moveTo(bx, h); g.quadraticCurveTo(bx + inc * 0.3, h - L * 0.6, bx + inc, h - L); g.stroke(); }
+      }
+    }, [1, 1]);
+    const cruz = (larg, alto) => { const ps = []; for (let i = 0; i < 3; i++) { const p = new THREE.PlaneGeometry(larg, alto); p.translate(0, alto / 2, 0); p.rotateY(i * Math.PI / 3); ps.push(p); } return mergeGeometries(ps); };
+    const veget = (tex, geo, n, folga, escala, tons) => {
+      const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.9 });
+      const pts = []; for (let i = 0; i < n * 10 && pts.length < n; i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (folga === null ? !naTrilhaM(x, z) : livreM(x, z, folga)) pts.push([x, z]); }
+      const im = new THREE.InstancedMesh(geo, mat, pts.length), mm4 = new THREE.Matrix4(), c = new THREE.Color();
+      pts.forEach(([x, z], i) => { const k = escala[0] + rnd() * escala[1]; mm4.compose(_v.set(x, altM(x, z) - 0.05, z), _q.setFromEuler(_e.set(0, rnd() * TAU, 0)), _s.set(k, k * (0.8 + rnd() * 0.4), k)); im.setMatrixAt(i, mm4); im.setColorAt(i, c.set(tons[(rnd() * tons.length) | 0])); });
+      im.receiveShadow = true; im.computeBoundingSphere(); gMata.add(im);
+    };
+    veget(folhaTex('samambaia'), cruz(1.8, 1.4), fraco ? 300 : 700, -0.5, [0.7, 0.9], ['#ffffff', '#e6eccf', '#d4dcb8', '#c9b98a']);
+    veget(folhaTex('capim'), cruz(1.1, 0.8), fraco ? 220 : 520, null, [0.8, 0.9], ['#ffffff', '#ecebc8', '#d8d7a8']);
+  }
   espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; if (rnd() < 0.4) { const k = 0.5 + rnd() * 0.9; rocha(gMata, x, altM(x, z) - 0.15, z, k, k * (0.5 + rnd() * 0.4), k * (0.8 + rnd() * 0.5)); } else inst('n', sorteia(['log', 'stump_old', 'stump_old']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
   espalha(60, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', 'mushroom_redGroup', x, altM(x, z), z, rnd() * TAU, 1 + rnd(), '', null, 'mata'); return true; });
   /* pedras na beira da sanga */
