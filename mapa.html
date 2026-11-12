@@ -2898,7 +2898,14 @@ function iniciaPonte() {
   const off3 = PM.onFoco(id => { PM._foco = null; const s = porId.get(id); if (s) olharPeca(s); else focoPend = id; });
   addEventListener('pagehide', () => { try { off1(); off2(); off3(); } catch (e) {} });
   sincPecas(PM.pecas());
-  aplicaCena(PM.cena());
+  /* voltar ao site: a cena, o dia/noite e a câmera ficam como você deixou (a câmera fica guardada neste navegador) */
+  let guardada = null; try { guardada = JSON.parse(localStorage.getItem('sv.vista') || 'null'); } catch (e) { guardada = null; }
+  const c0 = PM.cena() || (gm && guardada && guardada.estado) || null;
+  aplicaCena(c0);
+  let restaurou = false;
+  const voltaVista = () => { if (restaurou || !guardada || !guardada.v || (SO_JOGADOR && CAM_TRAVA)) return; if (guardada.cena !== cenaAqui()) return; restaurou = true; voo = null; camera.position.set(...guardada.v.p); controls.target.set(...guardada.v.a); controls.update(); };
+  setTimeout(voltaVista, 80); const offV = PM.onCena(() => setTimeout(voltaVista, 80)); setTimeout(() => { restaurou = true; offV(); }, 8000);
+  setInterval(() => { if (!restaurou && guardada) return; try { localStorage.setItem('sv.vista', JSON.stringify({ cena: cenaAqui(), v: vistaAtual(), estado: gm ? estadoCena() : null })); } catch (e) { /* sem armazenamento */ } }, 2500);
 }
 
 /* ---------- montar tudo ---------- */
