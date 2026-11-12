@@ -363,6 +363,7 @@ async function montaInstancias() {
       if (e.variante === 'ruina') mat = tinta(mat, 0.42, 0x2c3326, 0.45); // musgo e lodo de 37 anos debaixo d'água
       if (e.variante === 'velha') mat = tinta(mat, 0.55, 0x3b3a33, 0.35);
       if (e.variante === 'escura') mat = tinta(mat, 0.38, 0x172b1d, 0.5);
+      if (e.variante === 'mato') mat = tinta(mat, 0.62, 0x3b4a22, 0.42);
       if (e.variante === 'cinza') mat = tinta(mat, 0.55, 0x555048, 0.2);
       if (e.variante === 'sonho') mat = tinta(mat, 0.9, 0xc9c6bc, 0.2);
       if (e.variante === 'verde' && /tree|leaf|leav/i.test(nomeMat)) { mat = mat.clone(); mat.color.setRGB(0.26, 0.42, 0.26); mat.alphaTest = 0.45; mat.transparent = false; mat.depthWrite = true; mat.side = THREE.DoubleSide; }
@@ -1852,7 +1853,7 @@ function montaMata() {
     cor.set([c.r, c.g, c.b], i * 3);
   }
   geo.setAttribute('color', new THREE.BufferAttribute(cor, 3)); geo.computeVertexNormals();
-  { const ca = geo.attributes.color; for (let i = 0; i < ca.array.length; i++) ca.array[i] = Math.min(1, ca.array[i] * 2.3); }
+  { const ca = geo.attributes.color; for (let i = 0; i < ca.array.length; i++) ca.array[i] = Math.min(1, 0.42 + ca.array[i] * 6); }
   const tch = texMataChao();
   chaoM = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, map: tch.map, normalMap: tch.normal, normalScale: new THREE.Vector2(1.3, 1.3) })); chaoM.receiveShadow = true; gMata.add(chaoM);
   /* a sanga: uma fita de água que corre */
@@ -1872,15 +1873,34 @@ function montaMata() {
   const ara = [];
   for (let i = 0; i < 9000 && ara.length < (fraco ? 260 : 520); i++) { const x = -140 + rnd() * 280, z = -140 + rnd() * 280; if (!livreM(x, z, 2.5)) continue; ara.push([x, altM(x, z), z, 0.7 + rnd() * 0.6, rnd() * TAU]); }
   const tCa = texCasca(), tCo = texCopa();
-  const mT = new THREE.MeshStandardMaterial({ color: 0xb8a898, roughness: 1, map: tCa.map, normalMap: tCa.normal }), mC = new THREE.MeshStandardMaterial({ color: 0x9fb39f, roughness: 0.95, map: tCo.map, normalMap: tCo.normal, normalScale: new THREE.Vector2(0.8, 0.8) });
+  const mT = new THREE.MeshStandardMaterial({ color: 0xd8c8b8, roughness: 1, map: tCa.map, normalMap: tCa.normal }), mC = new THREE.MeshStandardMaterial({ color: 0xd6e2d0, roughness: 0.95, map: tCo.map, normalMap: tCo.normal, normalScale: new THREE.Vector2(0.8, 0.8) });
   const iT = new THREE.InstancedMesh(tronco, mT, ara.length), iC = new THREE.InstancedMesh(copa, mC, ara.length), m4 = new THREE.Matrix4();
   ara.forEach(([x, y, z, k, r], i) => { _e.set(0, r, 0); _q.setFromEuler(_e); m4.compose(_v.set(x, y - 0.3, z), _q, _s.set(k, k * (0.9 + rnd() * 0.3), k)); iT.setMatrixAt(i, m4); iC.setMatrixAt(i, m4); });
   for (const im of [iT, iC]) { im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); gMata.add(im); }
   const espalha = (n, fn) => { for (let i = 0, f = 0; i < n * 8 && f < n; i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (fn(x, z)) f++; } };
-  espalha(fraco ? 260 : 560, (x, z) => { if (!livreM(x, z, 1.5)) return false; inst('n', sorteia(['tree_pineTallA_detailed', 'tree_pineTallC_detailed', 'tree_pineRoundC', 'tree_pineDefaultA']), x, altM(x, z) - 0.2, z, rnd() * TAU, 1.6 + rnd() * 1.4, 'escura', null, 'mata'); return true; });
-  espalha(fraco ? 120 : 260, (x, z) => { if (!livreM(x, z, 1)) return false; inst('u', sorteia(['tree-large', 'tree-park-large']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.6 + rnd(), 'escura', null, 'mata'); return true; });
-  espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 0.8 + rnd() * 0.8, 'escura', null, 'mata'); return true; });
-  espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'escura', null, 'mata'); return true; });
+  {
+    const semIdx = gs => gs.map(g => g.index ? g.toNonIndexed() : g);
+    const tPin = new THREE.CylinderGeometry(0.16, 0.3, 9, 7); tPin.translate(0, 4.5, 0);
+    const cPin = mergeGeometries(semIdx([[2.9, 3.6, 3.2], [2.4, 3.2, 5.2], [1.9, 2.8, 7.0], [1.3, 2.4, 8.6], [0.7, 1.8, 10]].map(([r, h, y]) => { const g = new THREE.ConeGeometry(r, h, 9, 1); g.translate(0, y, 0); return g; })));
+    const tFol = new THREE.CylinderGeometry(0.22, 0.38, 6, 7); tFol.translate(0, 3, 0);
+    const cFol = mergeGeometries(semIdx([[0, 6.8, 0, 2.6], [1.5, 6.0, 0.6, 1.9], [-1.3, 6.2, -0.7, 2.0], [0.3, 7.6, -0.9, 1.7], [-0.4, 5.6, 1.2, 1.6]].map(([x, y, z, r]) => { const g = new THREE.IcosahedronGeometry(r, 1); g.scale(1, 0.8, 1); g.translate(x, y, z); return g; })));
+    const tFolha = telaTex(256, 256, (g, w, h) => { g.fillStyle = '#3f5a34'; g.fillRect(0, 0, w, h); for (let i = 0; i < 2200; i++) { const x = rnd() * w, y = rnd() * h, r = 2 + rnd() * 5; g.fillStyle = rnd() < 0.45 ? 'rgba(98,130,70,0.75)' : rnd() < 0.6 ? 'rgba(30,46,26,0.8)' : 'rgba(140,160,96,0.5)'; g.beginPath(); g.ellipse(x, y, r, r * 0.6, rnd() * TAU, 0, TAU); g.fill(); } }, [2, 2]);
+    const mPinC = new THREE.MeshStandardMaterial({ color: 0xa9bfae, roughness: 0.95, map: tCo.map, normalMap: tCo.normal, normalScale: new THREE.Vector2(0.9, 0.9) });
+    const mFolC = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, map: tFolha, normalMap: normalDe(tFolha, 2.4), flatShading: true });
+    const pins = [], fols = [];
+    for (let i = 0; i < 12000 && pins.length < (fraco ? 260 : 560); i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (livreM(x, z, 1.5)) pins.push([x, altM(x, z) - 0.2, z, 0.8 + rnd() * 0.7, rnd() * TAU]); }
+    for (let i = 0; i < 8000 && fols.length < (fraco ? 120 : 260); i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (livreM(x, z, 1)) fols.push([x, altM(x, z) - 0.1, z, 0.8 + rnd() * 0.6, rnd() * TAU]); }
+    const m4b = new THREE.Matrix4(), cor = new THREE.Color();
+    const planta = (geoT, geoC, matC, lista, tons) => {
+      const iT2 = new THREE.InstancedMesh(geoT, mT, lista.length), iC2 = new THREE.InstancedMesh(geoC, matC, lista.length);
+      lista.forEach(([x, y, z, k, r], i) => { m4b.compose(_v.set(x, y, z), _q.setFromEuler(_e.set(0, r, 0)), _s.set(k, k * (0.85 + rnd() * 0.35), k)); iT2.setMatrixAt(i, m4b); iC2.setMatrixAt(i, m4b); iC2.setColorAt(i, cor.set(tons[(rnd() * tons.length) | 0])); });
+      for (const im of [iT2, iC2]) { im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); gMata.add(im); }
+    };
+    planta(tPin, cPin, mPinC, pins, ['#ffffff', '#e6efe4', '#cfdccd', '#f2f6ea']);
+    planta(tFol, cFol, mFolC, fols, ['#ffffff', '#e9ecd2', '#d2dcc0', '#e8c98a', '#f0e2b0']);
+  }
+  espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 0.8 + rnd() * 0.8, 'mato', null, 'mata'); return true; });
+  espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'mato', null, 'mata'); return true; });
   espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; inst('n', sorteia(['log', 'stump_old', 'stump_old', 'rock_largeA', 'stone_largeA']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
   espalha(60, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', 'mushroom_redGroup', x, altM(x, z), z, rnd() * TAU, 1 + rnd(), '', null, 'mata'); return true; });
   /* pedras na beira da sanga */
