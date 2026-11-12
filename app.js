@@ -287,9 +287,11 @@
     me: () => SV.me.uid,
     pausado: () => aba !== 'mapa' || document.hidden,
     pecas() {
+      /* peça sem nome é resto de uma peça apagada enquanto alguém a arrastava: o mestre limpa */
+      if (SV.isGM) for (const [ref, src] of [['pecas/', D.pecas], ['pecas_gm/', D.pecasGM]]) for (const [id, p] of Object.entries(src)) if (p && !p.nome) { delete src[id]; SV.db.remove(ref + id).catch(() => {}); }
       const out = {};
-      for (const [id, p] of Object.entries(D.pecas)) if (p) out[id] = Object.assign({}, p, { id, visivel: true, trava: D.travas[id] === true });
-      if (SV.isGM) for (const [id, p] of Object.entries(D.pecasGM)) if (p) out[id] = Object.assign({}, p, { id, visivel: false, trava: D.travas[id] === true });
+      for (const [id, p] of Object.entries(D.pecas)) if (p && p.nome) out[id] = Object.assign({}, p, { id, visivel: true, trava: D.travas[id] === true });
+      if (SV.isGM) for (const [id, p] of Object.entries(D.pecasGM)) if (p && p.nome) out[id] = Object.assign({}, p, { id, visivel: false, trava: D.travas[id] === true });
       return out;
     },
     onPecas(cb) { return ouve('pecas', () => cb(M.pecas())); },
@@ -309,7 +311,7 @@
       const agora = Date.now();
       clearTimeout(ultimoEnvio[id + 't']);
       const o = { x, z }; if (final && Number.isFinite(r)) o.r = alvo.r = Math.round(r * 100) / 100;
-      const envia = () => { ultimoEnvio[id] = Date.now(); SV.db.update(M.caminho(id), o).catch(e => SV.toast('Não deu para mover a peça (' + (e.code || e.message) + ').', 'err')); };
+      const envia = () => { if (!(D.pecas[id] || D.pecasGM[id])) return; /* a peça saiu do mapa: não recria um fantasma só com x e z */ ultimoEnvio[id] = Date.now(); SV.db.update(M.caminho(id), o).catch(e => SV.toast('Não deu para mover a peça (' + (e.code || e.message) + ').', 'err')); };
       if (final || agora - (ultimoEnvio[id] || 0) > 150) envia();
       else ultimoEnvio[id + 't'] = setTimeout(envia, 160);
     },
@@ -338,11 +340,13 @@
       if (tem) await SV.db.set('notas/' + SV.me.uid + '/arte/' + chave, { arte: a, alt: h, nome: p.nome, t: Date.now() });
       else await SV.db.remove('notas/' + SV.me.uid + '/arte/' + chave);
     },
-    editar(id, o) { if (M.podeMover(id) || SV.isGM) SV.db.update(M.caminho(id), o).catch(() => {}); },
+    editar(id, o) { if (!(D.pecas[id] || D.pecasGM[id])) return; if (M.podeMover(id) || SV.isGM) SV.db.update(M.caminho(id), o).catch(() => {}); },
     remover(id) {
       const p = D.pecas[id] || D.pecasGM[id];
       if (!p || !(SV.isGM || p.dono === SV.me.uid)) return;
+      clearTimeout(ultimoEnvio[id + 't']);
       SV.db.remove(M.caminho(id)).catch(() => {});
+      delete D.pecas[id]; delete D.pecasGM[id]; avisa('pecas'); // some na hora, sem esperar o servidor
       if (SV.isGM) SV.db.remove('mesa/travas/' + id).catch(() => {});
     },
     setTrava(id, on) { if (SV.isGM) on ? SV.db.set('mesa/travas/' + id, true) : SV.db.remove('mesa/travas/' + id); },
@@ -388,7 +392,7 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=16' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=17' + location.search.replace('?', '&'); }
     if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=26' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();

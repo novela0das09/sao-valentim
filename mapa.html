@@ -117,6 +117,10 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .ch .btn[aria-pressed="true"] { border-color: var(--c, #e2373d); color: #fff; }
 .ch.oculta { opacity: .6; }
 #ch-list .btn.grupo { width: 100%; justify-content: center; margin-top: 4px; }
+.na-mesa .ch { grid-template-columns: auto minmax(0, 1fr); row-gap: 6px; }
+.na-mesa .ch .acts { grid-column: 1 / -1; flex-wrap: wrap; }
+.na-mesa .ch.longe { border-style: dashed; }
+.na-mesa .ch.longe .nm small { color: #e0b45e; }
 </style>
 </head>
 <body>
@@ -2750,7 +2754,7 @@ function sincPecas(ps) {
     s.mat.opacity = p.visivel === false ? 0.5 : 1;
     if (focoPend === id) { focoPend = null; setTimeout(() => olharPeca(s), 50); }
   }
-  for (const [id, s] of [...porId]) if (!vistos.has(id)) { if (s.g.parent) s.g.parent.remove(s.g); standees.splice(standees.indexOf(s), 1); porId.delete(id); }
+  for (const [id, s] of [...porId]) if (!vistos.has(id)) { if (s.g.parent) s.g.parent.remove(s.g); const i = standees.indexOf(s); if (i >= 0) standees.splice(i, 1); if (arrasto === s) arrasto = null; porId.delete(id); }
   renderLista();
 }
 function renderLista() {
@@ -2762,7 +2766,7 @@ function renderLista() {
   const bt = (txt, title, fn, pressed) => { const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = txt; b.title = title; b.setAttribute('aria-label', title); if (pressed != null) b.setAttribute('aria-pressed', String(pressed)); b.onclick = fn; return b; };
   for (const s of lista) {
     const d = s.dados || {}, minha = d.dono === eu;
-    const row = document.createElement('div'); row.className = 'ch' + (minha ? ' minha' : '') + (d.visivel === false ? ' oculta' : ''); row.style.setProperty('--c', s.cor);
+    const row = document.createElement('div'); row.className = 'ch' + (minha ? ' minha' : '') + (d.visivel === false ? ' oculta' : '') + (ondeEsta(s) ? '' : ' longe'); if (!ondeEsta(s)) row.title = s.nome + ' está ' + EM_CENA[s.cena || 'vale'] + ', não nesta cena'; row.style.setProperty('--c', s.cor);
     const i = document.createElement('i');
     let nm;
     if (gm && !d.ficha) {
