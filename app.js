@@ -42,7 +42,7 @@
   };
 
   /* ---------- o que vem do banco ---------- */
-  const D = { users: {}, online: {}, fichas: {}, npcs: {}, pecas: {}, pecasGM: {}, travas: {}, cena3d: null, mural: {}, pedidos: {}, rolagens: {}, regras: null, modo: '', banidos: {} };
+  const D = { users: {}, online: {}, fichas: {}, npcs: {}, pecas: {}, pecasGM: {}, travas: {}, cena3d: null, mural: {}, pedidos: {}, rolagens: {}, regras: null, modo: '', banidos: {}, arteLib: {} };
   const ouvintes = {};
   const ouve = (k, f) => { (ouvintes[k] ||= new Set()).add(f); return () => ouvintes[k].delete(f); };
   const avisa = k => { for (const f of [...(ouvintes[k] || [])]) { try { f(D[k]); } catch (e) { ouvintes[k].delete(f); console.warn(e); } } };
@@ -87,6 +87,8 @@
     db.on('pecas', v => { D.pecas = v || {}; avisa('pecas'); SV.voz.mix && SV.voz.mix(); render.voz(); });
     if (SV.isGM) db.on('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
+    /* a arte das peças fica guardada no caderno de cada um (só a pessoa lê), para voltar quando a peça sai e entra no mapa */
+    db.on('notas/' + me + '/arte', v => { D.arteLib = v && typeof v === 'object' ? v : {}; });
     db.on('mesa/cena3d', v => { D.cena3d = v || null; avisa('cena3d'); });
     db.on('mesa/regras', v => { const j = v && v.json ? v.json : null, m = (v && typeof v.modo === 'string' && v.modo) || ''; if (j !== D.regras || !D.regrasOk) { D.regras = j; D.regrasOk = true; avisa('regras'); } if (m !== D.modo) { D.modo = m; avisa('modo'); } });
     db.on('mesa/mural', v => {
@@ -132,7 +134,18 @@
     const nome = nomeCurto(f), cor = f.cor || p.cor;
     const pub = pecaPublica(f);
     if (SV.isGM && pub !== !!D.pecas[id]) { M.setVisivel(id, pub, true); return; }
-    if (p.nome !== nome || p.cor !== cor) SV.M.editar(id, { nome, cor });
+    const muda = {};
+    if (p.nome !== nome || p.cor !== cor) Object.assign(muda, { nome, cor });
+    const est = estadoPeca(f); if ((p.estado || 'normal') !== est) muda.estado = est;
+    if (Object.keys(muda).length) SV.M.editar(id, muda);
+  }
+  /* a figura no mapa muda com a ficha: ferida com PV baixo, em pavor com o dado de pavor ou PD no fim */
+  function estadoPeca(f) {
+    if (f.morto || f.perdido) return 'morto';
+    const r = x => (x && +x.m > 0 ? +x.v / +x.m : 1), pv = r(f.pv), pd = r(f.pd);
+    if (f.moribundo || pv <= 0.25) return 'ferido';
+    if (f.pavorD || pd <= 0.25) return 'pavor';
+    return pv <= 0.5 ? 'ferido' : 'normal';
   }
   let perfisEnviados = null;
   function publicaPerfis() {
@@ -218,7 +231,8 @@
       if (!f) { SV.toast('Salve a ficha antes de pôr no mapa.'); return; }
       const id = 'f_' + fid;
       if (!(D.pecas[id] || D.pecasGM[id])) {
-        SV.M.novaPeca(id, { nome: nomeCurto(f), cor: f.cor || '', dono: f.dono || '', tipo: f.papel || 'pj', ficha: fid }, pecaPublica(f));
+        const a = D.arteLib[fid];
+        SV.M.novaPeca(id, { nome: nomeCurto(f), cor: f.cor || '', dono: f.dono || '', tipo: f.papel || 'pj', ficha: fid, arte: a && a.arte, alt: a && a.alt, estado: estadoPeca(f) }, pecaPublica(f));
       }
       if (focar) { SV.M.focar(id); irAba('mapa'); }
     },
@@ -285,7 +299,7 @@
       if (SV.isGM) return true;
       return p.dono === SV.me.uid && D.travas[id] !== true;
     },
-    mover(id, x, z, final) {
+    mover(id, x, z, final, r) {
       if (!M.podeMover(id)) return;
       x = Math.round(x * 100) / 100; z = Math.round(z * 100) / 100;
       const alvo = D.pecas[id] || D.pecasGM[id];
@@ -293,7 +307,8 @@
       SV.voz.mix && SV.voz.mix();
       const agora = Date.now();
       clearTimeout(ultimoEnvio[id + 't']);
-      const envia = () => { ultimoEnvio[id] = Date.now(); SV.db.update(M.caminho(id), { x, z }).catch(e => SV.toast('Não deu para mover a peça (' + (e.code || e.message) + ').', 'err')); };
+      const o = { x, z }; if (final && Number.isFinite(r)) o.r = alvo.r = Math.round(r * 100) / 100;
+      const envia = () => { ultimoEnvio[id] = Date.now(); SV.db.update(M.caminho(id), o).catch(e => SV.toast('Não deu para mover a peça (' + (e.code || e.message) + ').', 'err')); };
       if (final || agora - (ultimoEnvio[id] || 0) > 150) envia();
       else ultimoEnvio[id + 't'] = setTimeout(envia, 160);
     },
@@ -303,10 +318,24 @@
       const n = Object.keys(D.pecas).length + Object.keys(D.pecasGM).length;
       const p = { nome: String(dados.nome || 'Figura').slice(0, 22), cor: dados.cor || CORES[n % CORES.length], dono: dados.dono || '', tipo: dados.tipo || 'npc', ficha: dados.ficha || '', x: dados.x ?? null, z: dados.z ?? null, t: Date.now() };
       if (p.x == null) { delete p.x; delete p.z; }
+      if (dados.arte && typeof dados.arte === 'object') { p.arte = dados.arte; p.alt = +dados.alt || 1.75; }
+      if (dados.estado && dados.estado !== 'normal') p.estado = dados.estado;
+      if (dados.cena === 'mata') p.cena = 'mata';
       (publica ? D.pecas : D.pecasGM)[id] = p;
       SV.db.set((publica ? 'pecas/' : 'pecas_gm/') + id, p).catch(e => SV.toast('Não deu para pôr a peça (' + (e.code || e.message) + ').', 'err'));
       avisa('pecas');
       return id;
+    },
+    /* arte da figura em pé: vai para a peça (os outros veem quando a peça está visível) e para o caderno de quem salvou */
+    arteLib() { return Object.entries(D.arteLib || {}).filter(([, x]) => x && x.arte).map(([k, x]) => ({ chave: k, nome: String(x.nome || k), arte: x.arte, alt: x.alt })).sort((a, b) => a.nome.localeCompare(b.nome)); },
+    async salvarArte(id, arte, alt) {
+      const p = D.pecas[id] || D.pecasGM[id];
+      if (!p || !(SV.isGM || p.dono === SV.me.uid)) throw new Error('sem permissão');
+      const a = {}; for (const k of ['frente', 'costas', 'ferido', 'pavor']) if (arte && typeof arte[k] === 'string' && /^data:image\/(png|webp|jpeg);base64,/.test(arte[k])) a[k] = arte[k];
+      const tem = Object.keys(a).length, h = Math.min(3.5, Math.max(0.4, +alt || 1.75)), chave = p.ficha || id;
+      await SV.db.update(M.caminho(id), { arte: tem ? a : null, alt: h });
+      if (tem) await SV.db.set('notas/' + SV.me.uid + '/arte/' + chave, { arte: a, alt: h, nome: p.nome, t: Date.now() });
+      else await SV.db.remove('notas/' + SV.me.uid + '/arte/' + chave);
     },
     editar(id, o) { if (M.podeMover(id) || SV.isGM) SV.db.update(M.caminho(id), o).catch(() => {}); },
     remover(id) {
@@ -340,7 +369,7 @@
   /* posição de cada pessoa para a call: a peça de jogador dela no mapa */
   SV.posDe = uid => {
     const e = Object.entries(D.pecas).find(([, p]) => p && p.dono === uid && p.tipo === 'pj' && p.x != null) || Object.entries(D.pecas).find(([, p]) => p && p.dono === uid && p.x != null);
-    return e ? { x: +e[1].x, z: +e[1].z, cena: 'vale' } : null;
+    return e ? { x: +e[1].x, z: +e[1].z, cena: e[1].cena === 'mata' ? 'mata' : 'vale' } : null;
   };
 
   /* ==========================================================
@@ -358,7 +387,7 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=9' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=10' + location.search.replace('?', '&'); }
     if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=22' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();

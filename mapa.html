@@ -61,6 +61,31 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .ch input:focus { outline: none; border-bottom-color: var(--line); }
 .ch .acts { display: flex; gap: 4px; }
 .ch .btn { height: 28px; padding: 0 8px; font-size: 12px; }
+/* arte das peças */
+.arte-dlg { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 16px; background: rgba(3, 6, 7, .66); }
+.arte-dlg[hidden] { display: none; }
+.arte-box { width: min(640px, 100%); max-height: calc(100vh - 32px); overflow: auto; display: grid; gap: 12px; padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #0d1414; box-shadow: 0 20px 60px rgba(0, 0, 0, .6); }
+.arte-box header { display: flex; align-items: center; gap: 10px; }
+.arte-box header b { flex: 1; font: 600 20px var(--f-display); color: #eef0e6; }
+.arte-box p { margin: 0; font-size: 13px; color: var(--mist-2); }
+.arte-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.arte-acoes label.btn { cursor: pointer; }
+.arte-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.arte-slot { display: grid; gap: 6px; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, .03); }
+.arte-slot b { font: 600 12px var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--mist-2); }
+.arte-img { height: 150px; border-radius: 8px; display: grid; place-items: center; overflow: hidden;
+  background: repeating-conic-gradient(#1b2424 0 25%, #141c1c 0 50%) 0 0 / 16px 16px; }
+.arte-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.arte-img span { font-size: 11.5px; color: var(--mist-2); text-align: center; padding: 6px; }
+.arte-slot .row { display: flex; gap: 4px; }
+.arte-slot .btn { height: 28px; padding: 0 8px; font-size: 12px; flex: 1; justify-content: center; cursor: pointer; }
+.arte-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 13px; }
+.arte-linha input[type=number] { width: 76px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: #0a1010; color: var(--mist); padding: 0 8px; font: 600 14px var(--f-ui); }
+.arte-linha select { height: 32px; max-width: 260px; border-radius: 8px; border: 1px solid var(--line); background: #0a1010; color: var(--mist); padding: 0 8px; font: 13px var(--f-ui); }
+.arte-box footer { display: flex; justify-content: flex-end; gap: 8px; }
+.arte-box footer .ok { background: rgba(226, 178, 94, .18); border-color: rgba(226, 178, 94, .6); color: #f5d99f; }
+.arte-msg { min-height: 18px; font-size: 12.5px; color: var(--lamp); }
+@media (max-width: 560px) { .arte-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } .arte-img { height: 130px; } }
 .lugar { position: fixed; z-index: 2; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 74px); padding: 6px 16px; border-radius: 99px; background: rgba(6, 10, 11, .7); border: 1px solid var(--line); font: italic 500 18px var(--f-display); color: #eef0e6; pointer-events: none; transition: opacity .5s; white-space: nowrap; }
 .nota { max-height: 45vh; overflow: auto; position: fixed; z-index: 2; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 92px); max-width: min(300px, calc(100vw - 32px)); padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); font-size: 12.5px; color: var(--mist-2); transition: opacity .5s; }
 .nota b { display: block; font: 600 16px var(--f-display); color: #eef0e6; margin-bottom: 2px; }
@@ -89,6 +114,7 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .ch.minha { border-color: var(--c); }
 .ch .btn[aria-pressed="true"] { border-color: var(--c, #e2373d); color: #fff; }
 .ch.oculta { opacity: .6; }
+#ch-list .btn.grupo { width: 100%; justify-content: center; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -105,6 +131,7 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
   </div>
   <div class="tools">
     <button class="btn" id="b-rem" type="button" aria-pressed="false" title="A cidade afogada debaixo da represa (mapa à parte)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M7 21v-7l3-2 3 2v7M15 21v-4h3v4M4 21h17"/><path d="M10 12V9"/></svg><span class="t">Remanso</span></button>
+    <button class="btn" id="b-mata" type="button" aria-pressed="false" title="A mata acima da cidade: trilhas, a sanga e lugares para investigar (mapa à parte)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21v-4M17 21v-5"/><path d="M7 17l-4 0 4-6-3 0 3-5 3 5-3 0 4 6z"/><path d="M17 16h-4l4-6h-3l3-5 3 5h-3l4 6z"/></svg><span class="t">Mata</span></button>
     <button class="btn" id="b-pistas" type="button" aria-pressed="true" hidden title="Mostrar ou esconder as pistas (só para o mestre)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3 6-3 6-3-6z"/><path d="M5 21h14"/></svg><span class="t">Pistas</span></button>
     <button class="btn" id="b-sonho" type="button" aria-pressed="false" title="O lugar onde eles acordam no prólogo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 20V10l4-3 4 3v10M15 20v-7h4v7"/><path d="M8.5 14h1"/></svg><span class="t">O Sonho</span></button>
     <button class="btn" id="b-fundo" type="button" aria-pressed="false" title="Deixa a água transparente para o mestre ver Remanso lá embaixo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg><span class="t">Ver o fundo</span></button>
@@ -125,9 +152,28 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
   <button class="btn" id="b-add" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Adicionar personagem</button>
 </aside>
 
+<div class="arte-dlg" id="arte-dlg" hidden role="dialog" aria-modal="true" aria-labelledby="arte-t">
+  <div class="arte-box">
+    <header><b id="arte-t">Arte da peça</b><button class="btn" id="arte-x" type="button" aria-label="Fechar">×</button></header>
+    <p>Mande a folha do jeito que veio da IA, com o fundo branco. O fundo sai sozinho e cada figura vai para o lugar dela. A peça fica de pé no mapa: quem olha de trás vê as costas, e a figura muda quando o personagem se fere ou entra em pavor.</p>
+    <div class="arte-acoes">
+      <label class="btn">Folha frente e costas<input type="file" accept="image/*" data-folha="2" hidden></label>
+      <label class="btn">Folha das 3 fases<input type="file" accept="image/*" data-folha="3" hidden></label>
+    </div>
+    <div class="arte-slots" id="arte-slots"></div>
+    <div class="arte-linha">
+      <label>Altura <input type="number" id="arte-alt" min="0.4" max="3.5" step="0.05" value="1.75"> m</label>
+      <label id="arte-lib-l" hidden>Usar a arte de <select id="arte-lib"></select></label>
+    </div>
+    <div class="arte-msg" id="arte-msg" role="status" aria-live="polite"></div>
+    <footer><button class="btn" id="arte-cancela" type="button">Cancelar</button><button class="btn ok" id="arte-ok" type="button">Salvar</button></footer>
+  </div>
+</div>
+
 <div class="hud bottom">
   <nav class="cams" id="cams" aria-label="Lugares de São Valentim"><span class="lbl">Lugares</span></nav>
   <nav class="cams" id="cams-rem" aria-label="Lugares de Remanso" hidden><span class="lbl">Remanso</span></nav>
+  <nav class="cams" id="cams-mata" aria-label="Lugares da mata" hidden><span class="lbl">Mata</span></nav>
 </div>
 <div class="hint" id="hint">Arraste para girar · <kbd>botão direito</kbd> ou dois dedos para mover · roda para aproximar · <kbd>W A S D</kbd> para andar</div>
 
@@ -304,7 +350,7 @@ async function montaInstancias() {
     let proto;
     try { proto = await load(e.kit, e.name, { keep: e.kit === 'r' }); } catch (er) { console.warn(er); continue; }
     proto.updateMatrixWorld(true);
-    const alvo = e.cena === 'sonho' ? gSonho : e.cena === 'remanso' ? gRemanso : scene;
+    const alvo = e.cena === 'sonho' ? gSonho : e.cena === 'remanso' ? gRemanso : e.cena === 'mata' ? gMata : scene;
     proto.traverse(mesh => {
       if (!mesh.isMesh) return;
       const nomeMat = mesh.material.name || '';
@@ -644,6 +690,33 @@ function araucarias() {
   pts.forEach(([x, y, z, s, r], i) => { _e.set(0, r, 0); _q.setFromEuler(_e); m.compose(_v.set(x, y - 0.3, z), _q, _s.set(s, s * (0.9 + rnd() * 0.25), s)); iT.setMatrixAt(i, m); iC.setMatrixAt(i, m); });
   for (const im of [iT, iC]) { im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); scene.add(im); }
   for (let i = 0; i < 220; i++) { const x = -200 + rnd() * 360, z = -190 + rnd() * 340, y = alt(x, z); if (y < 1 || naCidade(x, z) || !livre(x - 2, z - 2, 4, 4, 1) || naEstrada(x, z, 4)) continue; inst('n', rnd() < 0.5 ? 'tree_pineTallA_detailed' : 'tree_pineRoundC', x, y - 0.2, z, rnd() * TAU, 0.8 + rnd() * 0.4, 'escura'); }
+}
+
+/* ---------- a antena velha (Verdade 10): ferro da Rádio Vale Alto no alto do morro; o cabo desce e entra na represa ---------- */
+function antenaVelha() {
+  let melhor = null;
+  for (let x = -190; x <= 150; x += 6) for (let z = -150; z <= 150; z += 6) {
+    const y = alt(x, z); if (y < 13 || naCidade(x, z) || naEstrada(x, z, 6) || !livre(x - 4, z - 4, 8, 8, 2)) continue;
+    let dw = 1e9, wx = 0, wz = 0;
+    for (let a = 0; a < 16; a++) for (let r = 6; r <= 80; r += 6) { const px = x + Math.cos(a / 16 * TAU) * r, pz = z + Math.sin(a / 16 * TAU) * r; if (alt(px, pz) < -3.5) { if (r < dw) { dw = r; wx = px; wz = pz; } break; } }
+    if (dw > 80) continue;
+    const nota = y * 0.6 - dw;
+    if (!melhor || nota > melhor.nota) melhor = { x, z, y, wx, wz, nota };
+  }
+  if (!melhor) { console.warn('[SV3D] sem lugar para a antena'); return; }
+  const { x, z, y, wx, wz } = melhor; reserva(x - 4, z - 4, 8, 8);
+  const mF = new THREE.MeshStandardMaterial({ color: 0x4d3527, roughness: 0.85, metalness: 0.35 }), H = 28, larg = 2.4;
+  for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, H, 5), mF); p.position.set(x + a * larg * 0.32, y + H / 2, z + b * larg * 0.32); p.rotation.set(-b * 0.04, 0, a * 0.04); p.castShadow = true; scene.add(p); }
+  for (let h = 2; h < H; h += 2.4) { const k = 1 - h / H * 0.62, aro = new THREE.Mesh(new THREE.TorusGeometry(larg * 0.45 * k, 0.03, 4, 4), mF); aro.rotation.set(Math.PI / 2, 0, Math.PI / 4); aro.position.set(x, y + h, z); scene.add(aro); }
+  const ca = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.1, 1.8), new THREE.MeshStandardMaterial({ color: 0x7e7a6e, roughness: 1 })); ca.position.set(x + 3.6, y + 1.0, z - 1.2); ca.castShadow = ca.receiveShadow = true; scene.add(ca); // a casinha do transmissor
+  // o cabo: segue o chão morro abaixo e some dentro d'água
+  const pts = [], n = 40;
+  for (let i = 0; i <= n; i++) { const k = i / n, px = x + (wx - x) * k * 1.15, pz = z + (wz - z) * k * 1.15; pts.push(new THREE.Vector3(px, alt(px, pz) + 0.12, pz)); }
+  pts.unshift(new THREE.Vector3(x, y + 3, z));
+  const cabo = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 120, 0.06, 5, false), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6 }));
+  cabo.castShadow = true; scene.add(cabo);
+  placaNoPoste('Rádio Vale Alto', x - 3.5, z + 3.5, 0.4, { w: 2.6, h: 1.8, sub: 'transmissor · proibida a entrada' });
+  L.antena = { x, y, z };
 }
 
 /* ---------- lugares ---------- */
@@ -1088,6 +1161,7 @@ function quadroSonho(t) {
   if (camera.position.y < 0.9) { const d = 0.9 - camera.position.y; camera.position.y += d; controls.target.y += d; }
 }
 function entrarSonho(on) {
+  if (on && modoMata) entrarMata(false);
   modoSonho = on; voo = null;
   const b = $('#b-sonho'); b.setAttribute('aria-pressed', String(on)); b.querySelector('.t').textContent = on ? 'Acordar' : 'O Sonho';
   $('#agua').hidden = on; $('#cams').hidden = on;
@@ -1110,28 +1184,93 @@ function entrarSonho(on) {
 /* ---------- personagens em pé ---------- */
 const standees = [];
 const CORES = ['#e0b45e', '#d35d6e', '#6cb37a', '#4f8fd6', '#9a77d0', '#d07b3f'];
-function arteBase(nome, cor) {
+function arteBase(cor) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 512; const g = c.getContext('2d');
   g.fillStyle = cor; g.strokeStyle = 'rgba(255,255,255,0.9)'; g.lineWidth = 10; g.lineJoin = 'round';
-  g.beginPath(); g.arc(128, 120, 62, 0, TAU); g.moveTo(40, 470); g.quadraticCurveTo(46, 230, 128, 214); g.quadraticCurveTo(210, 230, 216, 470); g.closePath(); g.stroke(); g.fill();
-  g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.arc(128, 120, 62, 0.2, Math.PI - 0.2); g.fill();
-  g.fillStyle = '#0b1015'; g.fillRect(16, 440, 224, 60); g.fillStyle = '#eef0e6'; g.font = '600 36px Barlow, sans-serif'; g.textAlign = 'center'; g.fillText(nome, 128, 482, 210);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  g.beginPath(); g.arc(128, 96, 62, 0, TAU); g.moveTo(36, 506); g.quadraticCurveTo(42, 196, 128, 180); g.quadraticCurveTo(214, 196, 220, 506); g.closePath(); g.stroke(); g.fill();
+  g.fillStyle = 'rgba(0,0,0,0.25)'; g.beginPath(); g.arc(128, 96, 62, 0.2, Math.PI - 0.2); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.userData.asp = 0.5; return t;
 }
-function figura(nome, cor, x, z) {
-  const g = new THREE.Group(); g.position.set(x, alt(x, z) + 0.13, z);
+/* o nome flutua acima da cabeça, sempre de frente para a câmera */
+function rotuloTex(nome, cor) {
+  const c = document.createElement('canvas'), g = c.getContext('2d'), f = '600 46px Barlow, sans-serif';
+  g.font = f; const w = Math.min(1000, Math.ceil(g.measureText(nome).width) + 64); c.width = w; c.height = 80;
+  g.font = f; g.fillStyle = 'rgba(8,13,15,0.82)'; g.beginPath(); g.roundRect(2, 2, w - 4, 76, 38); g.fill();
+  g.fillStyle = cor; g.beginPath(); g.arc(34, 40, 10, 0, TAU); g.fill();
+  g.fillStyle = '#eef0e6'; g.textBaseline = 'middle'; g.fillText(nome, 54, 42);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.userData.asp = w / 80; return t;
+}
+function figura(nome, cor, x, z, cena = 'vale') {
+  const g = new THREE.Group(); g.position.set(x, altC(cena, x, z) + 0.13, z);
   const base = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.46, 0.08, 28), new THREE.MeshStandardMaterial({ color: 0x15191d, roughness: 0.6 })); base.position.y = 0.04; base.castShadow = true; g.add(base);
   const aro = new THREE.Mesh(new THREE.TorusGeometry(0.44, 0.03, 8, 32), new THREE.MeshBasicMaterial({ color: cor })); aro.rotation.x = Math.PI / 2; aro.position.y = 0.08; g.add(aro);
   const pivot = new THREE.Group(); pivot.position.y = 0.08; g.add(pivot);
-  const mat = new THREE.MeshStandardMaterial({ map: arteBase(nome, cor), transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.85 });
-  const geo = new THREE.PlaneGeometry(0.9, 1.8); geo.translate(0, 0.9, 0);
-  const card = new THREE.Mesh(geo, mat); card.castShadow = true;
+  const fundo = arteBase(cor);
+  const mat = new THREE.MeshStandardMaterial({ map: fundo, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.85 });
+  const geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
+  const card = new THREE.Mesh(geo, mat); card.castShadow = true; card.scale.set(0.9, 1.8, 1);
   card.customDepthMaterial = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: mat.map, alphaTest: 0.35 });
-  pivot.add(card); scene.add(g);
-  const s = { nome, cor, g, card, pivot, mat }; card.userData.standee = s; standees.push(s); return s;
+  pivot.add(card);
+  const rt = rotuloTex(nome, cor), rot = new THREE.Sprite(new THREE.SpriteMaterial({ map: rt, transparent: true, depthWrite: false, fog: false }));
+  rot.center.set(0.5, 0); rot.renderOrder = 3; g.add(rot);
+  (cena === 'mata' ? gMata : scene).add(g);
+  const s = { cena, nome, cor, g, card, pivot, mat, rot, base: fundo, tex: {}, H: 1.75, largura: 0.875, face: Math.PI / 4, tras: false, est: 'normal', rotH: 0.24, rotW: 0.24 * rt.userData.asp, flip: null };
+  card.userData.standee = s; standees.push(s); poeTex(s); return s;
 }
+/* qual imagem mostrar: de costas quando a câmera está atrás da figura; ferida ou em pavor quando a ficha diz */
+function texAlvo(s) {
+  const T = s.tex || {};
+  if (s.tras && T.costas) return T.costas;
+  if ((s.est === 'ferido' || s.est === 'morto') && T.ferido) return T.ferido;
+  if (s.est === 'pavor' && T.pavor) return T.pavor;
+  return T.frente || null;
+}
+function poeTex(s) {
+  const T = s.tex || {}, t = texAlvo(s), map = t || s.base;
+  s.texAtual = t; s.mat.map = map; s.card.customDepthMaterial.map = map; s.mat.needsUpdate = true; s.card.customDepthMaterial.needsUpdate = true;
+  s.largura = s.H * (map.userData.asp || 0.5);
+  s.card.scale.set(s.flip != null ? s.card.scale.x : s.largura, s.H, 1);
+  const propria = (s.est === 'ferido' && T.ferido) || (s.est === 'pavor' && T.pavor);
+  s.mat.color.set(s.est === 'morto' ? 0x6e6e6e : s.est === 'ferido' && !propria ? 0xffbdb4 : s.est === 'pavor' && !propria ? 0xcdb9ff : 0xffffff);
+  s.rot.position.y = 0.08 + s.H + 0.12;
+}
+/* cada figura, a cada quadro: de pé, virada para a câmera, olhando para onde andou */
+function poseFigura(s, dx, dz) {
+  const p = s.g.position;
+  if (s.ult) { const mx = p.x - s.ult.x, mz = p.z - s.ult.z; if (mx * mx + mz * mz > 1e-5) s.face = Math.atan2(mx, mz); s.ult.x = p.x; s.ult.z = p.z; } else s.ult = { x: p.x, z: p.z };
+  s.pivot.rotation.set(0, Math.atan2(dx, dz), 0); s.card.rotation.x = 0;
+  const d = Math.hypot(dx, dz) || 1, dot = (dx * Math.sin(s.face) + dz * Math.cos(s.face)) / d;
+  const tras = s.tras ? dot < 0.15 : dot < -0.15;
+  if (tras !== s.tras) { s.tras = tras; if (texAlvo(s) !== s.texAtual) { s.flip = performance.now(); s.flipFeito = false; } }
+  if (s.flip != null) {
+    const k = (performance.now() - s.flip) / 220;
+    if (k >= 0.5 && !s.flipFeito) { s.flipFeito = true; poeTex(s); }
+    if (k >= 1) { s.flip = null; s.card.scale.x = s.largura; } else s.card.scale.x = s.largura * Math.max(0.04, Math.abs(Math.cos(k * Math.PI)));
+  }
+  const dist = Math.hypot(d, camera.position.y - p.y), k2 = Math.min(5, Math.max(1, dist / 14));
+  s.rot.scale.set(s.rotW * k2, s.rotH * k2, 1);
+}
+/* a arte chega como imagens prontas (fundo transparente); a mesma imagem vira uma textura só */
+const TEXC = new Map();
+function texDe(url) {
+  if (!TEXC.has(url)) TEXC.set(url, new Promise(res => {
+    const im = new Image();
+    im.onload = () => { const t = new THREE.Texture(im); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.userData.asp = im.width / im.height; t.needsUpdate = true; res(t); };
+    im.onerror = () => res(null); im.src = url;
+  }));
+  return TEXC.get(url);
+}
+const LADOS = [['frente', 'Frente'], ['costas', 'Costas'], ['ferido', 'Ferido'], ['pavor', 'Em pavor']];
+const assinaArte = (a, h) => a ? LADOS.map(([k]) => typeof a[k] === 'string' ? a[k].length + a[k].slice(-24) : '').join('|') + '|' + (h || '') : '';
+async function aplicaArte(s, arte, h) {
+  const v = (s.arteV = (s.arteV || 0) + 1), tex = {};
+  for (const [k] of LADOS) if (arte && typeof arte[k] === 'string' && /^data:image\/(png|webp|jpeg);base64,/.test(arte[k])) { const t = await texDe(arte[k]); if (t) tex[k] = t; }
+  if (v !== s.arteV) return;
+  s.arte = arte || null; s.tex = tex; s.H = Math.min(3.5, Math.max(0.4, +h || 1.75)); poeTex(s);
+}
+function estadoFig(s, est) { est = ['ferido', 'pavor', 'morto'].includes(est) ? est : 'normal'; if (s.est !== est) { s.est = est; poeTex(s); } }
 function guardar() { if (PM) return; try { localStorage.setItem('sv3d-pers', JSON.stringify(standees.map(s => ({ nome: s.nome, cor: s.cor, x: s.g.position.x, z: s.g.position.z })))); } catch (e) { /* sem armazenamento: tudo bem */ } }
-function renomear(s, nome) { s.nome = nome || 'Sem nome'; s.mat.map.dispose(); s.mat.map = arteBase(s.nome, s.cor); s.card.customDepthMaterial.map = s.mat.map; s.mat.needsUpdate = true; guardar(); }
+function renomear(s, nome) { s.nome = nome || 'Sem nome'; s.rot.material.map.dispose(); const t = rotuloTex(s.nome, s.cor); s.rot.material.map = t; s.rot.material.needsUpdate = true; s.rotW = s.rotH * t.userData.asp; guardar(); }
 function renderListaLocal() {
   const box = $('#ch-list'); box.innerHTML = '';
   standees.forEach(s => {
@@ -1143,22 +1282,131 @@ function renderListaLocal() {
     ver.onclick = () => voar({ pos: [s.g.position.x + 6, s.g.position.y + 5.5, s.g.position.z + 7], alvo: [s.g.position.x, s.g.position.y + 1, s.g.position.z] }, s.nome);
     const rem = document.createElement('button'); rem.className = 'btn'; rem.type = 'button'; rem.textContent = '×'; rem.title = 'Tirar do mapa'; rem.setAttribute('aria-label', 'Tirar ' + s.nome + ' do mapa');
     rem.onclick = () => { scene.remove(s.g); standees.splice(standees.indexOf(s), 1); guardar(); renderLista(); };
-    acts.append(ver, rem); row.append(i, inp, acts); box.append(row);
+    const art = document.createElement('button'); art.className = 'btn'; art.type = 'button'; art.textContent = 'Arte'; art.title = 'Arte de ' + s.nome; art.onclick = () => abrirArte(s);
+    acts.append(ver, art, rem); row.append(i, inp, acts); box.append(row);
   });
 }
-$('#b-add').onclick = () => { const n = standees.length + 1, t = controls.target; figura('Jogador ' + n, CORES[(n - 1) % CORES.length], t.x + (rnd() - 0.5) * 3, t.z + (rnd() - 0.5) * 3); guardar(); renderLista(); };
+$('#b-add').onclick = () => { const n = standees.length + 1, t = controls.target; figura('Jogador ' + n, CORES[(n - 1) % CORES.length], t.x + (rnd() - 0.5) * 3, t.z + (rnd() - 0.5) * 3, modoMata ? 'mata' : 'vale'); guardar(); renderLista(); };
+
+/* ---------- arte das peças: recorta a folha, tira o fundo branco, separa as figuras ---------- */
+function lerImagem(arq) {
+  return new Promise((res, rej) => { const u = URL.createObjectURL(arq), im = new Image(); im.onload = () => { URL.revokeObjectURL(u); res(im); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('imagem')); }; im.src = u; });
+}
+function recortarFolha(im, n) {
+  const esc = Math.min(1, 1800 / Math.max(im.naturalWidth, im.naturalHeight)), W = Math.round(im.naturalWidth * esc), H = Math.round(im.naturalHeight * esc);
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d', { willReadFrequently: true });
+  g.drawImage(im, 0, 0, W, H); const img = g.getImageData(0, 0, W, H), px = img.data, N = W * H;
+  /* fundo: tudo o que é quase branco e encosta na borda, sem passar pelo contorno do desenho */
+  const claro = i => { const r = px[i * 4], gg = px[i * 4 + 1], b = px[i * 4 + 2], mn = Math.min(r, gg, b), mx = Math.max(r, gg, b); return px[i * 4 + 3] < 20 || (mn > 206 && mx - mn < 24); };
+  const fundo = new Uint8Array(N), fila = new Int32Array(N); let ini = 0, fim = 0;
+  const poe = i => { if (!fundo[i] && claro(i)) { fundo[i] = 1; fila[fim++] = i; } };
+  for (let x = 0; x < W; x++) { poe(x); poe((H - 1) * W + x); }
+  for (let y = 0; y < H; y++) { poe(y * W); poe(y * W + W - 1); }
+  while (ini < fim) { const i = fila[ini++], x = i % W; if (x > 0) poe(i - 1); if (x < W - 1) poe(i + 1); if (i >= W) poe(i - W); if (i < N - W) poe(i + W); }
+  /* buracos fechados (entre a perna e a pá, entre o braço e o corpo): manchas grandes de branco puro também são fundo */
+  const puro = i => { const r = px[i * 4], gg = px[i * 4 + 1], bb = px[i * 4 + 2]; return Math.min(r, gg, bb) > 243 && Math.max(r, gg, bb) - Math.min(r, gg, bb) < 10; };
+  const visto = new Uint8Array(N), minBuraco = Math.max(60, N * 0.0004);
+  for (let s0 = 0; s0 < N; s0++) {
+    if (fundo[s0] || visto[s0] || !puro(s0)) continue;
+    let a0 = 0, b0 = 0; fila[b0++] = s0; visto[s0] = 1;
+    while (a0 < b0) { const i = fila[a0++], x = i % W; for (const j of [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, i >= W ? i - W : -1, i < N - W ? i + W : -1]) if (j >= 0 && !visto[j] && !fundo[j] && puro(j)) { visto[j] = 1; fila[b0++] = j; } }
+    if (b0 >= minBuraco) for (let k = 0; k < b0; k++) fundo[fila[k]] = 1;
+  }
+  for (let i = 0; i < N; i++) {
+    if (fundo[i]) { px[i * 4 + 3] = 0; continue; }
+    const x = i % W; /* borda suave: o pixel do desenho que encosta no fundo fica meio transparente */
+    if ((x > 0 && fundo[i - 1]) || (x < W - 1 && fundo[i + 1]) || (i >= W && fundo[i - W]) || (i < N - W && fundo[i + W])) px[i * 4 + 3] = Math.min(px[i * 4 + 3], 190);
+  }
+  g.putImageData(img, 0, 0);
+  /* colunas com desenho; vãos largos separam uma figura da outra */
+  const col = new Int32Array(W); for (let i = 0; i < N; i++) if (!fundo[i]) col[i % W]++;
+  const minCol = Math.max(2, H * 0.004), vao = Math.max(4, W * 0.012), grupos = [];
+  let cur = null, branco = 0;
+  for (let x = 0; x < W; x++) {
+    if (col[x] > minCol) { if (cur && branco <= vao) { cur.x1 = x; cur.m += col[x]; } else { cur = { x0: x, x1: x, m: col[x] }; grupos.push(cur); } branco = 0; }
+    else if (cur) branco++;
+  }
+  const escolhidos = grupos.sort((a, b) => b.m - a.m).slice(0, n).sort((a, b) => a.x0 - b.x0);
+  return escolhidos.map(gr => {
+    let y0 = H, y1 = 0;
+    for (let y = 0; y < H; y++) for (let x = gr.x0; x <= gr.x1; x++) if (!fundo[y * W + x]) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; }
+    const pad = 4, x0 = Math.max(0, gr.x0 - pad), x1 = Math.min(W - 1, gr.x1 + pad); y0 = Math.max(0, y0 - pad); y1 = Math.min(H - 1, y1 + pad);
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, alvoH = Math.min(440, h), k = alvoH / h;
+    const o = document.createElement('canvas'); o.width = Math.max(1, Math.round(w * k)); o.height = Math.round(alvoH);
+    const og = o.getContext('2d'); og.imageSmoothingQuality = 'high'; og.drawImage(c, x0, y0, w, h, 0, 0, o.width, o.height);
+    let url = o.toDataURL('image/webp', 0.86); if (!url.startsWith('data:image/webp')) url = o.toDataURL('image/png');
+    return url;
+  });
+}
+const ARTE = { s: null, rasc: {}, alt: 1.75 };
+function slotsArte() {
+  const box = $('#arte-slots'); box.innerHTML = '';
+  for (const [k, nome] of LADOS) {
+    const d = document.createElement('div'); d.className = 'arte-slot';
+    const im = ARTE.rasc[k];
+    d.innerHTML = '<b>' + nome + '</b><div class="arte-img">' + (im ? '<img alt="' + nome + '">' : '<span>' + (k === 'frente' ? 'Sem arte: a peça usa a silhueta' : k === 'costas' ? 'Sem costas: mostra a frente' : 'Sem imagem: a frente ganha um tom ' + (k === 'ferido' ? 'avermelhado' : 'arroxeado')) + '</span>') + '</div>'
+      + '<div class="row"><label class="btn">Trocar<input type="file" accept="image/*" hidden></label>' + (im ? '<button class="btn" type="button" aria-label="Tirar ' + nome + '">×</button>' : '') + '</div>';
+    if (im) d.querySelector('img').src = im;
+    d.querySelector('input').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; await carregaFolha(f, 1, [k]); };
+    const x = d.querySelector('button'); if (x) x.onclick = () => { delete ARTE.rasc[k]; slotsArte(); };
+    box.append(d);
+  }
+}
+async function carregaFolha(arq, n, destinos) {
+  const msg = $('#arte-msg'); msg.textContent = 'Recortando…';
+  try {
+    const im = await lerImagem(arq), figs = recortarFolha(im, n);
+    if (!figs.length) { msg.textContent = 'Não achei nenhuma figura. A imagem precisa ter o fundo branco.'; return; }
+    figs.forEach((u, i) => { if (destinos[i]) ARTE.rasc[destinos[i]] = u; });
+    msg.textContent = figs.length < n ? 'Achei só ' + figs.length + ' de ' + n + ' figuras. Confira os quadros abaixo.' : 'Pronto. Confira os quadros e salve.';
+    slotsArte();
+  } catch (e) { msg.textContent = 'Não consegui abrir essa imagem.'; }
+}
+function abrirArte(s) {
+  ARTE.s = s; ARTE.rasc = Object.assign({}, s.arte || {}); ARTE.alt = s.H || 1.75;
+  $('#arte-t').textContent = 'Arte · ' + s.nome; $('#arte-alt').value = ARTE.alt.toFixed(2); $('#arte-msg').textContent = '';
+  const lib = PM && PM.arteLib ? PM.arteLib() : [], sel = $('#arte-lib');
+  $('#arte-lib-l').hidden = !lib.length;
+  sel.innerHTML = '<option value="">escolha…</option>' + lib.map((x, i) => '<option value="' + i + '"></option>').join('');
+  lib.forEach((x, i) => { sel.options[i + 1].textContent = x.nome; });
+  sel.onchange = () => { const x = lib[+sel.value]; if (!x) return; ARTE.rasc = Object.assign({}, x.arte || {}); if (x.alt) $('#arte-alt').value = (+x.alt).toFixed(2); slotsArte(); };
+  slotsArte(); $('#arte-dlg').hidden = false; $('#arte-x').focus();
+}
+const fechaArte = () => { $('#arte-dlg').hidden = true; ARTE.s = null; };
+$('#arte-x').onclick = fechaArte; $('#arte-cancela').onclick = fechaArte;
+$('#arte-dlg').addEventListener('keydown', e => { if (e.key === 'Escape') fechaArte(); });
+$('#arte-dlg').addEventListener('click', e => { if (e.target.id === 'arte-dlg') fechaArte(); });
+document.querySelectorAll('#arte-dlg [data-folha]').forEach(inp => inp.onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  if (e.target.dataset.folha === '2') await carregaFolha(f, 2, ['frente', 'costas']);
+  else await carregaFolha(f, 3, [ARTE.rasc.frente ? null : 'frente', 'ferido', 'pavor']);
+});
+$('#arte-ok').onclick = async () => {
+  const s = ARTE.s; if (!s) return;
+  const arte = {}; for (const [k] of LADOS) if (ARTE.rasc[k]) arte[k] = ARTE.rasc[k];
+  const h = Math.min(3.5, Math.max(0.4, +$('#arte-alt').value || 1.75));
+  const tam = JSON.stringify(arte).length;
+  if (tam > 900000) { $('#arte-msg').textContent = 'As imagens ficaram grandes demais (' + Math.round(tam / 1024) + ' KB). Tente imagens menores.'; return; }
+  $('#arte-ok').disabled = true;
+  try {
+    if (PM && s.id) await PM.salvarArte(s.id, Object.keys(arte).length ? arte : null, h);
+    await aplicaArte(s, arte, h); s.asig = assinaArte(Object.keys(arte).length ? arte : null, h);
+    fechaArte();
+  } catch (e) { $('#arte-msg').textContent = 'Não deu para salvar (' + (e.code || e.message || 'erro') + ').'; }
+  finally { $('#arte-ok').disabled = false; }
+};
 
 /* ---------- arrastar personagens ---------- */
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
 let arrasto = null;
 function ndc(e) { const r = canvas.getBoundingClientRect(); ptr.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); }
-function pegar(e) { ndc(e); ray.setFromCamera(ptr, camera); const h = ray.intersectObjects(standees.map(s => s.card), false)[0]; return h?.object.userData.standee || null; }
+function pegar(e) { ndc(e); ray.setFromCamera(ptr, camera); const h = ray.intersectObjects(standees.filter(s => (s.cena === 'mata') === modoMata).map(s => s.card), false)[0]; return h?.object.userData.standee || null; }
 canvas.addEventListener('pointerdown', e => { if (e.button !== 0) return; const s = pegar(e); if (!s || (PM && !PM.podeMover(s.id))) return; arrasto = s; controls.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; });
 canvas.addEventListener('pointermove', e => {
-  if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const h = chao && ray.intersectObject(chao, false)[0]; if (h) { arrasto.g.position.set(h.point.x, alt(h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
+  if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const ch = modoMata ? chaoM : chao, h = ch && ray.intersectObject(ch, false)[0]; if (h) { arrasto.g.position.set(h.point.x, altC(arrasto.cena, h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
   if (e.pointerType === 'mouse') { const s = pegar(e); canvas.style.cursor = s && (!PM || PM.podeMover(s.id)) ? 'grab' : ''; }
 });
-const soltar = () => { if (!arrasto) return; if (PM) PM.mover(arrasto.id, arrasto.g.position.x, arrasto.g.position.z, true); arrasto = null; controls.enabled = true; canvas.style.cursor = ''; guardar(); };
+const soltar = () => { if (!arrasto) return; if (PM) PM.mover(arrasto.id, arrasto.g.position.x, arrasto.g.position.z, true, arrasto.face); arrasto = null; controls.enabled = true; canvas.style.cursor = ''; guardar(); };
 canvas.addEventListener('pointerup', soltar); canvas.addEventListener('pointercancel', soltar);
 
 /* ---------- Remanso, 1979: a cidade debaixo da represa (mapa à parte) ---------- */
@@ -1313,7 +1561,7 @@ function montaRemanso() {
   for (let i = 0; i < 30; i++) { const x = 100 + (i % 6) * 5, z = -60 + Math.floor(i / 6) * 3.8; inst('g', ['gravestone-cross', 'gravestone-round', 'gravestone-broken', 'gravestone-bevel', 'gravestone-roof'][i % 5], x, altR(x, z), z, Math.PI + (rnd() - 0.5) * 0.4, 1, 'ruina', null, 'remanso'); }
   for (const [x, z, w, d] of [[114, -64, 36, 0.4], [114, -42, 36, 0.4], [96, -53, 0.4, 22], [132, -53, 0.4, 22]]) caixa(x, altR(x, z) - 0.3, z, w, 1.5, d, matCalVelha, 0, gRemanso);
   inst('g', 'crypt-small', 128, altR(128, -58), -58, Math.PI, 1, 'ruina', null, 'remanso');
-  pista('Os retratos virados', 112, altR(112, -52) + 1.2, -52, 'CEMITÉRIO VELHO. Todos os retratos esmaltados estão virados para a igreja, como os do cemitério novo na sessão 5. Um túmulo está aberto e vazio, com a terra cavada de dentro para fora. A lápide é nova, de mármore limpo, sem lodo e sem nome: está esperando alguém. Quem chegar perto ouve a canção do rádio vindo de dentro. Teste de medo.');
+  pista('Os retratos virados', 112, altR(112, -52) + 1.2, -52, 'CEMITÉRIO VELHO. Todos os retratos esmaltados estão virados para a igreja, como os do cemitério novo na sessão 3. Um túmulo está aberto e vazio, com a terra cavada de dentro para fora. A lápide é nova, de mármore limpo, sem lodo e sem nome: está esperando alguém. Quem chegar perto ouve a canção do rádio vindo de dentro. Teste de medo.');
 
   // ===== casas para investigar =====
   casaInv(106, -27, 12, 10, '+z', { andares: 2, placa: 'Casa Paroquial', porta: -2,
@@ -1419,6 +1667,7 @@ function aplicaRemSeca() {
 let pistasOn = !SO_JOGADOR;
 function entrarRemanso(on) {
   if (on && modoSonho) entrarSonho(false);
+  if (on && modoMata) entrarMata(false);
   modoRem = on; voo = null;
   const b = $('#b-rem'); b.setAttribute('aria-pressed', String(on)); b.querySelector('.t').textContent = on ? 'Subir' : 'Remanso';
   $('#cams').hidden = on; $('#cams-rem').hidden = !on; $('#b-pistas').hidden = !on || SO_JOGADOR;
@@ -1449,6 +1698,249 @@ canvas.addEventListener('pointerup', e => {
   voar({ pos: [p.x + dir.x, p.y + 2.5, p.z + dir.z], alvo: [p.x, p.y - 0.3, p.z] }, m.userData.titulo, m.userData.texto);
 });
 
+/* ---------- A mata: o mato fechado entre o cemitério e o morro da antena (mapa à parte) ---------- */
+// Trilhas de chão batido ligam nove lugares. A sanga corta a mata de leste a oeste: água corrente, que a Máscara não atravessa.
+// As peças andam aqui como no vale; o mestre leva o grupo para cá e de volta.
+const mataCena = new THREE.Scene();
+const gMata = new THREE.Group(); mataCena.add(gMata);
+const fogMataNoite = new THREE.FogExp2(0x0c1513, 0.034), fogMataDia = new THREE.FogExp2(0x7a8580, 0.02);
+let modoMata = false, mataPronta = false, salvoMata = null, chaoM = null, mataHemi, mataLua, mataVaga, mataNoiteAt = null, mataNevoaAt = null, mataLuzAntena = null, mataBolaAntena = null;
+const marcadoresM = [], nevoasM = [];
+const altC = (cena, x, z) => cena === 'mata' ? altM(x, z) : alt(x, z);
+const zSanga = x => 30 + 14 * Math.sin(x / 28);
+function altM(x, z) {
+  let y = 2.2 * Math.sin(x * 0.035) * Math.cos(z * 0.03) + 1.2 * Math.sin(x * 0.09 + z * 0.07) + 0.4 * Math.sin(x * 0.23) * Math.sin(z * 0.19);
+  y += z * 0.045 + Math.max(0, Math.abs(x) - 112) * 0.6 + Math.max(0, Math.abs(z) - 112) * 0.6;
+  y += 5 * Math.exp(-((x * x) + (z - 98) * (z - 98)) / 500); // o morro da antena
+  const d = Math.abs(z - zSanga(x)); if (d < 5.5) y -= 1.7 * (1 - (d / 5.5) ** 2);
+  return y;
+}
+const LUG_M = {
+  entrada: { x: -10, z: -104, r: 7 }, acampamento: { x: -56, z: -60, r: 9 }, clareira: { x: 42, z: -50, r: 9 }, capelinha: { x: -20, z: -14, r: 6 },
+  ponte: { x: 10, z: zSanga(10), r: 4 }, barbacua: { x: -62, z: 58, r: 10 }, pedreira: { x: 56, z: 74, r: 12 }, pinheiro: { x: 90, z: 6, r: 8 }, fim: { x: 0, z: 92, r: 6 },
+};
+const TRILHAS_M = [
+  [[-10, -112], [-10, -104], [-15, -60], [-20, -24], [-20, -14], [-4, 10], [10, 22], [10, 46], [4, 70], [0, 92]],
+  [[-15, -60], [-36, -62], [-48, -60]],
+  [[-20, -14], [8, -26], [26, -32], [36, -44]],
+  [[10, 46], [-14, 50], [-38, 52], [-54, 56]],
+  [[4, 70], [24, 72], [44, 74]],
+  [[26, -32], [52, -18], [72, -4], [84, 4]],
+];
+const naTrilhaM = (x, z, folga = 0) => { for (const t of TRILHAS_M) for (let i = 0; i < t.length - 1; i++) if (distSeg(x, z, ...t[i], ...t[i + 1]) < 1.5 + folga) return true; return false; };
+const livreM = (x, z, folga = 0) => { if (naTrilhaM(x, z, folga + 1)) return false; if (Math.abs(z - zSanga(x)) < 5 + folga) return false; for (const l of Object.values(LUG_M)) if (Math.hypot(x - l.x, z - l.z) < l.r + folga) return false; return true; };
+function pistaM(titulo, x, y, z, texto) {
+  const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), new THREE.MeshBasicMaterial({ color: 0xffc46a, fog: false, transparent: true, opacity: 0.95 }));
+  m.position.set(x, y, z); m.userData = { titulo, texto, y0: y, fase: rnd() * TAU }; gMata.add(m); marcadoresM.push(m);
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex('rgba(255,200,110,0.9)', 'rgba(255,170,80,0)', 64), fog: false, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  halo.scale.setScalar(1.8); m.add(halo); return m;
+}
+const placaM = (texto, x, y, z, ry, w = 3, sub = '') => { const p = placa(texto, x, y, z, ry, w, '#e3dcc8', '#2b2a20', sub); scene.remove(p); p.material.emissiveIntensity = 0.12; gMata.add(p); return p; };
+const postesPlaca = (x, z, ry, w) => { for (const k of [-0.42, 0.42]) cilindro(x + k * w * Math.cos(ry), altM(x + k * w * Math.cos(ry), z - k * w * Math.sin(ry)) - 0.2, z - k * w * Math.sin(ry), 0.06, 0.07, 2.4, matMadeira, 6, gMata); };
+const qM = (x, z, ang = 0) => ({ cx: x, cz: z, ang });
+function luzM(x, y, z, cor, int, dist) { const l = new THREE.PointLight(cor, int, dist, 1.8); l.position.set(x, y, z); gMata.add(l); return l; }
+
+function montaMata() {
+  /* chão: folhas, musgo, trilha batida e o leito da sanga */
+  const W = 300, H = 300, geo = new THREE.PlaneGeometry(W, H, 150, 150); geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, cor = new Float32Array(pos.count * 3), c = new THREE.Color();
+  const folha = new THREE.Color(0x2f2a1d), musgo = new THREE.Color(0x26331f), trilha = new THREE.Color(0x5b4a35), leito = new THREE.Color(0x2b2720), pedra = new THREE.Color(0x45433d);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i), y = altM(x, z); pos.setY(i, y);
+    const n = (Math.sin(x * 0.41) * Math.cos(z * 0.37) + Math.sin(x * 0.11 + z * 0.17)) * 0.25 + 0.5;
+    c.copy(folha).lerp(musgo, n);
+    const ds = Math.abs(z - zSanga(x)); if (ds < 6) c.lerp(leito, 1 - ds / 6);
+    if (Math.hypot(x - LUG_M.pedreira.x, z - LUG_M.pedreira.z) < 13) c.lerp(pedra, 0.7);
+    if (naTrilhaM(x, z)) c.copy(trilha).lerp(folha, n * 0.35);
+    for (const l of Object.values(LUG_M)) { const d = Math.hypot(x - l.x, z - l.z); if (d < l.r) c.lerp(trilha, 0.35 * (1 - d / l.r)); }
+    cor.set([c.r, c.g, c.b], i * 3);
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(cor, 3)); geo.computeVertexNormals();
+  chaoM = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 })); chaoM.receiveShadow = true; gMata.add(chaoM);
+  /* a sanga: uma fita de água que corre */
+  const pts = [], idx = [];
+  for (let x = -150, i = 0; x <= 150; x += 2, i++) { const zc = zSanga(x), y = altM(x, zc) + 0.75; pts.push(x, y, zc - 2.6, x, y, zc + 2.6); if (i) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } }
+  const gA = new THREE.BufferGeometry(); gA.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); gA.setIndex(idx); gA.computeVertexNormals();
+  const uvA = []; for (let i = 0; i < pts.length / 3; i++) uvA.push((pts[i * 3] + 150) / 12, (i % 2) * 0.5); gA.setAttribute('uv', new THREE.Float32BufferAttribute(uvA, 2));
+  const nm = agua.material.normalMap.clone(); nm.repeat.set(1, 1); nm.needsUpdate = true;
+  const sanga = new THREE.Mesh(gA, new THREE.MeshStandardMaterial({ color: 0x1e302b, roughness: 0.12, metalness: 0.15, normalMap: nm, normalScale: new THREE.Vector2(0.5, 0.5), transparent: true, opacity: 0.88 }));
+  sanga.receiveShadow = true; sanga.userData.nm = nm; gMata.add(sanga); mataCena.userData.sanga = sanga;
+  /* serra em volta, para a mata não acabar num degrau */
+  const mm = new THREE.MeshStandardMaterial({ color: 0x101a15, roughness: 1, flatShading: true });
+  for (let i = 0; i < 22; i++) { const a = (i / 22) * TAU, r = 190 + rnd() * 40, h = 40 + rnd() * 40, m = new THREE.Mesh(new THREE.ConeGeometry(70 + rnd() * 40, h, 7), mm); m.position.set(Math.cos(a) * r, h / 2 - 6, Math.sin(a) * r); gMata.add(m); }
+
+  /* árvores: araucárias, pinheiros e mato baixo, longe das trilhas, da sanga e das clareiras */
+  const tronco = new THREE.CylinderGeometry(0.28, 0.48, 16, 7); tronco.translate(0, 8, 0);
+  const copa = mergeGeometries([[4.2, 0.8, 12.0], [5.0, 0.9, 13.2], [4.6, 0.8, 14.3], [3.3, 0.7, 15.2]].map(([r, h, y]) => { const g = new THREE.CylinderGeometry(r, r * 0.55, h, 9); g.translate(0, y, 0); return g; }));
+  const ara = [];
+  for (let i = 0; i < 9000 && ara.length < (fraco ? 260 : 520); i++) { const x = -140 + rnd() * 280, z = -140 + rnd() * 280; if (!livreM(x, z, 2.5)) continue; ara.push([x, altM(x, z), z, 0.7 + rnd() * 0.6, rnd() * TAU]); }
+  const mT = new THREE.MeshStandardMaterial({ color: 0x35281f, roughness: 1 }), mC = new THREE.MeshStandardMaterial({ color: 0x18291c, roughness: 1, flatShading: true });
+  const iT = new THREE.InstancedMesh(tronco, mT, ara.length), iC = new THREE.InstancedMesh(copa, mC, ara.length), m4 = new THREE.Matrix4();
+  ara.forEach(([x, y, z, k, r], i) => { _e.set(0, r, 0); _q.setFromEuler(_e); m4.compose(_v.set(x, y - 0.3, z), _q, _s.set(k, k * (0.9 + rnd() * 0.3), k)); iT.setMatrixAt(i, m4); iC.setMatrixAt(i, m4); });
+  for (const im of [iT, iC]) { im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); gMata.add(im); }
+  const espalha = (n, fn) => { for (let i = 0, f = 0; i < n * 8 && f < n; i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (fn(x, z)) f++; } };
+  espalha(fraco ? 260 : 560, (x, z) => { if (!livreM(x, z, 1.5)) return false; inst('n', sorteia(['tree_pineTallA_detailed', 'tree_pineTallC_detailed', 'tree_pineRoundC', 'tree_pineDefaultA']), x, altM(x, z) - 0.2, z, rnd() * TAU, 1.6 + rnd() * 1.4, 'escura', null, 'mata'); return true; });
+  espalha(fraco ? 120 : 260, (x, z) => { if (!livreM(x, z, 1)) return false; inst('u', sorteia(['tree-large', 'tree-park-large']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.6 + rnd(), 'escura', null, 'mata'); return true; });
+  espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.2, 'escura', null, 'mata'); return true; });
+  espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'escura', null, 'mata'); return true; });
+  espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; inst('n', sorteia(['log', 'stump_old', 'stump_old', 'rock_largeA', 'stone_largeA']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
+  espalha(60, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', 'mushroom_redGroup', x, altM(x, z), z, rnd() * TAU, 1 + rnd(), '', null, 'mata'); return true; });
+  /* pedras na beira da sanga */
+  for (let x = -130; x < 130; x += 3 + rnd() * 5) { const lado = rnd() < 0.5 ? -1 : 1, z = zSanga(x) + lado * (3.2 + rnd() * 1.5); inst('n', sorteia(['stone_largeA', 'rock_largeA']), x, altM(x, z) - 0.2, z, rnd() * TAU, 0.6 + rnd() * 0.8, '', null, 'mata'); }
+
+  /* 1. a entrada da trilha */
+  { const { x, z } = LUG_M.entrada, y = altM(x, z);
+    postesPlaca(x + 3.5, z + 1, 0, 2.6); placaM('Trilha da mata', x + 3.5, y + 2.2, z + 1, 0, 2.6, 'sobe até o morro da antena');
+    for (const k of [-1, 1]) cilindro(x + k * 2.2, y - 0.2, z - 1, 0.1, 0.12, 1.6, matMadeira, 6, gMata);
+    const tr = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.12, 0.12), matMadeira); tr.position.set(x - 1.3, y + 1.1, z - 1); tr.rotation.y = 0.5; gMata.add(tr); // a porteira ficou aberta
+    pistaM('A porteira aberta', x - 1, y + 1.4, z - 1, 'ENTRADA DA TRILHA. A trilha sobe do cemitério para a mata. A porteira está aberta e amarrada com arame novo. No barro, pegadas de bota de borracha (do Seu Benedito, F5) e, por cima, marcas de patas de graxaim. Daqui saem as trilhas para a capelinha, o acampamento da Usina e, do outro lado da sanga, o morro da antena.'); }
+  /* 2. o acampamento dos topógrafos da Usina */
+  { const { x, z } = LUG_M.acampamento, y = altM(x, z), q = qM(x, z, 0.3);
+    for (const [lx, lz] of [[-3.5, -2], [3, -2.5]]) { const [wx, wz] = mundo(q, lx, lz), yy = altM(wx, wz); const b = new THREE.Mesh(new THREE.ConeGeometry(1.9, 1.9, 4), new THREE.MeshStandardMaterial({ color: 0x8a6d2a, roughness: 0.9 })); b.position.set(wx, yy + 0.95, wz); b.rotation.y = q.ang + Math.PI / 4; b.scale.set(1, 1, 1.5); b.castShadow = true; gMata.add(b); }
+    pBox(q, 'metal', 0, y, 2, 1.8, 0.75, 0.8, new THREE.Color('#9a9a92')); // a mesa dobrável
+    inst('m', 'chair', ...mundoY(q, 1.2, 3.2), q.ang + 2.6, 1, 'velha', null, 'mata');
+    inst('n', 'campfire_stones', ...mundoY(q, 0, -0.5), 0, 1, '', null, 'mata');
+    const lamp = luzM(...mundoY(q, 0.3, 2, 1.1), 0xffc078, 1.2, 9); lamp.userData.pisca = 0.6;
+    for (let i = 0; i < 9; i++) { const ex = x - 30 + i * 9, ez = z + 14 - i * 1.6; if (naTrilhaM(ex, ez)) continue; const e = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.2, 0.08), new THREE.MeshStandardMaterial({ color: 0xb2322c, roughness: 0.6 })); e.position.set(ex, altM(ex, ez) + 0.6, ez); gMata.add(e); }
+    pistaM('As estacas vermelhas', x, y + 1.4, z + 2, 'ACAMPAMENTO DOS TOPÓGRAFOS (F6). Barracas da Usina largadas há semanas. Uma fila de estacas vermelhas atravessa a mata marcando a cota da nova represa: a linha passa acima da igreja nova e do cemitério, então a cidade inteira vai para o fundo, não só a parte baixa que a empresa mostra nas reuniões. No caderno de campo, uma ordem assinada pela Renata: "levantamento da estrada velha, só de madrugada".'); }
+  /* 3. a clareira dos rostos */
+  { const { x, z } = LUG_M.clareira, y = altM(x, z);
+    inst('n', 'cliff_cave_rock', x + 5, y - 0.4, z - 4, 2.4, 1.6, '', null, 'mata');
+    for (let i = 0; i < 7; i++) { const a = rnd() * TAU, r = 1 + rnd() * 5, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; const sp = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.12 + rnd() * 0.1), new THREE.MeshStandardMaterial({ color: sorteia([0x2a1e16, 0x3b2a1e, 0x4a4a52, 0x6a3a2a]), roughness: 0.9 })); sp.position.set(px, altM(px, pz) + 0.06, pz); sp.rotation.y = rnd() * TAU; gMata.add(sp); }
+    pistaM('A clareira dos rostos', x, y + 1.3, z, 'A CLAREIRA DOS GRAXAINS (F1). Sapatos e chinelos espalhados, todos virados para a toca. Quem chega à noite ouve risada baixa dentro da pedra. Um dos sapatos tem o nome escrito na palmilha: um morador que a delegacia deu como "mudança de endereço". Ele não foi embora: desceu para a água, e o que sobrou dele ficou aqui.'); }
+  /* 4. a capelinha de beira de mato */
+  { const { x, z } = LUG_M.capelinha, y = altM(x, z), q = qM(x, z, -0.4);
+    pBox(q, 'ruina', 0, y - 0.3, 0, 1.6, 1.0, 1.1, new THREE.Color('#8b8676')); pBox(q, 'ruina', 0, y + 0.7, 0, 1.4, 1.1, 0.9, new THREE.Color('#9c9684'));
+    pBox(q, 'telha', 0, y + 1.8, 0, 1.8, 0.14, 1.3, null); pBox(q, 'acesa', 0, y + 0.95, 0.42, 0.6, 0.6, 0.06, null);
+    inst('g', 'candle-multiple', ...mundoY(q, 0.4, 0.75), q.ang, 0.9, '', null, 'mata'); inst('g', 'candle-multiple', ...mundoY(q, -0.5, 0.8), q.ang, 0.8, '', null, 'mata');
+    const v = luzM(...mundoY(q, 0, 1.1, 0.8), 0xffa24a, 1.6, 8); v.userData.pisca = 1;
+    { const sn = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.16, 0.22, 10, 1, true), new THREE.MeshStandardMaterial({ color: 0x8a6a2a, metalness: 0.6, roughness: 0.4, side: THREE.DoubleSide })); sn.position.set(...mundoY(q, 0.55, 0.7, 1.55)); gMata.add(sn); }
+    pistaM('A capelinha', x, y + 2.4, z, 'CAPELINHA DE BEIRA DE MATO (F3). Uma Nossa Senhora de gesso, velas e um sininho pendurado na frente. Atrás da imagem, um ex-voto de junho de 1979: "pela volta do meu filho, que a água levou". O sobrenome bate com a lista de 1979, mas ele não aparece em nenhum papel da prefeitura: um dos 32 que sumiram dos registros. O sininho serve contra a Rasga-Mortalha.'); }
+  /* 5. a sanga e a ponte de tronco */
+  { const { x, z } = LUG_M.ponte, y = altM(x, z) + 0.95;
+    const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 13, 9), matMadeira); tr.rotation.x = Math.PI / 2; tr.position.set(x, y + 0.2, z); tr.castShadow = tr.receiveShadow = true; gMata.add(tr);
+    for (const k of [-1, 1]) { cilindro(x + 0.6, altM(x + 0.6, z + k * 3) - 0.3, z + k * 3, 0.05, 0.05, 1.6, matMadeira, 5, gMata); }
+    const corda = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 7, 4), new THREE.MeshStandardMaterial({ color: 0x8a7a5a })); corda.rotation.x = Math.PI / 2; corda.position.set(x + 0.6, y + 1.1, z); gMata.add(corda);
+    pistaM('A sanga', x + 1.5, y + 1.2, z + 3, 'A SANGA. Água corrente, fria, que desce para a represa. A Máscara não atravessa água corrente: do outro lado do tronco ela para e espera. É o lugar mais seguro da mata e o único caminho para o barbacuá, a pedreira e o fim da trilha. Na lama da margem, pegadas de bota de borracha de obra que entram na água e não voltam (o Afogado de Maio, F6).'); }
+  /* 6. o barbacuá abandonado */
+  { const { x, z } = LUG_M.barbacua, q = qM(x, z, 0.2), y = Math.max(altM(x - 4, z - 3), altM(x + 4, z + 3), altM(x, z)) + 0.05;
+    pBox(q, 'tabua', 0, y - 0.6, 0, 9, 0.6, 6.5, new THREE.Color('#6a5038'));
+    for (const lx of [-4.2, 0, 4.2]) for (const lz of [-3, 3]) pBox(q, 'tabua', lx, y, lz, 0.25, 3.4, 0.25, new THREE.Color('#5a4030'));
+    for (let i = -3; i <= 3; i++) pBox(q, 'tabua', i * 1.2, y + 1.7, 0, 0.12, 0.1, 6, new THREE.Color('#4a3a28')); // o estrado onde a erva secava
+    pBox(q, 'telha', 0, y + 3.4, 0, 9.6, 0.15, 7.2, null);
+    pBox(q, 'ruina', -3, y, -1.5, 1.6, 0.9, 1.4, new THREE.Color('#5c5650')); // a fornalha
+    pBox(q, 'tabua', 2.4, y, 1.2, 1.2, 0.7, 0.7, new THREE.Color('#3a2a1c')); // o baú
+    inst('n', 'log_stack', ...mundoY(q, 5.8, -2), q.ang, 1.4, '', null, 'mata');
+    const [bx, bz] = mundo(q, 2.4, 1.2); pistaM('O baú do barbacuá', bx, y + 1.3, bz, 'O GALPÃO DOS RUARO (Verdade 9). O galpão de secar erva da família da Nonna Gema, abandonado desde 1979. No baú, com cadeado de segredo, um figurino de teatro de 1978 enrolado em jornal, pesado e úmido, do mesmo tecido que a Máscara veste. O segredo é 1949, o ano gravado na aliança da Nonna (enigma 7). Bordado na gola: "O. Ruaro", o Ottavio, um dos três que vestiram as máscaras. Antes da sessão 5, dê só o figurino; o nome confirma a Verdade 9.'); }
+  /* 7. a pedreira de 1936 */
+  { const { x, z } = LUG_M.pedreira, y = altM(x, z);
+    for (const [dx, dz, r, k] of [[-9, 4, 0.2, 3.2], [-4, 10, 1.4, 3.6], [4, 11, 1.6, 3.4], [10, 5, 2.6, 3.2], [-11, -3, 0.4, 2.6]]) inst('n', 'cliff_block_rock', x + dx, altM(x + dx, z + dz) - 0.8, z + dz, r, k, '', null, 'mata');
+    inst('n', 'cliff_cave_rock', x, y - 0.6, z + 9, Math.PI, 3, '', null, 'mata');
+    for (let i = 0; i < 8; i++) { const px = x - 5 + rnd() * 10, pz = z - 4 + rnd() * 8; inst('n', sorteia(['stone_tallA', 'stone_tallB', 'statue_block']), px, altM(px, pz) - 0.1, pz, rnd() * TAU, 0.9 + rnd() * 0.6, '', null, 'mata'); }
+    const poco = new THREE.Mesh(new THREE.CircleGeometry(3.2, 24), new THREE.MeshStandardMaterial({ color: 0x0e1a17, roughness: 0.05, metalness: 0.3 })); poco.rotation.x = -Math.PI / 2; poco.position.set(x + 2, y + 0.08, z - 1); gMata.add(poco);
+    pistaM('A pedreira', x, y + 1.6, z + 5, 'PEDREIRA DE 1936 (F3, Verdade 5). Daqui saíram as pedras da torre de Remanso, a torre que hoje é o selo. Na parede, uma cruz e "1936" a cinzel, e as mesmas marcas que aparecem nas pedras da igreja afogada. Às 3h17, a boca da gruta ecoa a canção, sem rádio nenhum.'); }
+  /* 8. o pinheiro morto */
+  { const { x, z } = LUG_M.pinheiro, y = altM(x, z);
+    const mMorta = new THREE.MeshStandardMaterial({ color: 0x8c877c, roughness: 1 });
+    cilindro(x, y - 0.5, z, 0.5, 0.95, 26, mMorta, 8, gMata);
+    for (let i = 0; i < 9; i++) { const h = 12 + i * 1.5, a = rnd() * TAU, l = 2.5 + rnd() * 3, g = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.18, l, 5), mMorta); g.position.set(x + Math.cos(a) * l / 2, y + h, z + Math.sin(a) * l / 2); g.rotation.set(Math.sin(a) * 1.2, 0, -Math.cos(a) * 1.2); g.castShadow = true; gMata.add(g); }
+    for (let i = 0; i < 26; i++) { const a = rnd() * TAU, r = 1 + rnd() * 6, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; const pp = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.6), new THREE.MeshStandardMaterial({ color: 0xd9d2bf, roughness: 1, side: THREE.DoubleSide })); pp.position.set(px, altM(px, pz) + 0.03, pz); pp.rotation.set(-Math.PI / 2, 0, rnd() * TAU); gMata.add(pp); }
+    pistaM('O pinheiro morto', x + 2, y + 1.4, z + 1, 'O PINHEIRO MORTO (Verdade 4). Uma araucária seca, branca como osso, a mais alta da mata. No alto, o ninho da Rasga-Mortalha, feito de papel. O chão em volta tem "penas" de papel molhado com letra borrada: páginas arrancadas dos registros de 1979. Juntando as tiras saem nomes dos 32 que sumiram dos papéis, e um pedaço do índice do livro de atas ("termo lavrado por A. Busatto"), outro caminho para o nome do Rosto Liso.'); }
+  /* 9. o fim da trilha: dali se sai no morro da antena, que fica no vale */
+  { const x = 0, z = 92, y = altM(x, z);
+    postesPlaca(x - 2, z - 3, 0.2, 2.6); placaM('Morro da antena', x - 2, y + 2.2, z - 3, 0.2, 2.6, 'a trilha sai no alto do morro, sobre o lago');
+    pistaM('O fim da trilha', x, y + 1.3, z, 'FIM DA TRILHA. A subida termina no morro da antena, já no vale (botão "Voltar ao vale"). Quem chega por aqui vê o ferro da antena por cima das árvores e ouve o vento no cabo que desce até a represa.'); }
+
+  /* luzes, céu e névoa da mata */
+  mataHemi = new THREE.HemisphereLight(0x8fa7a0, 0x1a1712, 0.9); mataCena.add(mataHemi);
+  mataLua = new THREE.DirectionalLight(0xbcd0d6, 0.6); mataLua.castShadow = !fraco; mataLua.shadow.mapSize.set(2048, 2048);
+  Object.assign(mataLua.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 1, far: 260 }); mataLua.shadow.bias = -0.0006;
+  mataCena.add(mataLua, mataLua.target);
+  for (let i = 0; i < 46; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex('rgba(190,205,200,0.5)', 'rgba(190,205,200,0)', 64), transparent: true, opacity: 0.16 + rnd() * 0.12, depthWrite: false })); const x = -130 + rnd() * 260, z = -130 + rnd() * 260; sp.position.set(x, altM(x, z) + 1.2, z); sp.scale.set(22 + rnd() * 20, 5 + rnd() * 3, 1); sp.userData = { x, z, v: rnd() }; gMata.add(sp); nevoasM.push(sp); }
+  const nv = fraco ? 60 : 160, pv = new Float32Array(nv * 3); for (let i = 0; i < nv; i++) { const x = -110 + rnd() * 220, z = -110 + rnd() * 220; pv.set([x, altM(x, z) + 0.8 + rnd() * 2.5, z], i * 3); }
+  const gv = new THREE.BufferGeometry(); gv.setAttribute('position', new THREE.BufferAttribute(pv, 3)); gv.userData.base = pv.slice();
+  mataVaga = new THREE.Points(gv, new THREE.PointsMaterial({ map: softTex('rgba(220,255,150,1)', 'rgba(200,255,120,0)', 32), color: 0xd8ff8a, size: 0.35, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  gMata.add(mataVaga); // vaga-lumes
+}
+const mundoY = (q, lx, lz, dy = 0) => { const [x, z] = mundo(q, lx, lz); return [x, altM(x, z) + dy, z]; };
+const MATA_CAMS = () => [
+  ['Entrada da trilha', { pos: [-4, altM(-10, -104) + 5, -120], alvo: [-10, altM(-10, -104) + 1, -100] }],
+  ['Acampamento da Usina', { pos: [-44, altM(-56, -60) + 7, -46], alvo: [-56, altM(-56, -60), -60] }],
+  ['A clareira', { pos: [30, altM(42, -50) + 6, -38], alvo: [44, altM(42, -50), -52] }],
+  ['Capelinha', { pos: [-12, altM(-20, -14) + 4, -4], alvo: [-20, altM(-20, -14) + 1, -14] }],
+  ['A sanga e a ponte', { pos: [22, altM(10, 35) + 6, 26], alvo: [10, altM(10, 35), 35] }],
+  ['Galpão velho', { pos: [-48, altM(-62, 58) + 7, 44], alvo: [-62, altM(-62, 58) + 1, 58] }],
+  ['Pedreira de 1936', { pos: [44, altM(56, 74) + 9, 58], alvo: [56, altM(56, 74) + 1, 76] }],
+  ['Pinheiro morto', { pos: [76, altM(90, 6) + 8, -8], alvo: [90, altM(90, 6) + 8, 6] }],
+  ['Fim da trilha', { pos: [-10, altM(0, 92) + 6, 78], alvo: [0, altM(0, 92) + 1, 92] }],
+  ['A mata de cima', { pos: [-120, 70, -150], alvo: [0, 0, 0] }],
+];
+function camerasDaMata() {
+  for (const [nome, c] of MATA_CAMS()) {
+    const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = nome;
+    b.onclick = () => { voar(c, nome); document.querySelectorAll('#cams-mata .btn').forEach(x => x.classList.toggle('on', x === b)); };
+    $('#cams-mata').append(b);
+  }
+}
+function aplicaLuzMata() {
+  mataNoiteAt = noite; mataNevoaAt = nevoaOn;
+  mataCena.fog = nevoaOn ? (noite ? fogMataNoite : fogMataDia) : null;
+  mataCena.background = new THREE.Color(noite ? 0x0a1110 : 0x76817d);
+  mataHemi.color.set(noite ? 0x7f969a : 0xd3ddd8); mataHemi.groundColor.set(noite ? 0x14120d : 0x3a3428); mataHemi.intensity = noite ? 0.75 : 1.4;
+  mataLua.color.set(noite ? 0xb4c8d2 : 0xf0ece0); mataLua.intensity = noite ? 0.55 : 1.3;
+  mataVaga.visible = noite; nevoasM.forEach(n => n.visible = nevoaOn);
+}
+function quadroMata(t, dt) {
+  if (mataNoiteAt !== noite || mataNevoaAt !== nevoaOn) aplicaLuzMata();
+  const alvo = controls.target;
+  mataLua.position.set(alvo.x - 40, alvo.y + 70, alvo.z + 30); mataLua.target.position.copy(alvo);
+  const sg = mataCena.userData.sanga; if (sg) sg.userData.nm.offset.set(t * 0.06, 0);
+  if (mataLuzAntena) { const on = Math.sin(t * 2.4) > 0.2; mataLuzAntena.intensity = on ? 2.5 : 0; mataBolaAntena.material.color.set(on ? 0xff3a2a : 0x3a0a08); }
+  gMata.children.forEach(o => { if (o.isPointLight && o.userData.pisca) o.intensity = o.userData.pisca * (1.3 + Math.sin(t * 9 + o.position.x) * 0.15 + Math.sin(t * 23) * 0.08); });
+  if (mataVaga.visible) { const pa = mataVaga.geometry.attributes.position, b = mataVaga.geometry.userData.base; for (let i = 0; i < pa.count; i++) pa.setXYZ(i, b[i * 3] + Math.sin(t * 0.4 + i) * 1.2, b[i * 3 + 1] + Math.sin(t * 0.9 + i * 1.7) * 0.4, b[i * 3 + 2] + Math.cos(t * 0.35 + i) * 1.2); pa.needsUpdate = true; mataVaga.material.opacity = 0.6 + 0.4 * Math.sin(t * 2.1); }
+  for (const n of nevoasM) { const u = n.userData; n.position.x = u.x + Math.sin(t * 0.05 + u.v * 10) * 8; }
+  for (const m of marcadoresM) { const u = m.userData; m.visible = pistasOn; m.position.y = u.y0 + Math.sin(t * 1.6 + u.fase) * 0.12; m.rotation.y = t * 0.8; }
+  for (const s of standees) {
+    if (s.cena !== 'mata') continue;
+    if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 8); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = altM(p.x, p.z) + 0.13; }
+    poseFigura(s, camera.position.x - s.g.position.x, camera.position.z - s.g.position.z);
+  }
+  const chaoAqui = altM(camera.position.x, camera.position.z) + 0.6;
+  if (camera.position.y < chaoAqui) { const d = chaoAqui - camera.position.y; camera.position.y += d; controls.target.y += d; }
+}
+const podePistasM = () => typeof SO_JOGADOR === 'undefined' ? true : !SO_JOGADOR;
+function entrarMata(on) {
+  if (on && !mataPronta) return;
+  if (on && modoSonho) entrarSonho(false);
+  if (on && modoRem) entrarRemanso(false);
+  if (on === modoMata) return;
+  modoMata = on; voo = null;
+  const b = $('#b-mata'); b.setAttribute('aria-pressed', String(on)); b.querySelector('.t').textContent = on ? 'Voltar ao vale' : 'Mata';
+  $('#cams').hidden = on; $('#cams-mata').hidden = !on; $('#b-pistas').hidden = !(on && podePistasM());
+  $('#brand-sub').textContent = on ? 'A mata · entre o cemitério e o morro da antena' : 'Alto Uruguai, junho de 2016';
+  if (on) {
+    salvoMata = { p: camera.position.clone(), t: controls.target.clone() };
+    aplicaLuzMata();
+    const c = MATA_CAMS()[0][1]; camera.position.set(...c.pos); controls.target.set(...c.alvo);
+    Object.assign(controls, { minDistance: 1.2, maxDistance: 170, maxPolarAngle: Math.PI * 0.6 });
+    $('#nota-t').textContent = 'A mata';
+    $('#nota-x').textContent = 'O mato fechado acima da cidade. Oito lugares ligados por trilhas, que terminam no morro da antena; a sanga corta a mata de leste a oeste e só se cruza pela ponte de tronco. Os brilhos âmbar são pistas: clique para ler.';
+    $('#nota').hidden = !podePistasM();
+  } else {
+    if (salvoMata) { camera.position.copy(salvoMata.p); controls.target.copy(salvoMata.t); }
+    Object.assign(controls, { minDistance: 2.5, maxDistance: 520, maxPolarAngle: Math.PI * 0.49 });
+    $('#nota').hidden = true;
+  }
+  if (typeof renderLista === 'function') renderLista();
+}
+canvas.addEventListener('pointerup', e => {
+  if (!modoMata || !toque || Math.hypot(e.clientX - toque.x, e.clientY - toque.y) > 6) return;
+  ndc(e); ray.setFromCamera(ptr, camera);
+  const h = ray.intersectObjects(marcadoresM.filter(m => m.visible), false)[0]; if (!h) return;
+  const m = h.object, p = m.position, dir = camera.position.clone().sub(p).setY(0).normalize().multiplyScalar(5);
+  voar({ pos: [p.x + dir.x, p.y + 2.5, p.z + dir.z], alvo: [p.x, p.y - 0.3, p.z] }, m.userData.titulo, m.userData.texto);
+});
+
 /* ---------- câmeras e notas do mestre ---------- */
 let voo = null, tLugar = 0;
 function voar(c, nome, nota) {
@@ -1467,12 +1959,13 @@ function camerasDosLugares() {
     ['Prefeitura', perto(L.prefeitura, 14, 10, 24, 3), 'O arquivo tem todos os anos de 1950 a 2015, menos 1979.'],
     ['Casa da Iracema', perto(L.iracema, -10, 6, -16, 1.5), 'Fechada desde 1979. A gaveta cheia d\'água guarda a vela preta.'],
     ['Escola', perto(L.escola, 16, 10, 26, 3), 'Escola Estadual, na Rua Garibaldi. Boa para cenas com crianças que sonham com a canção.'],
-    ['Brigada', perto(L.brigada, -12, 7, 18, 2), 'Posto da Brigada Militar. Chamam o sumiço do Seu Alcides de "idoso que saiu sem avisar".'],
+    ['Delegacia e Brigada', perto(L.brigada, -12, 7, 18, 2), 'Uma sala da Polícia Civil (Dr. Osmar) e o posto da Brigada (Soldado Duda). Os sumiços são fechados como "mudança de endereço"; o medidor do Matheus está nos achados.'],
     ['Posto de Saúde', perto(L.saude, 12, 7, -18, 2), 'Onde levam quem volta da neblina com os pés molhados.'],
     ['Capela e salão', perto(L.salao, -10, 11, 26, 2), 'A capela nova e o Salão da Comunidade, onde acontece a Tarde da Saudade (sessão 5).'],
     ['Cemitério', perto(L.cemiterio, 30, 14, 20, 0), 'Seu Benedito varre os túmulos com retrato esmaltado. A capela mortuária, onde acharam o tio Jorge, fica no canto.'],
     ['Serraria', perto(L.serraria, 16, 9, 20, 2), 'Serraria Dal Molin, da família do Seu Benedito. Fechada à noite.'],
     ['Colônia', perto(L.colonia, -30, 16, 30, 2), 'Casas de madeira, galpões e araucárias na estrada de cima. Gente que não desce para a cidade.'],
+    ['Casa da Nonna Gema', perto(L.colonia, 14, 8, -16, 1.5), 'Na colônia. Cheiro de polenta, a televisão ligada sem som, a Pietra traduzindo o talian. A Nonna não sai de casa e não esquece nada.'],
     ['Cooperativa', perto(L.cooperativa, 26, 14, 28, 6), 'Silos e armazém da cooperativa. Bom lugar para se esconder na sessão 11.'],
     ['Campo', perto(L.campo, -26, 12, 22, 0), 'O campo de futebol da cidade, em cima do morro.'],
     ['Posto', perto(L.posto, -14, 7, 16, 2), 'Último posto antes do canteiro da obra.'],
@@ -1481,6 +1974,7 @@ function camerasDosLugares() {
     ['Represa Velha', { pos: [-40, 8, 70], alvo: [20, -2, -17] }, 'Um lago escuro e parado. Ninguém vê nada lá embaixo. A estrada velha desce e entra na água: é o caminho para Remanso (botão Remanso). Use "Seca" para a sessão 6.'],
     ['A torre', perto(L.torre, -16, 6, 14, 2), 'A torre de 1936, inteira debaixo d\'água. Só aparece na seca (sessão 6) ou com "Ver o fundo". É o selo do ritual.'],
   ];
+  if (L.antena) cams.splice(cams.findIndex(c => c[0] === 'Campo') + 1, 0, ['Antena velha', perto(L.antena, -18, 12, 22, 6), 'O ferro da Rádio Vale Alto, fechada em 1979, no alto do morro com a vista do lago inteiro. O cabo desce o morro e entra na represa (Verdade 10). O tripé e o tênis do Matheus aparecem na margem no Ato 2. É o lugar mais alto do vale: refúgio na Noite Alagada. A trilha da mata do Lajeado sai daqui.']);
   for (const [nome, c, nota] of cams) {
     if (SO_JOGADOR && nome === 'A torre') continue; // a torre é segredo até a seca
     const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = nome;
@@ -1516,6 +2010,7 @@ $('#b-fundo').onclick = () => { fundo = !fundo; $('#b-fundo').setAttribute('aria
 $('#b-navio').onclick = () => { const on = !navio.visible; navio.visible = on; $('#b-navio').setAttribute('aria-pressed', String(on)); };
 $('#b-sonho').onclick = () => { if (modoRem) entrarRemanso(false); entrarSonho(!modoSonho); };
 $('#b-rem').onclick = () => entrarRemanso(!modoRem);
+$('#b-mata').onclick = () => entrarMata(!modoMata);
 $('#b-pistas').onclick = () => { pistasOn = !pistasOn; $('#b-pistas').setAttribute('aria-pressed', String(pistasOn)); };
 document.querySelectorAll('[data-nivel]').forEach(b => b.onclick = () => {
   nivelAlvo = NIVEIS[b.dataset.nivel];
@@ -1553,6 +2048,11 @@ function frame() {
   andar(dt);
   controls.update();
   agua.material.normalMap.offset.set(t * 0.004, t * 0.003);
+  if (modoMata) {
+    quadroMata(t, dt);
+    try { renderer.render(mataCena, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
+    return;
+  }
   if (modoRem) {
     quadroRemanso(t);
     try { renderer.render(remCena, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
@@ -1575,7 +2075,7 @@ function frame() {
   const dist = camera.position.distanceTo(controls.target);
   fogNoite.density = 0.0062 / Math.max(1, dist / 55); fogDia.density = 0.0032 / Math.max(1, dist / 70);
   for (const s of standees) if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 8); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = alt(p.x, p.z) + 0.13; }
-  for (const s of standees) { const dx = camera.position.x - s.g.position.x, dz = camera.position.z - s.g.position.z, dy2 = camera.position.y - s.g.position.y - 0.9; s.pivot.rotation.set(0, Math.atan2(dx, dz), 0); s.card.rotation.x = -Math.min(0.7, Math.max(0, Math.atan2(dy2, Math.hypot(dx, dz)) * 0.75)); }
+  for (const s of standees) { const dx = camera.position.x - s.g.position.x, dz = camera.position.z - s.g.position.z; poseFigura(s, dx, dz); }
   for (const n of nevoas) { const u = n.userData; n.position.x = u.x + Math.sin(t * 0.04 + u.v * 10) * 14; n.position.y = Math.max(alt(u.x, u.z), agua.position.y) + u.sobe; }
   try { renderer.render(scene, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
 }
@@ -1584,22 +2084,36 @@ function loop() { if (!(PM && PM.pausado())) frame(); requestAnimationFrame(loop
 /* ---------- dentro do site: peças, papel e cena de todos ---------- */
 const porId = new Map();
 let focoPend = null;
-function olharPeca(s) { const p = s.g.position; voar({ pos: [p.x + 6, p.y + 5.5, p.z + 7], alvo: [p.x, p.y + 1, p.z] }, s.nome); }
+function mudaCena(s, cn, x, z) {
+  (s.cena === 'mata' ? gMata : scene).remove(s.g); s.cena = cn; (cn === 'mata' ? gMata : scene).add(s.g);
+  s.g.position.set(x, altC(cn, x, z) + 0.13, z); s.alvo = { x, z }; s.ult = null;
+}
+const ondeEsta = s => (s.cena === 'mata') === modoMata;
+function trazer(s) { const t = controls.target; PM.editar(s.id, { cena: modoMata ? 'mata' : null, x: Math.round((t.x + (Math.random() - 0.5) * 4) * 100) / 100, z: Math.round((t.z + (Math.random() - 0.5) * 4) * 100) / 100 }); }
+function olharPeca(s) {
+  if (!ondeEsta(s)) { if (!PM.isGM() || !mataPronta) return; entrarMata(s.cena === 'mata'); setTimeout(() => olharPeca(s), 60); return; }
+  const p = s.g.position; voar({ pos: [p.x + 6, p.y + 5.5, p.z + 7], alvo: [p.x, p.y + 1, p.z] }, s.nome); }
 function sincPecas(ps) {
   const vistos = new Set();
   for (const [id, p] of Object.entries(ps || {})) {
     if (p.x == null || p.z == null) {
-      if (PM.podeMover(id) && !porId.has(id)) { const t = controls.target; PM.mover(id, t.x + (Math.random() - 0.5) * 3, t.z + (Math.random() - 0.5) * 3, true); }
+      if (PM.podeMover(id) && !porId.has(id)) { const t = controls.target; PM.mover(id, t.x + (Math.random() - 0.5) * 3, t.z + (Math.random() - 0.5) * 3, true); if (modoMata) PM.editar(id, { cena: 'mata' }); }
       continue;
     }
     vistos.add(id);
     const cor = p.cor || CORES[0], nome = String(p.nome || 'Figura').slice(0, 22);
     let s = porId.get(id);
-    if (!s) { s = figura(nome, cor, +p.x, +p.z); s.id = id; porId.set(id, s); }
+    const cn = p.cena === 'mata' && mataPronta ? 'mata' : 'vale';
+    if (s && s.cena !== cn) mudaCena(s, cn, +p.x, +p.z);
+    if (!s) { s = figura(nome, cor, +p.x, +p.z, cn); s.id = id; porId.set(id, s); if (p.r != null) { s.face = +p.r; s.rIn = +p.r; } }
     else {
       if (s.nome !== nome || s.cor !== cor) { s.cor = cor; renomear(s, nome); s.g.children[1].material.color.set(cor); }
       if (s !== arrasto) s.alvo = { x: +p.x, z: +p.z };
+      if (p.r != null && +p.r !== s.rIn && s !== arrasto) { s.rIn = +p.r; if (Math.hypot(s.g.position.x - p.x, s.g.position.z - p.z) < 0.05) s.face = +p.r; }
     }
+    const asig = assinaArte(p.arte, p.alt);
+    if (s.asig !== asig) { s.asig = asig; aplicaArte(s, p.arte, p.alt); }
+    estadoFig(s, p.estado);
     s.dados = p;
     s.mat.opacity = p.visivel === false ? 0.5 : 1;
     if (focoPend === id) { focoPend = null; setTimeout(() => olharPeca(s), 50); }
@@ -1625,11 +2139,18 @@ function renderLista() {
     } else {
       nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = s.nome;
       const sub = document.createElement('small');
-      sub.textContent = minha ? 'você' + (d.trava ? ' · presa pelo mestre' : '') : d.tipo === 'pj' ? (PM.nomeDe(d.dono) || 'jogador').split(' ')[0] : d.tipo === 'inimigo' ? 'ameaça' + (d.visivel === false ? ' · escondida' : '') : 'NPC' + (d.visivel === false ? ' · escondido' : '');
+      const onde = ondeEsta(s) ? '' : (s.cena === 'mata' ? ' · na mata' : ' · no vale');
+      sub.textContent = (minha ? 'você' + (d.trava ? ' · presa pelo mestre' : '') : d.tipo === 'pj' ? (PM.nomeDe(d.dono) || 'jogador').split(' ')[0] : d.tipo === 'inimigo' ? 'ameaça' + (d.visivel === false ? ' · escondida' : '') : 'NPC' + (d.visivel === false ? ' · escondido' : '')) + onde;
       nm.append(sub);
     }
+    if (nm.tagName === 'INPUT' && !ondeEsta(s)) { const w = document.createElement('span'); w.className = 'nm'; const sm2 = document.createElement('small'); sm2.textContent = s.cena === 'mata' ? 'na mata' : 'no vale'; w.append(nm, sm2); nm = w; }
     const acts = document.createElement('span'); acts.className = 'acts';
     acts.append(bt('Ver', 'Ver ' + s.nome, () => olharPeca(s)));
+    if ((gm || minha) && !ondeEsta(s) && mataPronta) acts.append(bt('Trazer', 'Trazer ' + s.nome + ' para ' + (modoMata ? 'a mata' : 'o vale'), () => trazer(s)));
+    if (gm || minha) {
+      acts.append(bt('Arte', 'Arte de ' + s.nome + ' (a figura em pé)', () => abrirArte(s)));
+      acts.append(bt('↻', 'Virar ' + s.nome, () => { s.face += Math.PI / 2; s.rIn = s.face; PM.editar(s.id, { r: Math.round(s.face * 100) / 100 }); }));
+    }
     if (gm) {
       acts.append(bt(d.trava ? '🔒' : '🔓', d.trava ? 'Soltar a peça' : 'Prender a peça (o jogador não move)', () => PM.setTrava(s.id, !d.trava), !!d.trava));
       if (d.tipo !== 'pj') acts.append(bt(d.visivel === false ? 'Mostrar' : 'Esconder', d.visivel === false ? 'Mostrar para os jogadores' : 'Esconder dos jogadores', () => PM.setVisivel(s.id, d.visivel === false)));
@@ -1638,19 +2159,23 @@ function renderLista() {
     row.append(i, nm, acts); box.append(row);
   }
   if (!lista.length) { const p = document.createElement('p'); p.textContent = 'Nenhuma peça no mapa ainda.'; box.append(p); }
+  const fora = lista.filter(s => s.dados?.tipo === 'pj' && !ondeEsta(s));
+  if (gm && mataPronta && fora.length) { const b = bt('Trazer os jogadores para ' + (modoMata ? 'a mata' : 'o vale'), 'Leva as peças de todos os jogadores para cá', () => fora.forEach(trazer)); b.classList.add('grupo'); box.append(b); }
   const add = $('#b-add');
   const temMinha = lista.some(s => s.dados?.dono === eu);
   add.hidden = !gm && temMinha;
   add.lastChild.textContent = gm ? 'Adicionar figura' : 'Pôr a minha figura';
 }
 function estadoCena() {
-  return { nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
+  return { nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
 }
 function aplicaCena(c) {
   if (!c) return;
   if (c.sonho === false && modoSonho) entrarSonho(false);
+  if (c.mata === false && modoMata) entrarMata(false);
   if (c.rem === false && modoRem) entrarRemanso(false);
   if (c.rem && !modoRem) entrarRemanso(true);
+  if (c.mata && !modoMata) entrarMata(true);
   if (c.sonho && !modoSonho) { if (modoRem) entrarRemanso(false); entrarSonho(true); }
   if (c.nivel && NIVEIS[c.nivel] != null && NIVEIS[c.nivel] !== nivelAlvo) document.querySelector('[data-nivel="' + c.nivel + '"]')?.onclick();
   if (c.noite != null && !!c.noite !== noite) $('#b-hora').onclick();
@@ -1661,11 +2186,11 @@ function iniciaPonte() {
   const gm = PM.isGM();
   $('#chars h2').textContent = 'Peças';
   $('#chars p').textContent = gm ? 'Arraste qualquer peça. O cadeado prende a peça do jogador; “Esconder” tira NPCs e ameaças da vista deles.' : 'Arraste a sua figura. Na call, quem está perto ouve você mais alto.';
-  if (SO_JOGADOR) for (const sel of ['#agua', '#b-rem', '#b-sonho', '#b-fundo', '#b-navio', '#b-hora', '#b-nevoa', '#b-pistas']) { const el = $(sel); if (el) el.style.display = 'none'; }
+  if (SO_JOGADOR) for (const sel of ['#agua', '#b-rem', '#b-mata', '#b-sonho', '#b-fundo', '#b-navio', '#b-hora', '#b-nevoa', '#b-pistas']) { const el = $(sel); if (el) el.style.display = 'none'; }
   $('#b-add').onclick = () => {
     const t = controls.target, x = t.x + (Math.random() - 0.5) * 3, z = t.z + (Math.random() - 0.5) * 3;
-    if (gm) { const n = porId.size + 1; PM.novaPeca(null, { nome: 'Figura ' + n, tipo: 'npc', x, z }, true); }
-    else { const id = PM.novaPeca('pj_' + PM.me(), { nome: (window.parent.SV.meuNome?.() || 'Eu'), tipo: 'pj', dono: PM.me(), x, z }, true); focoPend = id; }
+    if (gm) { const n = porId.size + 1; PM.novaPeca(null, { nome: 'Figura ' + n, tipo: 'npc', x, z, cena: modoMata ? 'mata' : '' }, true); }
+    else { const id = PM.novaPeca('pj_' + PM.me(), { nome: (window.parent.SV.meuNome?.() || 'Eu'), tipo: 'pj', dono: PM.me(), x, z, cena: modoMata ? 'mata' : '' }, true); focoPend = id; }
   };
   if (gm) document.querySelector('.hud.top').addEventListener('click', e => { if (e.target.closest('#b-sombra, #b-pers, #b-pistas, #b-fundo')) return; setTimeout(() => PM.setCena(estadoCena()), 0); });
   focoPend = PM._foco || null; PM._foco = null;
@@ -1685,9 +2210,11 @@ function iniciaPonte() {
   terreno(); represa();
   ld(0.1, 'Afundando Remanso…');
   montaRemanso(); montaCasas(gRemanso);
+  ld(0.11, 'Plantando a mata…');
+  try { montaMata(); montaCasas(gMata); mataPronta = true; } catch (e) { console.error('[mata]', e); BALDES.clear(); }
   ld(0.12, 'Erguendo São Valentim…');
-  canteiro(); cemiterio(); arredores(); cidadeNova(); remanso(); araucarias(); vapor();
-  iluminacao(); neblina(); camerasDosLugares(); montaSonho();
+  canteiro(); cemiterio(); arredores(); cidadeNova(); remanso(); antenaVelha(); araucarias(); vapor();
+  iluminacao(); neblina(); camerasDosLugares(); montaSonho(); if (mataPronta) camerasDaMata();
   if (!PM) {
     let salvos = null; try { salvos = JSON.parse(localStorage.getItem('sv3d-pers') || 'null'); } catch (e) { salvos = null; }
     if (Array.isArray(salvos) && salvos.length) salvos.forEach(p => figura(String(p.nome).slice(0, 22), p.cor, +p.x || 0, +p.z || 0));
