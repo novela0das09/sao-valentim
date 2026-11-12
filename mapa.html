@@ -2058,6 +2058,9 @@ function plantaArvores(pai, pins, fols) {
   planta(ARV.tFol, ARV.cFol, ARV.mFol, fols, ['#ffffff', '#e9ecd2', '#d2dcc0', '#e8c98a', '#f0e2b0']);
 }
 
+let CAMS_M = null; // onde as câmeras da mata ficam: nada de tronco ou copa ali
+function pertoCam(x, z, r = 7) { CAMS_M ||= MATA_CAMS().map(([, c]) => c.pos); return CAMS_M.some(p => Math.hypot(p[0] - x, p[2] - z) < r); }
+
 function montaMata() {
   /* chão: folhas, musgo, trilha batida e o leito da sanga */
   const W = 300, H = 300, geo = new THREE.PlaneGeometry(W, H, 150, 150); geo.rotateX(-Math.PI / 2);
@@ -2109,8 +2112,8 @@ function montaMata() {
     const mPinC = new THREE.MeshStandardMaterial({ color: 0xa9bfae, roughness: 0.95, map: tCo.map, normalMap: tCo.normal, normalScale: new THREE.Vector2(0.9, 0.9) });
     const mFolC = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, map: tFolha, normalMap: normalDe(tFolha, 2.4) });
     const pins = [], fols = [];
-    for (let i = 0; i < 12000 && pins.length < (fraco ? 260 : 560); i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (livreM(x, z, 1.5)) pins.push([x, altM(x, z) - 0.2, z, 0.8 + rnd() * 0.7, rnd() * TAU]); }
-    for (let i = 0; i < 8000 && fols.length < (fraco ? 120 : 260); i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (livreM(x, z, 1)) fols.push([x, altM(x, z) - 0.1, z, 0.8 + rnd() * 0.6, rnd() * TAU]); }
+    for (let i = 0; i < 12000 && pins.length < (fraco ? 260 : 560); i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (livreM(x, z, 1.5) && !pertoCam(x, z)) pins.push([x, altM(x, z) - 0.2, z, 0.8 + rnd() * 0.7, rnd() * TAU]); }
+    for (let i = 0; i < 8000 && fols.length < (fraco ? 120 : 260); i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (livreM(x, z, 1) && !pertoCam(x, z)) fols.push([x, altM(x, z) - 0.1, z, 0.8 + rnd() * 0.6, rnd() * TAU]); }
     const m4b = new THREE.Matrix4(), cor = new THREE.Color();
     const planta = (geoT, geoC, matC, lista, tons) => {
       const iT2 = new THREE.InstancedMesh(geoT, mT, lista.length), iC2 = new THREE.InstancedMesh(geoC, matC, lista.length);
@@ -2199,8 +2202,8 @@ function montaMata() {
     pistaM('A sanga', x + 1.5, y + 1.2, z + 3, 'A SANGA. Água corrente, fria, que desce para a represa. A Máscara não atravessa água corrente: do outro lado do tronco ela para e espera. É o lugar mais seguro da mata e o único caminho para o barbacuá, a pedreira e o fim da trilha. Na lama da margem, pegadas de bota de borracha de obra que entram na água e não voltam (o Afogado de Maio, F6).'); }
   /* 6. o barbacuá abandonado */
   { const { x, z } = LUG_M.barbacua, q = qM(x, z, 0.2), y = Math.max(altM(x - 4, z - 3), altM(x + 4, z + 3), altM(x, z)) + 0.05;
-    pBox(q, 'tabua', 0, y - 0.6, 0, 9, 0.6, 6.5, new THREE.Color('#6a5038'));
-    const [mc, mn] = matTora(), corT = () => sorteia(cores(['#6a5038', '#5e4632', '#77583c', '#4f3c2a']));
+    pBox(q, 'tabua', 0, y - 0.6, 0, 9, 0.6, 6.5, new THREE.Color('#9a7a58'));
+    const [mc, mn] = matTora(), corT = () => sorteia(cores(['#b08e68', '#9c7c5a', '#c09a70', '#8a6c50']));
     for (const lx of [-4.15, 0, 4.15]) for (const lz of [-2.9, 2.9]) { const [wx, wz] = mundo(q, lx, lz), p = new THREE.Mesh(geoTora(0.13, 0.15, 3.6, lx + lz), [mc, mn, mn]); p.position.set(wx, y - 0.1 + 1.8, wz); p.rotation.y = rnd() * TAU; p.castShadow = p.receiveShadow = true; gMata.add(p); }
     for (let k = 0; k < 11; k++) { const yy = y + 0.08 + k * 0.3; // tábua corrida com fresta; umas faltando, outras quebradas
       if (rnd() > 0.12) pBox(q, 'tabua', (rnd() - 0.5) * 0.3, yy, -3.05, 8.5 - rnd() * 0.5, 0.25, 0.05, corT());
@@ -2214,7 +2217,7 @@ function montaMata() {
     pBox(q, 'tabua', 2.4, y, 1.2, 1.2, 0.5, 0.7, new THREE.Color('#3a2a1c')); // o baú
     { const t = new THREE.CylinderGeometry(0.35, 0.35, 1.2, 16, 1, false, 0, Math.PI).rotateZ(Math.PI / 2); t.scale(1, 0.55, 1); t.translate(2.4, y + 0.5, 1.2); pGeo(q, 'tabua', t, new THREE.Color('#33251a'));
       pBox(q, 'metal', 2.4, y + 0.3, 1.56, 0.1, 0.12, 0.04, new THREE.Color('#77776e')); }
-    pilhaToras(gMata, ...mundoY(q, 5.8, -2), q.ang + Math.PI / 2, 1.1);
+    pilhaToras(gMata, ...mundoY(q, 6.9, -1.2), q.ang + Math.PI / 2, 1.1);
     const [bx, bz] = mundo(q, 2.4, 1.2); pistaM('O baú do barbacuá', bx, y + 1.3, bz, 'O GALPÃO DOS RUARO (Verdade 9). O galpão de secar erva da família da Nonna Gema, abandonado desde 1979. No baú, com cadeado de segredo, um figurino de teatro de 1978 enrolado em jornal, pesado e úmido, do mesmo tecido que a Máscara veste. O segredo é 1949, o ano gravado na aliança da Nonna (enigma 7). Bordado na gola: "O. Ruaro", o Ottavio, um dos três que vestiram as máscaras. Antes da sessão 5, dê só o figurino; o nome confirma a Verdade 9.'); }
   /* 7. a pedreira de 1936 */
   { const { x, z } = LUG_M.pedreira, y = altM(x, z);
