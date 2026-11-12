@@ -2107,7 +2107,8 @@ function sincPecas(ps) {
   const vistos = new Set();
   for (const [id, p] of Object.entries(ps || {})) {
     if (p.x == null || p.z == null) {
-      if (PM.podeMover(id) && !porId.has(id)) { const t = controls.target; PM.mover(id, t.x + (Math.random() - 0.5) * 3, t.z + (Math.random() - 0.5) * 3, true); if (modoMata) PM.editar(id, { cena: 'mata' }); }
+      vistos.add(id); /* a peça pode nascer durante a gravação abaixo: não some com ela */
+      if (PM.podeMover(id) && !porId.has(id)) { const t = controls.target, x = t.x + (Math.random() - 0.5) * 3, z = t.z + (Math.random() - 0.5) * 3, naMata = modoMata; setTimeout(() => { PM.mover(id, x, z, true); if (naMata) PM.editar(id, { cena: 'mata' }); }, 0); }
       continue;
     }
     vistos.add(id);
