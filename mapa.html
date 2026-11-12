@@ -2760,6 +2760,33 @@ function sincPecas(ps) {
   for (const [id, s] of [...porId]) if (!vistos.has(id)) { if (s.g.parent) s.g.parent.remove(s.g); const i = standees.indexOf(s); if (i >= 0) standees.splice(i, 1); if (arrasto === s) arrasto = null; porId.delete(id); }
   renderLista();
 }
+/* lugares de dia e de noite: o mestre guarda nas notas dele qual NPC fica onde; aqui vira um ponto livre na frente do lugar */
+const LUGARES_NPC = ['pousada', 'prefeitura', 'praca', 'orelhao', 'comercio', 'iracema', 'rodoviaria', 'posto', 'escola', 'brigada', 'saude', 'capela', 'salao', 'cemiterio', 'canteiro', 'campo', 'cooperativa', 'serraria', 'colonia', 'antena'];
+function pontoNoLugar(lug, usados) {
+  const c = L[lug]; if (!c) return null;
+  const solto = (x, z) => { for (const [a, b, cc, e] of RES) if (x > a - 0.5 && x < cc + 0.5 && z > b - 0.5 && z < e + 0.5) return false; return alt(x, z) > nivelAlvo + 0.4; };
+  for (let r = 1.5; r < 30; r += 0.5) for (let k = 0; k < 24; k++) {
+    const a = (k / 24) * TAU + r * 0.41, x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r;
+    if (!solto(x, z) || usados.some(u => Math.hypot(u[0] - x, u[1] - z) < 1.4)) continue;
+    usados.push([x, z]); return [Math.round(x * 100) / 100, Math.round(z * 100) / 100];
+  }
+  return null;
+}
+function arrumarNPCs(turno) {
+  if (!PM || !PM.isGM() || !PM.posicoes) return 0;
+  const pos = PM.posicoes(), usados = []; let n = 0;
+  for (const [fid, p] of Object.entries(pos)) {
+    const lug = p && p[turno]; if (!lug || lug === 'fora') continue;
+    const pt = pontoNoLugar(lug, usados); if (!pt) continue;
+    PM.porFicha(fid, { x: pt[0], z: pt[1], cena: '' }); n++;
+  }
+  return n;
+}
+/* os jogadores em pé no corredor do ônibus */
+function jogadoresNoOnibus() {
+  if (!PM || !PM.isGM() || !PM.fichasPJ) return;
+  PM.fichasPJ().forEach((fid, i) => PM.porFicha(fid, { x: -4.2 + i * 1.5, z: ESTR.zb + (i % 2 ? 0.25 : -0.25), cena: 'estrada' }));
+}
 function renderLista() {
   if (!PM) { renderListaLocal(); return; }
   const box = $('#ch-list'), gm = PM.isGM(), eu = PM.me();
@@ -2799,6 +2826,10 @@ function renderLista() {
   }
   if (!lista.length) { const p = document.createElement('p'); p.textContent = 'Nenhuma peça no mapa ainda.'; box.append(p); }
   const fora = lista.filter(s => s.dados?.tipo === 'pj' && !ondeEsta(s));
+  if (gm && PM.posicoes) {
+    const turno = noite ? 'noite' : 'dia', b1 = bt('NPCs nos lugares (' + turno + ')', 'Põe cada NPC onde ele costuma estar ' + (noite ? 'à noite' : 'de dia'), () => arrumarNPCs(turno)); b1.classList.add('grupo'); box.append(b1);
+    const b2 = bt('Jogadores no ônibus', 'Põe as peças de todos os jogadores no corredor do ônibus (estrada)', () => jogadoresNoOnibus()); b2.classList.add('grupo'); box.append(b2);
+  }
   if (gm && fora.length) { const b = bt('Trazer os jogadores para ' + NOME_CENA[cenaAqui()], 'Leva as peças de todos os jogadores para cá', () => fora.forEach(trazer)); b.classList.add('grupo'); box.append(b); }
   const add = $('#b-add');
   const temMinha = lista.some(s => s.dados?.dono === eu);
@@ -2836,6 +2867,7 @@ function iniciaPonte() {
   };
   if (gm) document.querySelector('.hud.top').addEventListener('click', e => { if (e.target.closest('#b-sombra, #b-pers, #b-pistas, #b-fundo')) return; setTimeout(() => PM.setCena(estadoCena()), 0); });
   if (gm) $('#b-anda').addEventListener('click', () => setTimeout(() => PM.setCena(estadoCena()), 0));
+  if (gm) $('#b-hora').addEventListener('click', () => setTimeout(() => { arrumarNPCs(noite ? 'noite' : 'dia'); renderLista(); }, 0)); // virou dia ou noite: cada NPC vai para o seu lugar
   focoPend = PM._foco || null; PM._foco = null;
   const off1 = PM.onPecas(sincPecas), off2 = PM.onCena(aplicaCena);
   const off3 = PM.onFoco(id => { PM._foco = null; const s = porId.get(id); if (s) olharPeca(s); else focoPend = id; });
