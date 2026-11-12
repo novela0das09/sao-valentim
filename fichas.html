@@ -896,6 +896,27 @@ button.cond.nova { animation: condNova 1.4s ease-out; }
 .npc-vinc-l span { font-size: 13px; color: var(--paper-2); }
 .npc-vinc-l small { font-size: 12px; color: var(--muted); }
 .npc-dica { margin: 0; color: var(--muted); font-size: 12.5px; }
+
+/* tijolos da lista do mestre */
+.tijolo { border: 1px solid var(--line); border-left: 3px solid var(--tj, var(--line-2)); border-radius: 6px; background: var(--panel); margin: 10px 0 0; overflow: hidden; }
+.tijolo.pj { --tj: #d8b23a; } .tijolo.npc { --tj: #5b8fd6; } .tijolo.inimigo { --tj: #e5484d; }
+.tijolo > summary { list-style: none; display: flex; align-items: center; gap: 8px; padding: 11px 12px; cursor: pointer; background: linear-gradient(90deg, color-mix(in srgb, var(--tj) 16%, transparent), transparent 80%); }
+.tijolo > summary::-webkit-details-marker { display: none; }
+.tijolo > summary::before { content: '▸'; color: var(--tj); transition: transform .15s; font-size: 12px; }
+.tijolo[open] > summary::before { transform: rotate(90deg); }
+.tijolo[open] > summary { border-bottom: 1px solid var(--line); }
+.tj-n { font: 12px var(--f-type); letter-spacing: .14em; text-transform: uppercase; color: var(--paper); flex: 1; }
+.tj-sel { font-size: 11px; color: var(--muted); }
+.tj-c { font: 600 12px var(--f-body); color: var(--tj); border: 1px solid var(--tj); border-radius: 10px; padding: 1px 8px; min-width: 26px; text-align: center; }
+.tj-corpo { padding: 6px 6px 8px; max-height: 56vh; overflow: auto; }
+.tijolo.npc .tj-corpo .npc-tools { margin-top: 2px; }
+.tj-txt { min-width: 0; flex: 1; }
+.tj-meds { display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+.tj-meds small { font-size: 10.5px; color: var(--muted); min-width: 14px; }
+.tj-b { display: block; width: 30px; height: 4px; background: rgba(255, 255, 255, .1); border-radius: 2px; overflow: hidden; }
+.tj-b > i { display: block; height: 100%; background: #e5484d; }
+.tj-b.pd > i { background: #d8b23a; }
+.tj-meds em { font-style: normal; font-size: 10.5px; color: #c9b3f0; margin-left: 2px; }
 .mk { font-size: .85em; } .mk.novo { color: var(--muted); } .mk.livro { color: var(--gold); }
 @media (max-width: 700px) { .npc-filtros { grid-template-columns: 1fr; } .npc-chk { margin-left: 0; } .npc-tit h2 { font-size: 24px; } }
 </style>
@@ -3593,6 +3614,20 @@ if (PONTE) {
       h('span', null, h('b', null, f.nome || 'Sem nome'), h('small', null, [(PERFIS[f.perfil]?.[0] || ''), f.ocupacao, 'nv ' + f.nivel].filter(Boolean).join(' · ') +
         (gm && f.papel === 'pj' ? ' · ' + (f.dono ? PONTE.nomeDe(f.dono).split(' ')[0] : 'sem jogador') : '') + (gm && f.papel !== 'pj' && !f.visivel ? ' · oculto' : ''))));
     const npcs = gm ? S.fichas.filter(f => f.papel === 'npc') : [];
+    /* tijolos do mestre: cada grupo numa caixa própria, que abre e fecha e lembra como ficou */
+    if (!UIS.tij) { try { UIS.tij = JSON.parse(localStorage.getItem('sv.tijolos') || '{}') || {}; } catch (e) { UIS.tij = {}; } }
+    const tijolo = (k, nome, l, corpo) => {
+      const tem = l.some(f => f.id === S.sel), ab = UIS.tij[k] ?? (k === 'pj' || tem);
+      return h('details', { class: 'tijolo ' + k, id: 'tij-' + k, open: ab || null, ontoggle: e => { UIS.tij[k] = e.target.open; try { localStorage.setItem('sv.tijolos', JSON.stringify(UIS.tij)); } catch (x) {} } },
+        h('summary', null, h('span', { class: 'tj-n' }, nome), tem && !ab ? h('small', { class: 'tj-sel' }, 'aberta') : null, h('b', { class: 'tj-c' }, l.length)),
+        h('div', { class: 'tj-corpo' }, l.length || k === 'npc' ? corpo(l) : h('p', { class: 'legenda', style: { margin: '6px' } }, 'Nenhuma ficha ainda.')));
+    };
+    const barra = (r, cls) => { const p = r && r.m ? Math.max(0, Math.min(100, Math.round(r.v / r.m * 100))) : 0; return h('i', { class: 'tj-b ' + cls }, h('i', { style: { width: p + '%' } })); };
+    const itemPJ = f => { const pv = f.pv || { v: 0, m: 0 }, pd = f.pd || { v: 0, m: 0 };
+      return h('button', { class: 'ficha-it pj' + (f.id === S.sel ? ' on' : ''), type: 'button', style: f.cor ? { '--cor-f': f.cor, '--red': clara(f.cor, 0.22) } : null, onclick: () => { S.sel = f.id; UIS.outro = null; UIS.roll = null; salvarLocal(); irAba('ficha'); renderTudo(); } },
+        h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }),
+        h('span', { class: 'tj-txt' }, h('b', null, f.nome || 'Sem nome'), h('small', null, [f.ocupacao, f.dono ? PONTE.nomeDe(f.dono).split(' ')[0] : 'sem jogador'].filter(Boolean).join(' · ')),
+          h('span', { class: 'tj-meds', title: 'PV ' + pv.v + ' de ' + pv.m + ' · PD ' + pd.v + ' de ' + pd.m }, barra(pv, 'pv'), h('small', null, pv.v), barra(pd, 'pd'), h('small', null, pd.v), f.pavorD ? h('em', null, 'pavor ' + f.pavorD) : null))); };
     const grupos = gm
       ? [['Personagens dos jogadores', S.fichas.filter(f => f.papel === 'pj')], ['NPCs', npcs], ['Inimigos', S.fichas.filter(f => f.papel === 'inimigo')]]
       : [['Suas fichas', S.fichas]];
@@ -3602,9 +3637,11 @@ if (PONTE) {
       h('span', null, h('b', null, o.nome), h('small', null, [o.idade, 'de ' + String(o.jogador).split(' ')[0]].filter(Boolean).join(' · '))));
     fill($('#lista'),
       h('h3', null, 'Fichas'),
-      ...grupos.filter(([g, l]) => l.length || (g === 'NPCs' && gm)).map(([g, l]) => g === 'NPCs' && gm
-        ? [h('div', { class: 'grp-t' }, 'NPCs', npcs.length ? h('small', null, ' · ' + npcs.length) : null), ferramentasNPC(npcs), h('div', { id: 'npc-itens' }, itensNPC(npcs))]
-        : [h('div', { class: 'grp-t' }, g), ...l.map(item)]),
+      ...(gm ? [
+        tijolo('pj', 'Jogadores', S.fichas.filter(f => f.papel === 'pj'), l => l.map(itemPJ)),
+        tijolo('npc', 'NPCs', npcs, l => [ferramentasNPC(l), h('div', { id: 'npc-itens' }, itensNPC(l))]),
+        tijolo('inimigo', 'Inimigos', S.fichas.filter(f => f.papel === 'inimigo'), l => l.map(item))]
+        : grupos.filter(([, l]) => l.length).map(([g, l]) => [h('div', { class: 'grp-t' }, g), ...l.map(item)])),
       outros.length ? [h('div', { class: 'grp-t' }, 'Outros personagens'), ...outros.map(itemOutro)] : null,
       h('div', { class: 'row', style: { marginTop: '10px' } },
         h('button', { class: 'btn red sm', type: 'button', onclick: () => irModo('criar') }, 'Criar passo a passo'),
