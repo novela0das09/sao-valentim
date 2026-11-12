@@ -363,7 +363,7 @@ async function montaInstancias() {
       if (e.variante === 'ruina') mat = tinta(mat, 0.42, 0x2c3326, 0.45); // musgo e lodo de 37 anos debaixo d'água
       if (e.variante === 'velha') mat = tinta(mat, 0.55, 0x3b3a33, 0.35);
       if (e.variante === 'escura') mat = tinta(mat, 0.38, 0x172b1d, 0.5);
-      if (e.variante === 'mato') mat = tinta(mat, 0.62, 0x3b4a22, 0.42);
+      if (e.variante === 'mato') mat = tinta(mat, 0.55, 0x3a4520, 0.72);
       if (e.variante === 'cinza') mat = tinta(mat, 0.55, 0x555048, 0.2);
       if (e.variante === 'sonho') mat = tinta(mat, 0.9, 0xc9c6bc, 0.2);
       if (e.variante === 'verde' && /tree|leaf|leav/i.test(nomeMat)) { mat = mat.clone(); mat.color.setRGB(0.26, 0.42, 0.26); mat.alphaTest = 0.45; mat.transparent = false; mat.depthWrite = true; mat.side = THREE.DoubleSide; }
@@ -653,11 +653,9 @@ function terreno() {
   } else mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 });
   chao = new THREE.Mesh(geo, mat); chao.receiveShadow = true; scene.add(chao);
   // serra ao redor, para o mapa não acabar num degrau
-  const mm = new THREE.MeshStandardMaterial({ color: 0x131d17, roughness: 1, flatShading: true });
-  for (let i = 0; i < 28; i++) {
-    const a = (i / 28) * TAU + rnd() * 0.1, r = 340 + rnd() * 120, h = 70 + rnd() * 90;
-    const m = new THREE.Mesh(new THREE.ConeGeometry(110 + rnd() * 70, h, 7), mm); m.position.set(-10 + Math.cos(a) * r * 1.15, h / 2 - 10, -30 + Math.sin(a) * r); m.rotation.y = rnd(); scene.add(m);
-  }
+  const tMorro = telaTex(512, 256, (g, w, h) => { g.fillStyle = '#26382a'; g.fillRect(0, 0, w, h); for (let i = 0; i < 5000; i++) { const x = rnd() * w, y = rnd() * h, r = 2 + rnd() * 5; g.fillStyle = rnd() < 0.5 ? 'rgba(52,74,48,0.8)' : rnd() < 0.6 ? 'rgba(16,26,18,0.8)' : 'rgba(84,96,60,0.5)'; g.beginPath(); g.ellipse(x, y, r, r * 0.7, 0, 0, TAU); g.fill(); } }, [10, 3]);
+  const mm = new THREE.MeshStandardMaterial({ color: 0x8a9a8c, map: tMorro, normalMap: normalDe(tMorro, 2), roughness: 1 });
+  for (let i = 0; i < 26; i++) { const a = (i / 26) * TAU + rnd() * 0.1, r = 360 + rnd() * 110; morro(scene, -10 + Math.cos(a) * r * 1.15, -30 + Math.sin(a) * r, 120 + rnd() * 70, 70 + rnd() * 80, mm); }
 }
 
 /* ---------- a água da represa (sobe e desce) ---------- */
@@ -1811,7 +1809,7 @@ function texHorizonte(tipo, noite) {
   const campo = tipo === 'campo';
   const P = noite
     ? { ceu0: '#05080a', ceu1: campo ? '#141e22' : '#121c1b', c: campo ? ['#121b1f', '#0d1517', '#0a1110'] : ['#101a19', '#0b1413', '#070d0c'], nevoa: campo ? '#0c1114' : '#0c1513' }
-    : { ceu0: campo ? '#a3adab' : '#8b9794', ceu1: campo ? '#c4cbc6' : '#b3bcb7', c: campo ? ['#8c9897', '#77856f', '#62714f'] : ['#7d8a89', '#5f6e69', '#3f4c44'], nevoa: campo ? '#9ea7a3' : '#7a8580' };
+    : { ceu0: campo ? '#a3adab' : '#8b9794', ceu1: campo ? '#c4cbc6' : '#b3bcb7', c: campo ? ['#76858a', '#56684f', '#435436'] : ['#7d8a89', '#5f6e69', '#3f4c44'], nevoa: campo ? '#9ea7a3' : '#7a8580' };
   const fasesA = [[2, 26, 0.3], [5, 14, 1.7], [11, 6, 4.1], [23, 3, 2.2]], fasesB = [[3, 18, 2.4], [7, 9, 0.9], [17, 4, 3.3], [31, 2, 1.1]], fasesC = [[4, 9, 1.2], [9, 5, 5.0], [27, 3, 0.4], [53, 1.5, 2.7]];
   return telaTex(2048, 512, (g, w, h) => {
     const ceu = g.createLinearGradient(0, 0, 0, 380); ceu.addColorStop(0, P.ceu0); ceu.addColorStop(1, P.ceu1); g.fillStyle = ceu; g.fillRect(0, 0, w, h);
@@ -1827,7 +1825,7 @@ function texHorizonte(tipo, noite) {
     };
     if (campo) { camada(330, fasesA, 70, P.c[0], 30, 0); camada(375, fasesB, 34, P.c[1], 55, 10); camada(410, fasesC, 14, P.c[2], 40, 0); }
     else { camada(310, fasesA, 90, P.c[0], 40, 30); camada(355, fasesB, 50, P.c[1], 90, 160); camada(400, fasesC, 26, P.c[2], 140, 420); }
-    const nv = g.createLinearGradient(0, campo ? 300 : 280, 0, h); nv.addColorStop(0, P.nevoa + '00'); nv.addColorStop(0.55, P.nevoa + '99'); nv.addColorStop(1, P.nevoa); g.fillStyle = nv; g.fillRect(0, 0, w, h);
+    const nv = g.createLinearGradient(0, campo ? 380 : 280, 0, h); nv.addColorStop(0, P.nevoa + '00'); nv.addColorStop(0.5, P.nevoa + (campo ? '66' : '99')); nv.addColorStop(1, P.nevoa); g.fillStyle = nv; g.fillRect(0, 0, w, h);
   }, [1, 1]);
 }
 function horizonte(pai, tipo, R, H, y0) {
@@ -1836,6 +1834,43 @@ function horizonte(pai, tipo, R, H, y0) {
   m.position.y = y0 + H / 2; m.userData = { d, n }; m.renderOrder = -1; pai.add(m); return m;
 }
 const HZ = { mata: null, estr: null };
+
+
+/* ---------- pedras lisas e irregulares, e morros redondos ---------- */
+// Uma esfera amassada por ruído suave: sem facetas, cada variante com outro formato.
+function geoPedra(seed, det = 22) {
+  const g = new THREE.SphereGeometry(1, det, Math.round(det * 0.7)), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const n = 1 + 0.2 * Math.sin(x * 2.6 + seed) * Math.cos(y * 2.2 + seed * 1.7) + 0.12 * Math.sin(z * 4.1 + seed * 0.7) + 0.06 * Math.sin((x + z) * 7 + seed * 2.3) + 0.035 * Math.sin(y * 11 + x * 5 + seed);
+    p.setXYZ(i, x * n, Math.max(-0.35, y * n), z * n); // a base é chata: a pedra assenta no chão
+  }
+  g.computeVertexNormals(); return g;
+}
+let PEDRA_GEOS = null, PEDRA_MAT = null;
+function matRocha() {
+  if (PEDRA_MAT) return PEDRA_MAT;
+  const t = telaTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#86837a'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 4000; i++) { const v = 90 + rnd() * 90; g.fillStyle = `rgba(${v},${v - 4},${v - 12},0.5)`; g.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 2, 1 + rnd() * 2); }
+    for (let i = 0; i < 26; i++) { const x = rnd() * w, y = rnd() * h, r = 6 + rnd() * 22; emenda(w, h, x, y, r, (px, py) => { const gr = g.createRadialGradient(px, py, 0, px, py, r); gr.addColorStop(0, rnd() < 0.6 ? 'rgba(96,112,62,0.55)' : 'rgba(170,160,96,0.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(px - r, py - r, r * 2, r * 2); }); }
+    g.strokeStyle = 'rgba(40,38,34,0.45)'; for (let i = 0; i < 14; i++) { g.lineWidth = 0.6 + rnd(); g.beginPath(); let x = rnd() * w, y = rnd() * h; g.moveTo(x, y); for (let k = 0; k < 5; k++) { x += (rnd() - 0.5) * 40; y += (rnd() - 0.5) * 40; g.lineTo(x, y); } g.stroke(); }
+  }, [2, 1]);
+  PEDRA_MAT = new THREE.MeshStandardMaterial({ color: 0xc4c0b6, map: t, normalMap: normalDe(t, 3), normalScale: new THREE.Vector2(1.1, 1.1), roughness: 0.95 });
+  return PEDRA_MAT;
+}
+function pedra(pai, x, y, z, sx, sy = sx * 0.7, sz = sx, ry = rnd() * TAU) {
+  PEDRA_GEOS ||= [1.3, 4.1, 7.7, 2.9, 5.5].map(sd => geoPedra(sd));
+  const m = new THREE.Mesh(PEDRA_GEOS[(rnd() * PEDRA_GEOS.length) | 0], matRocha());
+  m.position.set(x, y + sy * 0.3, z); m.scale.set(sx, sy, sz); m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true; pai.add(m); return m;
+}
+// morro redondo: meia esfera achatada, com ruído largo e mato pintado por cima
+function morro(pai, x, z, raio, alto, mat) {
+  const g = new THREE.SphereGeometry(1, 48, 16, 0, TAU, 0, Math.PI / 2), p = g.attributes.position, sd = rnd() * 10;
+  for (let i = 0; i < p.count; i++) { const px = p.getX(i), py = p.getY(i), pz = p.getZ(i); const n = 1 + 0.16 * Math.sin(px * 3 + sd) * Math.cos(pz * 2.4 + sd) + 0.08 * Math.sin((px - pz) * 6 + sd * 2); p.setXYZ(i, px * (1 + 0.1 * Math.sin(pz * 4 + sd)), py * n, pz * (1 + 0.1 * Math.cos(px * 4 + sd))); }
+  g.computeVertexNormals();
+  const m = new THREE.Mesh(g, mat); m.scale.set(raio, alto, raio * (0.8 + rnd() * 0.4)); m.position.set(x, -6, z); m.rotation.y = rnd() * TAU; m.receiveShadow = true; pai.add(m); return m;
+}
 
 function montaMata() {
   /* chão: folhas, musgo, trilha batida e o leito da sanga */
@@ -1901,10 +1936,10 @@ function montaMata() {
   }
   espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 0.8 + rnd() * 0.8, 'mato', null, 'mata'); return true; });
   espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'mato', null, 'mata'); return true; });
-  espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; inst('n', sorteia(['log', 'stump_old', 'stump_old', 'rock_largeA', 'stone_largeA']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
+  espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; if (rnd() < 0.4) { const k = 0.5 + rnd() * 0.9; pedra(gMata, x, altM(x, z) - 0.15, z, k, k * (0.5 + rnd() * 0.4), k * (0.8 + rnd() * 0.5)); } else inst('n', sorteia(['log', 'stump_old', 'stump_old']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
   espalha(60, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', 'mushroom_redGroup', x, altM(x, z), z, rnd() * TAU, 1 + rnd(), '', null, 'mata'); return true; });
   /* pedras na beira da sanga */
-  for (let x = -130; x < 130; x += 3 + rnd() * 5) { const lado = rnd() < 0.5 ? -1 : 1, z = zSanga(x) + lado * (3.2 + rnd() * 1.5); inst('n', sorteia(['stone_largeA', 'rock_largeA']), x, altM(x, z) - 0.2, z, rnd() * TAU, 0.6 + rnd() * 0.8, '', null, 'mata'); }
+  for (let x = -130; x < 130; x += 3 + rnd() * 5) { const lado = rnd() < 0.5 ? -1 : 1, z = zSanga(x) + lado * (3.2 + rnd() * 1.5); { const k = 0.35 + rnd() * 0.55; pedra(gMata, x, altM(x, z) - 0.25, z, k, k * (0.45 + rnd() * 0.3), k * (0.8 + rnd() * 0.6)); } }
 
   /* 1. a entrada da trilha */
   { const { x, z } = LUG_M.entrada, y = altM(x, z);
@@ -1923,7 +1958,8 @@ function montaMata() {
     pistaM('As estacas vermelhas', x, y + 1.4, z + 2, 'ACAMPAMENTO DOS TOPÓGRAFOS (F6). Barracas da Usina largadas há semanas. Uma fila de estacas vermelhas atravessa a mata marcando a cota da nova represa: a linha passa acima da igreja nova e do cemitério, então a cidade inteira vai para o fundo, não só a parte baixa que a empresa mostra nas reuniões. No caderno de campo, uma ordem assinada pela Renata: "levantamento da estrada velha, só de madrugada".'); }
   /* 3. a clareira dos rostos */
   { const { x, z } = LUG_M.clareira, y = altM(x, z);
-    inst('n', 'cliff_cave_rock', x + 5, y - 0.4, z - 4, 2.4, 1.6, '', null, 'mata');
+    pedra(gMata, x + 4, altM(x + 4, z - 5) - 0.6, z - 5, 3.2, 2.4, 2.6, 0.4); pedra(gMata, x + 7, altM(x + 7, z - 3) - 0.6, z - 3, 2.4, 2.0, 2.2, 1.9);
+    { const boca = new THREE.Mesh(new THREE.CircleGeometry(0.9, 20), new THREE.MeshBasicMaterial({ color: 0x050504 })); boca.scale.set(1, 0.75, 1); boca.position.set(x + 5.3, altM(x + 5.3, z - 2.8) + 0.55, z - 2.3); boca.rotation.y = -0.5; gMata.add(boca); }
     for (let i = 0; i < 7; i++) { const a = rnd() * TAU, r = 1 + rnd() * 5, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; const sp = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.12 + rnd() * 0.1), new THREE.MeshStandardMaterial({ color: sorteia([0x2a1e16, 0x3b2a1e, 0x4a4a52, 0x6a3a2a]), roughness: 0.9 })); sp.position.set(px, altM(px, pz) + 0.06, pz); sp.rotation.y = rnd() * TAU; gMata.add(sp); }
     pistaM('A clareira dos rostos', x, y + 1.3, z, 'A CLAREIRA DOS GRAXAINS (F1). Sapatos e chinelos espalhados, todos virados para a toca. Quem chega à noite ouve risada baixa dentro da pedra. Um dos sapatos tem o nome escrito na palmilha: um morador que a delegacia deu como "mudança de endereço". Ele não foi embora: desceu para a água, e o que sobrou dele ficou aqui.'); }
   /* 4. a capelinha de beira de mato */
@@ -1952,9 +1988,9 @@ function montaMata() {
     const [bx, bz] = mundo(q, 2.4, 1.2); pistaM('O baú do barbacuá', bx, y + 1.3, bz, 'O GALPÃO DOS RUARO (Verdade 9). O galpão de secar erva da família da Nonna Gema, abandonado desde 1979. No baú, com cadeado de segredo, um figurino de teatro de 1978 enrolado em jornal, pesado e úmido, do mesmo tecido que a Máscara veste. O segredo é 1949, o ano gravado na aliança da Nonna (enigma 7). Bordado na gola: "O. Ruaro", o Ottavio, um dos três que vestiram as máscaras. Antes da sessão 5, dê só o figurino; o nome confirma a Verdade 9.'); }
   /* 7. a pedreira de 1936 */
   { const { x, z } = LUG_M.pedreira, y = altM(x, z);
-    for (const [dx, dz, r, k] of [[-9, 4, 0.2, 3.2], [-4, 10, 1.4, 3.6], [4, 11, 1.6, 3.4], [10, 5, 2.6, 3.2], [-11, -3, 0.4, 2.6]]) inst('n', 'cliff_block_rock', x + dx, altM(x + dx, z + dz) - 0.8, z + dz, r, k, '', null, 'mata');
-    inst('n', 'cliff_cave_rock', x, y - 0.6, z + 9, Math.PI, 3, '', null, 'mata');
-    for (let i = 0; i < 8; i++) { const px = x - 5 + rnd() * 10, pz = z - 4 + rnd() * 8; inst('n', sorteia(['stone_tallA', 'stone_tallB', 'statue_block']), px, altM(px, pz) - 0.1, pz, rnd() * TAU, 0.9 + rnd() * 0.6, '', null, 'mata'); }
+    for (const [dx, dz, r, k] of [[-9, 4, 0.2, 3.2], [-4, 10, 1.4, 3.6], [4, 11, 1.6, 3.4], [10, 5, 2.6, 3.2], [-11, -3, 0.4, 2.6]]) pedra(gMata, x + dx, altM(x + dx, z + dz) - 1, z + dz, k * 1.6, k * 1.25, k * 1.1, r);
+    pedra(gMata, x, y - 1, z + 10, 6.5, 4.2, 3.4, Math.PI);
+    for (let i = 0; i < 8; i++) { const px = x - 5 + rnd() * 10, pz = z - 4 + rnd() * 8; { const k = 0.5 + rnd() * 0.5; pedra(gMata, px, altM(px, pz) - 0.1, pz, k, k * (0.9 + rnd() * 0.8), k * 0.8); } }
     const poco = new THREE.Mesh(new THREE.CircleGeometry(3.2, 24), new THREE.MeshStandardMaterial({ color: 0x0e1a17, roughness: 0.05, metalness: 0.3 })); poco.rotation.x = -Math.PI / 2; poco.position.set(x + 2, y + 0.08, z - 1); gMata.add(poco);
     pistaM('A pedreira', x, y + 1.6, z + 5, 'PEDREIRA DE 1936 (F3, Verdade 5). Daqui saíram as pedras da torre de Remanso, a torre que hoje é o selo. Na parede, uma cruz e "1936" a cinzel, e as mesmas marcas que aparecem nas pedras da igreja afogada. Às 3h17, a boca da gruta ecoa a canção, sem rádio nenhum.'); }
   /* 8. o pinheiro morto */
@@ -2129,10 +2165,10 @@ function montaEstrada() {
   const tronco = new THREE.CylinderGeometry(0.25, 0.45, 15, 6); tronco.translate(0, 7.5, 0);
   const copa = mergeGeometries([[4.2, 0.8, 11.6], [5.0, 0.9, 12.8], [4.4, 0.8, 13.9], [3.0, 0.7, 14.8]].map(([r, h, y]) => { const g = new THREE.CylinderGeometry(r, r * 0.55, h, 8); g.translate(0, y, 0); return g; }));
   const arvs = []; for (let i = 0; i < 400 && arvs.length < 70; i++) { const x = -200 + rnd() * 400, z = (rnd() < 0.5 ? -1 : 1) * (16 + rnd() * 160); arvs.push([x, ondaE(x, z), z, 0.6 + rnd() * 0.6, rnd() * TAU]); }
-  const iT = new THREE.InstancedMesh(tronco, new THREE.MeshStandardMaterial({ color: 0x3a2b20, roughness: 1 }), arvs.length), iC = new THREE.InstancedMesh(copa, new THREE.MeshStandardMaterial({ color: 0x1f3324, roughness: 1, flatShading: true }), arvs.length);
+  const iT = new THREE.InstancedMesh(tronco, (() => { const tc = texCasca(); return new THREE.MeshStandardMaterial({ color: 0xc8b8a8, roughness: 1, map: tc.map, normalMap: tc.normal }); })(), arvs.length), iC = new THREE.InstancedMesh(copa, (() => { const tc = texCopa(); return new THREE.MeshStandardMaterial({ color: 0xc8d6c4, roughness: 0.95, map: tc.map, normalMap: tc.normal }); })(), arvs.length);
   arvs.forEach(([x, y, z, s, r], i) => { m4.compose(_v.set(x, y - 0.2, z), _q.setFromEuler(_e.set(0, r, 0)), _s.set(s, s, s)); iT.setMatrixAt(i, m4); iC.setMatrixAt(i, m4); });
   for (const im of [iT, iC]) { im.castShadow = true; im.computeBoundingSphere(); esteira.add(im); }
-  const bola = new THREE.IcosahedronGeometry(1, 1), mMato = new THREE.MeshStandardMaterial({ color: 0x2a3d27, roughness: 1, flatShading: true });
+  const bola = geoPedra(3.3, 16), tMoita = texCopa(), mMato = new THREE.MeshStandardMaterial({ color: 0xa8b894, roughness: 1, map: tMoita.map, normalMap: tMoita.normal });
   const mts = []; for (let i = 0; i < 90; i++) { const x = -200 + rnd() * 400, z = (rnd() < 0.5 ? -1 : 1) * (13 + rnd() * 120); mts.push([x, ondaE(x, z), z, 0.8 + rnd() * 1.8]); }
   const iM = new THREE.InstancedMesh(bola, mMato, mts.length); mts.forEach(([x, y, z, s], i) => { m4.compose(_v.set(x, y + s * 0.4, z), _q.identity(), _s.set(s * 1.4, s, s * 1.2)); iM.setMatrixAt(i, m4); }); iM.computeBoundingSphere(); esteira.add(iM);
   /* uma casinha de colono longe da pista, com galpão */
@@ -2219,7 +2255,7 @@ function montaEstrada() {
   estrSol = new THREE.DirectionalLight(0xf3eee2, 1.2); estrSol.castShadow = !fraco; estrSol.shadow.mapSize.set(2048, 2048);
   Object.assign(estrSol.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 160 }); estrSol.shadow.bias = -0.0005;
   estrCena.add(estrSol, estrSol.target);
-  for (let i = 0; i < 30; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex('rgba(210,216,212,0.5)', 'rgba(210,216,212,0)', 64), transparent: true, opacity: 0.12 + rnd() * 0.1, depthWrite: false })); const x = -220 + rnd() * 440, z = (rnd() < 0.5 ? -1 : 1) * (14 + rnd() * 140); sp.position.set(x, 2 + rnd() * 4, z); sp.scale.set(40 + rnd() * 30, 6 + rnd() * 4, 1); sp.userData.nevoa = true; gEstr.add(sp); }
+  for (let i = 0; i < 30; i++) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex('rgba(210,216,212,0.5)', 'rgba(210,216,212,0)', 64), transparent: true, opacity: 0.12 + rnd() * 0.1, depthWrite: false })); const x = -220 + rnd() * 440, z = (rnd() < 0.5 ? -1 : 1) * (45 + rnd() * 120); sp.position.set(x, 3 + rnd() * 5, z); sp.scale.set(40 + rnd() * 30, 6 + rnd() * 4, 1); sp.userData.nevoa = true; gEstr.add(sp); }
 }
 const ESTR_CAMS = () => [
   ['Dentro do ônibus', { pos: [-2.5, 10.5, ESTR.zb + 4.5], alvo: [0, ESTR.piso, ESTR.zb] }],
