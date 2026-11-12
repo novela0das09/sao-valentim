@@ -117,6 +117,8 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .ch .btn[aria-pressed="true"] { border-color: var(--c, #e2373d); color: #fff; }
 .ch.oculta { opacity: .6; }
 #ch-list .btn.grupo { width: 100%; justify-content: center; margin-top: 4px; }
+.cam-aviso { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); z-index: 30; padding: 6px 12px; border-radius: 999px; background: rgba(10, 12, 14, .78); border: 1px solid var(--line); color: var(--mist); font: 600 12px var(--f-ui); pointer-events: none; }
+#b-cam[aria-pressed="true"] { border-color: #e0b45e; color: #fff; }
 .na-mesa .ch { grid-template-columns: auto minmax(0, 1fr); row-gap: 6px; }
 .na-mesa .ch .acts { grid-column: 1 / -1; flex-wrap: wrap; }
 .na-mesa .ch.longe { border-style: dashed; }
@@ -2657,6 +2659,7 @@ addEventListener('keyup', e => teclas.delete(e.key.toLowerCase()));
 addEventListener('blur', () => teclas.clear());
 const _r = new THREE.Vector3(), _m = new THREE.Vector3();
 function andar(dt) {
+  if (SO_JOGADOR && CAM_TRAVA) { controls.enabled = false; if (!voo) { camera.position.set(...CAM_TRAVA.p); controls.target.set(...CAM_TRAVA.a); } return; }
   let fz = 0, fx = 0;
   if (teclas.has('w') || teclas.has('arrowup')) fz += 1; if (teclas.has('s') || teclas.has('arrowdown')) fz -= 1;
   if (teclas.has('d') || teclas.has('arrowright')) fx += 1; if (teclas.has('a') || teclas.has('arrowleft')) fx -= 1;
@@ -2720,6 +2723,17 @@ function frame() {
 function loop() { if (!(PM && PM.pausado())) frame(); requestAnimationFrame(loop); }
 
 /* ---------- dentro do site: peças, papel e cena de todos ---------- */
+let CAM_TRAVA = null; // {p:[x,y,z], a:[x,y,z]}: a vista que o mestre prendeu para os jogadores
+const vistaAtual = () => ({ p: camera.position.toArray().map(v => Math.round(v * 100) / 100), a: controls.target.toArray().map(v => Math.round(v * 100) / 100) });
+function travaCamJogador(c) {
+  const antes = CAM_TRAVA; CAM_TRAVA = c && Array.isArray(c.p) && Array.isArray(c.a) ? { p: c.p.map(Number), a: c.a.map(Number) } : null;
+  let av = document.querySelector('.cam-aviso');
+  if (CAM_TRAVA) {
+    if (!av) { av = document.createElement('div'); av.className = 'cam-aviso'; av.setAttribute('role', 'status'); document.body.append(av); }
+    av.textContent = 'Câmera presa pelo mestre';
+    if (!antes || antes.p.join() !== CAM_TRAVA.p.join() || antes.a.join() !== CAM_TRAVA.a.join()) voar({ pos: CAM_TRAVA.p, alvo: CAM_TRAVA.a });
+  } else { if (av) av.remove(); if (antes) controls.enabled = true; }
+}
 const porId = new Map();
 let focoPend = null;
 function mudaCena(s, cn, x, z) {
@@ -2837,10 +2851,11 @@ function renderLista() {
   add.lastChild.textContent = gm ? 'Adicionar figura' : 'Pôr a minha figura';
 }
 function estadoCena() {
-  return { nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
+  return { cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
 }
 function aplicaCena(c) {
   if (!c) return;
+  if (SO_JOGADOR) setTimeout(() => travaCamJogador(c.cam), 0); // depois de trocar de cena, para a vista valer na cena certa
   if (c.sonho === false && modoSonho) entrarSonho(false);
   if (c.mata === false && modoMata) entrarMata(false);
   if (c.estr === false && modoEstr) entrarEstrada(false);
@@ -2866,6 +2881,16 @@ function iniciaPonte() {
     else { const id = PM.novaPeca('pj_' + PM.me(), { nome: (window.parent.SV.meuNome?.() || 'Eu'), tipo: 'pj', dono: PM.me(), x, z, cena: cenaAqui() === 'vale' ? '' : cenaAqui() }, true); focoPend = id; }
   };
   if (gm) document.querySelector('.hud.top').addEventListener('click', e => { if (e.target.closest('#b-sombra, #b-pers, #b-pistas, #b-fundo')) return; setTimeout(() => PM.setCena(estadoCena()), 0); });
+  if (gm) {
+    const mk = (id, txt, title) => { const b = document.createElement('button'); b.className = 'btn'; b.id = id; b.type = 'button'; b.title = title; b.setAttribute('aria-label', title);
+      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="12" cy="13.5" r="3.5"/><path d="M8 7l1.5-3h5L16 7"/></svg><span class="t"></span>'; b.querySelector('.t').textContent = txt; return b; };
+    const bc = mk('b-cam', 'Travar câmera', 'Prende a câmera dos jogadores nesta vista; você continua livre'), bv = mk('b-camv', 'Mandar esta vista', 'Troca a vista presa dos jogadores pela sua vista de agora');
+    bv.hidden = true; $('#b-pers').before(bc, bv);
+    const pinta = () => { const on = !!CAM_TRAVA; bc.setAttribute('aria-pressed', String(on)); bc.querySelector('.t').textContent = on ? 'Soltar câmera' : 'Travar câmera'; bv.hidden = !on; };
+    bc.onclick = () => { CAM_TRAVA = CAM_TRAVA ? null : vistaAtual(); pinta(); };
+    bv.onclick = () => { CAM_TRAVA = vistaAtual(); pinta(); };
+    const c0 = PM.cena(); if (c0 && c0.cam) { CAM_TRAVA = c0.cam; pinta(); }
+  }
   if (gm) $('#b-anda').addEventListener('click', () => setTimeout(() => PM.setCena(estadoCena()), 0));
   if (gm) $('#b-hora').addEventListener('click', () => setTimeout(() => { arrumarNPCs(noite ? 'noite' : 'dia'); renderLista(); }, 0)); // virou dia ou noite: cada NPC vai para o seu lugar
   focoPend = PM._foco || null; PM._foco = null;
