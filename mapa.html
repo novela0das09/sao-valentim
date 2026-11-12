@@ -1232,6 +1232,7 @@ function figura(nome, cor, x, z, cena = 'vale') {
 /* qual imagem mostrar: de costas quando a câmera está atrás da figura; ferida ou em pavor quando a ficha diz */
 function texAlvo(s) {
   const T = s.tex || {};
+  if (s.est === 'morto' && T.caido) return T.caido; // deitado no chão: não vira de costas
   if (s.tras && T.costas) return T.costas;
   if ((s.est === 'ferido' || s.est === 'morto') && T.ferido) return T.ferido;
   if (s.est === 'pavor' && T.pavor) return T.pavor;
@@ -1240,20 +1241,21 @@ function texAlvo(s) {
 function poeTex(s) {
   const T = s.tex || {}, t = texAlvo(s), map = t || s.base;
   s.texAtual = t; s.mat.map = map; s.card.customDepthMaterial.map = map; s.mat.needsUpdate = true; s.card.customDepthMaterial.needsUpdate = true;
-  s.largura = s.H * (map.userData.asp || 0.5);
-  s.card.scale.set(s.flip != null ? s.card.scale.x : s.largura, s.H, 1);
-  const propria = (s.est === 'ferido' && T.ferido) || (s.est === 'pavor' && T.pavor);
-  s.mat.color.set(s.est === 'morto' ? 0x6e6e6e : s.est === 'ferido' && !propria ? 0xffbdb4 : s.est === 'pavor' && !propria ? 0xcdb9ff : 0xffffff);
-  s.rot.position.y = 0.08 + s.H + 0.12;
+  s.deitado = !!t && t === T.caido;
+  if (s.deitado) { const L = s.H * 1.05, asp = map.userData.asp || 2; s.largura = L; s.flip = null; s.card.scale.set(L, L / asp, 1); s.card.position.set(0, 0.03, L / asp / 2); s.card.rotation.x = -Math.PI / 2; }
+  else { s.largura = s.H * (map.userData.asp || 0.5); s.card.position.set(0, 0, 0); s.card.rotation.x = 0; s.card.scale.set(s.flip != null ? s.card.scale.x : s.largura, s.H, 1); }
+  const propria = (s.est === 'ferido' && T.ferido) || (s.est === 'pavor' && T.pavor) || (s.est === 'morto' && T.caido);
+  s.mat.color.set(s.est === 'morto' && !propria ? 0x6e6e6e : s.est === 'ferido' && !propria ? 0xffbdb4 : s.est === 'pavor' && !propria ? 0xcdb9ff : 0xffffff);
+  s.rot.position.y = s.deitado ? 0.6 : 0.08 + s.H + 0.12;
 }
 /* cada figura, a cada quadro: de pé, virada para a câmera, olhando para onde andou */
 function poseFigura(s, dx, dz) {
   const p = s.g.position;
   if (s.ult) { const mx = p.x - s.ult.x, mz = p.z - s.ult.z; if (mx * mx + mz * mz > 1e-5) s.face = Math.atan2(mx, mz); s.ult.x = p.x; s.ult.z = p.z; } else s.ult = { x: p.x, z: p.z };
-  s.pivot.rotation.set(0, Math.atan2(dx, dz), 0); s.card.rotation.x = 0;
+  if (s.deitado) s.pivot.rotation.set(0, s.face, 0); else { s.pivot.rotation.set(0, Math.atan2(dx, dz), 0); s.card.rotation.x = 0; }
   const d = Math.hypot(dx, dz) || 1, dot = (dx * Math.sin(s.face) + dz * Math.cos(s.face)) / d;
   const tras = s.tras ? dot < 0.15 : dot < -0.15;
-  if (tras !== s.tras) { s.tras = tras; if (texAlvo(s) !== s.texAtual) { s.flip = performance.now(); s.flipFeito = false; } }
+  if (tras !== s.tras) { s.tras = tras; if (!s.deitado && texAlvo(s) !== s.texAtual) { s.flip = performance.now(); s.flipFeito = false; } }
   if (s.flip != null) {
     const k = (performance.now() - s.flip) / 220;
     if (k >= 0.5 && !s.flipFeito) { s.flipFeito = true; poeTex(s); }
@@ -1272,7 +1274,7 @@ function texDe(url) {
   }));
   return TEXC.get(url);
 }
-const LADOS = [['frente', 'Frente'], ['costas', 'Costas'], ['ferido', 'Ferido'], ['pavor', 'Em pavor']];
+const LADOS = [['frente', 'Frente'], ['costas', 'Costas'], ['ferido', 'Ferido'], ['pavor', 'Em pavor'], ['caido', 'Caído']];
 const assinaArte = (a, h) => a ? LADOS.map(([k]) => typeof a[k] === 'string' ? a[k].length + a[k].slice(-24) : '').join('|') + '|' + (h || '') : '';
 async function aplicaArte(s, arte, h) {
   const v = (s.arteV = (s.arteV || 0) + 1), tex = {};
@@ -1363,6 +1365,7 @@ const ARTE = { s: null, rasc: {}, alt: 1.75 };
 function slotsArte() {
   const box = $('#arte-slots'); box.innerHTML = '';
   for (const [k, nome] of LADOS) {
+    if (SO_JOGADOR && k !== 'frente' && k !== 'costas') continue;
     const d = document.createElement('div'); d.className = 'arte-slot';
     const im = ARTE.rasc[k];
     d.innerHTML = '<b>' + nome + '</b><div class="arte-img">' + (im ? '<img alt="' + nome + '">' : '<span>' + (k === 'frente' ? 'Sem arte: a peça usa a silhueta' : k === 'costas' ? 'Sem costas: mostra a frente' : 'Sem imagem: a frente ganha um tom ' + (k === 'ferido' ? 'avermelhado' : 'arroxeado')) + '</span>') + '</div>'
@@ -1384,7 +1387,7 @@ async function carregaFolha(arq, n, destinos) {
   } catch (e) { msg.textContent = 'Não consegui abrir essa imagem.'; }
 }
 function abrirArte(s) {
-  ARTE.s = s; ARTE.rasc = Object.assign({}, s.arte || {}); ARTE.alt = s.H || 1.75;
+  ARTE.s = s; ARTE.rasc = Object.assign({}, (PM && PM.arteCompleta && PM.arteCompleta(s.id)) || s.arte || {}); $('#arte-dlg [data-folha="3"]').parentElement.hidden = SO_JOGADOR; ARTE.alt = s.H || 1.75;
   $('#arte-t').textContent = 'Arte · ' + s.nome; $('#arte-alt').value = ARTE.alt.toFixed(2); $('#arte-msg').textContent = '';
   const lib = PM && PM.arteLib ? PM.arteLib() : [], sel = $('#arte-lib');
   $('#arte-lib-l').hidden = !lib.length;
