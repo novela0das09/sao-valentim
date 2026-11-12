@@ -1859,7 +1859,7 @@ function matRocha() {
   PEDRA_MAT = new THREE.MeshStandardMaterial({ color: 0xc4c0b6, map: t, normalMap: normalDe(t, 3), normalScale: new THREE.Vector2(1.1, 1.1), roughness: 0.95 });
   return PEDRA_MAT;
 }
-function pedra(pai, x, y, z, sx, sy = sx * 0.7, sz = sx, ry = rnd() * TAU) {
+function rocha(pai, x, y, z, sx, sy = sx * 0.7, sz = sx, ry = rnd() * TAU) {
   PEDRA_GEOS ||= [1.3, 4.1, 7.7, 2.9, 5.5].map(sd => geoPedra(sd));
   const m = new THREE.Mesh(PEDRA_GEOS[(rnd() * PEDRA_GEOS.length) | 0], matRocha());
   m.position.set(x, y + sy * 0.3, z); m.scale.set(sx, sy, sz); m.rotation.y = ry; m.castShadow = true; m.receiveShadow = true; pai.add(m); return m;
@@ -1936,10 +1936,10 @@ function montaMata() {
   }
   espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 0.8 + rnd() * 0.8, 'mato', null, 'mata'); return true; });
   espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'mato', null, 'mata'); return true; });
-  espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; if (rnd() < 0.4) { const k = 0.5 + rnd() * 0.9; pedra(gMata, x, altM(x, z) - 0.15, z, k, k * (0.5 + rnd() * 0.4), k * (0.8 + rnd() * 0.5)); } else inst('n', sorteia(['log', 'stump_old', 'stump_old']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
+  espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; if (rnd() < 0.4) { const k = 0.5 + rnd() * 0.9; rocha(gMata, x, altM(x, z) - 0.15, z, k, k * (0.5 + rnd() * 0.4), k * (0.8 + rnd() * 0.5)); } else inst('n', sorteia(['log', 'stump_old', 'stump_old']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
   espalha(60, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', 'mushroom_redGroup', x, altM(x, z), z, rnd() * TAU, 1 + rnd(), '', null, 'mata'); return true; });
   /* pedras na beira da sanga */
-  for (let x = -130; x < 130; x += 3 + rnd() * 5) { const lado = rnd() < 0.5 ? -1 : 1, z = zSanga(x) + lado * (3.2 + rnd() * 1.5); { const k = 0.35 + rnd() * 0.55; pedra(gMata, x, altM(x, z) - 0.25, z, k, k * (0.45 + rnd() * 0.3), k * (0.8 + rnd() * 0.6)); } }
+  for (let x = -130; x < 130; x += 3 + rnd() * 5) { const lado = rnd() < 0.5 ? -1 : 1, z = zSanga(x) + lado * (3.2 + rnd() * 1.5); { const k = 0.35 + rnd() * 0.55; rocha(gMata, x, altM(x, z) - 0.25, z, k, k * (0.45 + rnd() * 0.3), k * (0.8 + rnd() * 0.6)); } }
 
   /* 1. a entrada da trilha */
   { const { x, z } = LUG_M.entrada, y = altM(x, z);
@@ -1958,7 +1958,7 @@ function montaMata() {
     pistaM('As estacas vermelhas', x, y + 1.4, z + 2, 'ACAMPAMENTO DOS TOPÓGRAFOS (F6). Barracas da Usina largadas há semanas. Uma fila de estacas vermelhas atravessa a mata marcando a cota da nova represa: a linha passa acima da igreja nova e do cemitério, então a cidade inteira vai para o fundo, não só a parte baixa que a empresa mostra nas reuniões. No caderno de campo, uma ordem assinada pela Renata: "levantamento da estrada velha, só de madrugada".'); }
   /* 3. a clareira dos rostos */
   { const { x, z } = LUG_M.clareira, y = altM(x, z);
-    pedra(gMata, x + 4, altM(x + 4, z - 5) - 0.6, z - 5, 3.2, 2.4, 2.6, 0.4); pedra(gMata, x + 7, altM(x + 7, z - 3) - 0.6, z - 3, 2.4, 2.0, 2.2, 1.9);
+    rocha(gMata, x + 4, altM(x + 4, z - 5) - 0.6, z - 5, 3.2, 2.4, 2.6, 0.4); rocha(gMata, x + 7, altM(x + 7, z - 3) - 0.6, z - 3, 2.4, 2.0, 2.2, 1.9);
     { const boca = new THREE.Mesh(new THREE.CircleGeometry(0.9, 20), new THREE.MeshBasicMaterial({ color: 0x050504 })); boca.scale.set(1, 0.75, 1); boca.position.set(x + 5.3, altM(x + 5.3, z - 2.8) + 0.55, z - 2.3); boca.rotation.y = -0.5; gMata.add(boca); }
     for (let i = 0; i < 7; i++) { const a = rnd() * TAU, r = 1 + rnd() * 5, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; const sp = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.12, 0.12 + rnd() * 0.1), new THREE.MeshStandardMaterial({ color: sorteia([0x2a1e16, 0x3b2a1e, 0x4a4a52, 0x6a3a2a]), roughness: 0.9 })); sp.position.set(px, altM(px, pz) + 0.06, pz); sp.rotation.y = rnd() * TAU; gMata.add(sp); }
     pistaM('A clareira dos rostos', x, y + 1.3, z, 'A CLAREIRA DOS GRAXAINS (F1). Sapatos e chinelos espalhados, todos virados para a toca. Quem chega à noite ouve risada baixa dentro da pedra. Um dos sapatos tem o nome escrito na palmilha: um morador que a delegacia deu como "mudança de endereço". Ele não foi embora: desceu para a água, e o que sobrou dele ficou aqui.'); }
@@ -1988,9 +1988,9 @@ function montaMata() {
     const [bx, bz] = mundo(q, 2.4, 1.2); pistaM('O baú do barbacuá', bx, y + 1.3, bz, 'O GALPÃO DOS RUARO (Verdade 9). O galpão de secar erva da família da Nonna Gema, abandonado desde 1979. No baú, com cadeado de segredo, um figurino de teatro de 1978 enrolado em jornal, pesado e úmido, do mesmo tecido que a Máscara veste. O segredo é 1949, o ano gravado na aliança da Nonna (enigma 7). Bordado na gola: "O. Ruaro", o Ottavio, um dos três que vestiram as máscaras. Antes da sessão 5, dê só o figurino; o nome confirma a Verdade 9.'); }
   /* 7. a pedreira de 1936 */
   { const { x, z } = LUG_M.pedreira, y = altM(x, z);
-    for (const [dx, dz, r, k] of [[-9, 4, 0.2, 3.2], [-4, 10, 1.4, 3.6], [4, 11, 1.6, 3.4], [10, 5, 2.6, 3.2], [-11, -3, 0.4, 2.6]]) pedra(gMata, x + dx, altM(x + dx, z + dz) - 1, z + dz, k * 1.6, k * 1.25, k * 1.1, r);
-    pedra(gMata, x, y - 1, z + 10, 6.5, 4.2, 3.4, Math.PI);
-    for (let i = 0; i < 8; i++) { const px = x - 5 + rnd() * 10, pz = z - 4 + rnd() * 8; { const k = 0.5 + rnd() * 0.5; pedra(gMata, px, altM(px, pz) - 0.1, pz, k, k * (0.9 + rnd() * 0.8), k * 0.8); } }
+    for (const [dx, dz, r, k] of [[-9, 4, 0.2, 3.2], [-4, 10, 1.4, 3.6], [4, 11, 1.6, 3.4], [10, 5, 2.6, 3.2], [-11, -3, 0.4, 2.6]]) rocha(gMata, x + dx, altM(x + dx, z + dz) - 1, z + dz, k * 1.6, k * 1.25, k * 1.1, r);
+    rocha(gMata, x, y - 1, z + 10, 6.5, 4.2, 3.4, Math.PI);
+    for (let i = 0; i < 8; i++) { const px = x - 5 + rnd() * 10, pz = z - 4 + rnd() * 8; { const k = 0.5 + rnd() * 0.5; rocha(gMata, px, altM(px, pz) - 0.1, pz, k, k * (0.9 + rnd() * 0.8), k * 0.8); } }
     const poco = new THREE.Mesh(new THREE.CircleGeometry(3.2, 24), new THREE.MeshStandardMaterial({ color: 0x0e1a17, roughness: 0.05, metalness: 0.3 })); poco.rotation.x = -Math.PI / 2; poco.position.set(x + 2, y + 0.08, z - 1); gMata.add(poco);
     pistaM('A pedreira', x, y + 1.6, z + 5, 'PEDREIRA DE 1936 (F3, Verdade 5). Daqui saíram as pedras da torre de Remanso, a torre que hoje é o selo. Na parede, uma cruz e "1936" a cinzel, e as mesmas marcas que aparecem nas pedras da igreja afogada. Às 3h17, a boca da gruta ecoa a canção, sem rádio nenhum.'); }
   /* 8. o pinheiro morto */
