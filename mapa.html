@@ -1500,7 +1500,7 @@ function ruaDeRuinas(rz, xa, xb) {
     }
   }
 }
-const LISTA_1979 = ['Anselmo Cerutti (celebrante)', 'Regina Macedo', 'Alice Macedo', 'Jorge Macedo', 'Rosa Bortolini', 'Iracema Pozzobon', 'Ernesto Pozzobon', 'Giuseppe Dal Bosco', 'Lucia Ferrari', 'Antônio Zanella', 'Maria Rossetto', 'Pietro Bianchi', 'Teresa Basso', 'Luigi Colombo', 'Angela Fontana', 'Carlo Bertolini', 'Ana Tomasi', 'Vittorio Gallo', '______ (parente do jogador 3)', '______ (parente do jogador 4)', '______ (parente do jogador 5)', '______ (parente do jogador 6)', 'Olinda Sartori', 'Bruno Lazzari', 'Santina Pegoraro'];
+const LISTA_1979 = ['Anselmo Cerutti (celebrante)', 'Regina Macedo', 'Aurélio Macedo', 'Alice Macedo', 'Jorge Macedo', 'Rosa Bortolini', 'Iracema Pozzobon', 'Ernesto Pozzobon', 'Giuseppe Dal Bosco', 'Lucia Ferrari', 'Antônio Zanella', 'Maria Rossetto', 'Pietro Bianchi', 'Teresa Basso', 'Luigi Colombo', 'Angela Fontana', 'Carlo Bertolini', 'Ana Tomasi', 'Vittorio Gallo', '______ (parente do jogador 3)', '______ (parente do jogador 4)', '______ (parente do jogador 5)', 'Olinda Sartori', 'Bruno Lazzari', 'Santina Pegoraro'];
 function montaRemanso() {
   // chão do vale: lodo, lama rachada, terra e calçamento
   const W = 380, H = 300, geo = new THREE.PlaneGeometry(W, H, 190, 150); geo.rotateX(-Math.PI / 2); geo.translate(0, 0, -5);
@@ -1589,8 +1589,8 @@ function montaRemanso() {
     remLuzRadio = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 8), new THREE.MeshBasicMaterial({ color: 0xff3a2a, fog: false })); remLuzRadio.position.set(ax, ay + 22.4, az); gRemanso.add(remLuzRadio); }
   casaInv(-2, -31.4, 10, 9, '-z', { cor: new THREE.Color('#8d8b78'), porta: 1.5,
     mobilia: [['bedDouble', -2.5, 2.5, Math.PI], ['table', 1.8, 1.2], ['chair', 1.8, 0, 0], ['chair', 2.9, 1.2, -Math.PI / 2], ['kitchenStove', 3.6, 3.4, Math.PI], ['kitchenCabinet', 2.2, 3.4, Math.PI], ['cardboardBoxClosed', -3.8, -2.6, 0.3], ['rugRectangle', -2, 0]],
-    pistas: [{ titulo: 'A casa dos Macedo', lx: 1.8, lz: 1.2, y: 1.5, texto: 'CASA DOS MACEDO · cozinha. A casa da avó Regina. Na mesa, um porta-retrato: Regina jovem, Alice com uns 5 anos e Jorge menino, na frente desta mesma porta. Atrás: "Remanso, Natal de 1978". Para o Ícaro, teste de medo: a mulher da foto é a mesma do vídeo.' },
-      { titulo: 'A mala aberta', lx: -3.8, lz: -2.6, y: 1.1, texto: 'CASA DOS MACEDO · perto da porta. Uma mala aberta, feita às pressas, com roupas de criança. A família fugiu na noite da cheia. No batente da porta, riscos de altura: "Jorge 7", "Alice 4", "Alice 5". E a mesma canção do rádio escrita a lápis na parede, com a letra da Regina.' }] });
+    pistas: [{ titulo: 'A casa dos Macedo', lx: 1.8, lz: 1.2, y: 1.5, texto: 'CASA DOS MACEDO · cozinha. A casa da avó Regina. Na mesa, um porta-retrato: Regina jovem, Alice com uns 3 anos e Jorge menino, na frente desta mesma porta. Atrás: "Remanso, Natal de 1978". Para o Ícaro, teste de medo: a mulher da foto é a mesma do vídeo.' },
+      { titulo: 'A mala aberta', lx: -3.8, lz: -2.6, y: 1.1, texto: 'CASA DOS MACEDO · perto da porta. Uma mala aberta, feita às pressas, com roupas de criança. A família fugiu na noite da cheia. No batente da porta, riscos de altura: "Jorge 8", "Jorge 9", "Alice 3", "Alice 4". E a mesma canção do rádio escrita a lápis na parede, com a letra da Regina.' }] });
   casaInv(-46, 4.6, 11, 9, '-z', { porta: -1.5,
     mobilia: [['table', 1.5, 0.5], ['chair', 1.5, -0.7, 0], ['bedDouble', -2.6, 2.2, Math.PI], ['coatRackStanding', 4, -3, 0], ['bookcaseClosed', 4.2, 3.2, Math.PI]],
     pistas: [{ titulo: 'A cópia do Benedito', lx: 1.5, lz: 0.5, y: 1.5, texto: 'CASA DOS DAL MOLIN · mesa. Um caderno escolar com a lista de 1979 copiada à mão, em letra de criança, com nomes novos acrescentados depois, a caneta, em letra de adulto: os sobrenomes dos jogadores. A letra de adulto é igual à dos comentários no canal do Ícaro. Prenuncia o plot twist 2 (Verdade 5).' }] });

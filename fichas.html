@@ -767,6 +767,43 @@ button.cond.nova { animation: condNova 1.4s ease-out; }
 .aviso.mal { border-left-color: #e5484d; } .aviso.bem { border-left-color: var(--ok); } .aviso.pavor { border-left-color: #8e6bbf; background: #17111f; } .aviso.pd { border-left-color: #d8b23a; }
 @keyframes avisoEntra { from { opacity: 0; transform: translateY(-10px); } }
 @keyframes avisoSai { to { opacity: 0; transform: translateY(-6px); } }
+/* ===== bandeja de dados (modo narrativo) ===== */
+.mr-caixa.fixo { animation: none; }
+.band-info { margin: 0; font-size: 13px; color: var(--paper-2); }
+.band-mesa { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; min-height: 78px; padding: 14px 12px 10px; border: 1px dashed var(--line-2); border-radius: 6px; background: var(--panel-2); }
+.band-vazia { margin: auto; color: var(--muted); font-size: 13px; }
+.band-d { position: relative; display: grid; justify-items: center; gap: 3px; min-width: 46px; }
+.band-d small { font-size: 10.5px; color: var(--muted); max-width: 76px; text-align: center; line-height: 1.15; }
+.band-d > button { position: absolute; top: -8px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--panel); color: var(--paper); font-size: 13px; line-height: 1; cursor: pointer; padding: 0; }
+.band-d.pavor small { color: #c9b3f0; font-weight: 600; }
+.band-d.pavor .dado svg { filter: drop-shadow(0 0 7px rgba(142, 107, 191, .8)); }
+.band-d.apagado { opacity: .35; }
+.band-d.apagado small { text-decoration: line-through; }
+.band-d.fora { opacity: .6; }
+.band-grupo { display: grid; gap: 6px; }
+.band-rot { font: 11px var(--f-type); letter-spacing: .1em; text-transform: uppercase; color: var(--paper-2); }
+.band-rot small { text-transform: none; letter-spacing: 0; color: var(--muted); font-family: var(--f-body); }
+.band-add { display: flex; flex-wrap: wrap; gap: 6px; }
+.band-add button { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px 4px 6px; border: 1px solid var(--line-2); background: var(--panel-2); color: var(--paper); font: 600 13px var(--f-body); cursor: pointer; border-radius: 4px; min-height: 38px; }
+.band-add button:disabled { opacity: .4; cursor: default; }
+.band-grupo.pavor { padding: 10px; border: 1px solid rgba(142, 107, 191, .35); border-radius: 6px; background: linear-gradient(180deg, rgba(60, 32, 110, .18), transparent); }
+.band-grupo.pavor .band-rot { color: #c9b3f0; }
+.band-grupo.pavor button { border-color: rgba(142, 107, 191, .45); }
+.band-grupo.pavor button.meu { box-shadow: inset 0 -2px 0 #8e6bbf; }
+.band-grupo.pavor button.on { background: rgba(142, 107, 191, .3); border-color: #b58cff; }
+.band-nota { margin: 0; font-size: 12px; color: var(--muted); }
+.band-tot { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.band-tot b { font: 44px/1 var(--f-display); color: var(--paper); }
+.band-tot span { font-size: 13px; color: var(--paper-2); }
+.band-msg { font-size: 13px; padding: 7px 10px; border-left: 3px solid var(--line-2); background: var(--panel-2); }
+.band-msg.ok { border-left-color: var(--ok); } .band-msg.bad { border-left-color: #e5484d; } .band-msg.pavor { border-left-color: #8e6bbf; color: #d9c6ff; background: #17111f; }
+.band-res { display: grid; gap: 10px; }
+.band-res.com-pavor .band-mesa { border-color: rgba(142, 107, 191, .65); box-shadow: inset 0 0 34px rgba(60, 32, 110, .4); }
+.hab-ler { border: 1px solid var(--line); padding: 8px 10px; background: var(--panel-2); }
+.hab-ler + .hab-ler { margin-top: 6px; }
+.hab-ler summary { cursor: pointer; font-weight: 600; }
+.hab-ler summary small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+.hab-ler p { margin: 6px 0 0; font-size: 13.5px; line-height: 1.5; }
 /* rolagem com dado de pavor */
 .mesa-anim.pavor { background: radial-gradient(ellipse at center, rgba(40, 18, 80, .6), rgba(8, 3, 16, .88)); }
 .mesa-anim.pavor .ma-mesa { box-shadow: 0 0 0 1px rgba(142, 107, 191, .6), 0 0 44px rgba(142, 107, 191, .3); }
@@ -1350,7 +1387,7 @@ function blocoRituais(f) {
         h('dl', { class: 'hab-meta' }, h('dt', null, 'Execução'), h('dd', null, R.exec), h('dt', null, 'Alcance'), h('dd', null, R.alc), h('dt', null, 'Duração'), h('dd', null, R.dur), R.res ? [h('dt', null, 'Resistência'), h('dd', null, R.res)] : null,
           h('dt', null, 'Custo'), h('dd', null, C.pd + ' PD' + (R.c === 3 ? ' (repartidos entre quem conjura)' : '')), h('dt', null, 'Teste'), h('dd', null, 'Mente + ' + (PER_N.ocultismo || 'Ocultismo') + (C.dt ? ', DT ' + C.dt : ', prolongado')), h('dt', null, 'Componente'), h('dd', null, R.comp)),
         h('p', { style: { fontSize: '11.5px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--muted)' } }, 'Adaptado de ' + R.base),
-        h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', disabled: falta.length || f.pd.v < C.pd || null, title: falta.length ? 'Falta ' + falta.join(', ') : '', onclick: () => conjurar(f, id) }, R.c === 3 ? 'Começar cerimônia (' + C.pd + ' PD)' : 'Conjurar (' + C.pd + ' PD)'),
+        MODO.narr ? (falta.length ? h('p', { style: { fontSize: '12.5px', color: 'var(--red)' } }, 'Falta ' + falta.join(', ')) : null) : h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', disabled: falta.length || f.pd.v < C.pd || null, title: falta.length ? 'Falta ' + falta.join(', ') : '', onclick: () => conjurar(f, id) }, R.c === 3 ? 'Começar cerimônia (' + C.pd + ' PD)' : 'Conjurar (' + C.pd + ' PD)'),
           falta.length ? h('span', { style: { fontSize: '12.5px', color: 'var(--red)' } }, 'Falta ' + falta.join(', ')) : null)));
   };
   const aprender = UIS.edit ? (() => {
@@ -1415,7 +1452,7 @@ const ITEM_CAT = {
 /* situações prontas da mesa de dados: [nome, opções do teste, explicação] */
 const PRESETS = {
   comum: ['Teste comum', {}, ''],
-  medo: ['Teste de medo', { per: 'disciplina', atr: 'emocao', dt: 10 }, 'Depois de um susto grande: Disciplina + Emoção contra DT 10. Quem falha recebe um dado de pavor (a ficha recebe sozinha).'],
+  medo: ['Teste de medo', { per: 'disciplina', atr: 'emocao', dt: 10 }, 'Depois de um susto grande: Disciplina + Emoção contra DT 10. Quem falha recebe um dado de pavor.'],
   defesa: ['Defender-se', { per: 'acrobacia', atr: 'fisico', dt: 0, defesa: true }, 'Acrobacia + Físico + d6, oposto ao ataque (contra corpo a corpo, pode trocar Acrobacia por Luta). Vencendo, não toma dano, mas também não causa.'],
   fugir: ['Avançar (fuga)', { per: 'atletismo', dt: 10, soma: 'RA' }, 'Perseguição: Atletismo DT 10. Passou, soma a RA nos pontos de avanço; falhou, soma a RB. Esforço extra: um aumento de passo (passos do mestre) e perde d4 PV, d4 a mais a cada vez.'],
   escalarR: ['Escalar rápido', { per: 'atletismo', dt: 8, soma: 'RA', somaFalha: 0 }, 'Subir com pressa: DT 8, soma a RA. Falhou, cai e sofre de dano os pontos que já tinha somado.'],
@@ -1533,6 +1570,9 @@ function dado(d, valor, tam = 26, cor) {
   return h('span', { class: 'dado', title: d, html: `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" aria-hidden="true"><polygon points="${pts}" fill="${valor != null ? c : 'none'}" stroke="${c}" stroke-width="1.6" stroke-linejoin="round"/><text x="12" y="${d === 'd4' ? 17.2 : 15.6}" text-anchor="middle" font-family="Barlow, sans-serif" font-weight="700" font-size="${fs}" fill="${valor != null ? '#fff' : 'var(--paper)'}">${esc(txt)}</text></svg>` });
 }
 const rolar = d => 1 + Math.floor(Math.random() * faces(d));
+/* modo narrativo: a ficha não gasta PD nem rola sozinha. Habilidades, rituais e itens ficam só para ler;
+   tocar num atributo, perícia ou arma põe os dados na bandeja, e quem joga escolhe o que somar e quando rolar. */
+const MODO = { narr: true };
 /* animação: só mostra os valores que o sistema JÁ rolou. Durante o giro o dado fica sem número; ao pousar, aparece o valor verdadeiro. */
 const ANIM = { modo: 'completa', som: true };
 try { ANIM.modo = localStorage.getItem('sv.anim') || 'completa'; ANIM.som = localStorage.getItem('sv.animSom') !== '0'; } catch (e) {}
@@ -1861,14 +1901,14 @@ function testesRapidos(f, lista, titulo) {
 const botoesPreset = (f, lista, titulo) => h('div', { class: 'bloco' }, h('div', { class: 'fita' }, titulo), h('div', { class: 'at-lista' }, lista.filter(k => PRESETS[k]).map(k =>
   h('button', { type: 'button', class: 'at pre', id: 'pre-' + k, onclick: () => usarPreset(f, k) }, h('b', null, PRESETS[k][0]), h('small', null, PRESETS[k][2])))));
 function visaoCombate(f, p) {
-  const agir = painelCombate(f), lista = armasDe(f), c = S.cena, P = PTR(), gm = !P || P.isGM();
+  const agir = MODO.narr ? null : painelCombate(f), lista = armasDe(f), c = S.cena, P = PTR(), gm = !P || P.isGM();
   const habs = (f.hab || []).filter(k => HAB[k] && (HAB[k].gasto || HAB[k].dado));
   const ataques = h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Ataques e defesa'), h('div', { class: 'at-lista' },
     lista.map((a, i) => { const o = optsAtaque(f, a), sm = semMunicao(a);
       return h('button', { type: 'button', class: 'at', id: 'at-' + i, disabled: sm || null, onclick: () => abrirRolagem(f, o) }, h('b', null, a.nome),
         h('small', null, [PER_N[o.per] + ' ' + perDie(f, o.per), 'dano ' + (a.dano || 'RA') + (o.arma.bonus ? ' + ' + o.arma.bonus : ''), a.tipo !== 'corpo' && a.munMax ? 'munição ' + (a.mun ?? 0) + '/' + a.munMax : '', o.semProf ? 'sem proficiência: −1 passo' : '', sm ? 'sem munição' : ''].filter(Boolean).join(' · '))); }),
     h('button', { type: 'button', class: 'at def', id: 'at-defender', onclick: () => usarPreset(f, 'defesa') }, h('b', null, 'Defender-se'), h('small', null, 'Acrobacia ' + perDie(f, 'acrobacia') + ' + Físico ' + atrEf(f, 'fisico') + ' + d6, oposto ao ataque'))));
-  const habRap = habs.length ? h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Habilidades prontas'), h('div', { class: 'at-lista' }, habs.map(k => { const x = HAB[k];
+  const habRap = MODO.narr ? blocoHabsLeitura(f) : habs.length ? h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Habilidades prontas'), h('div', { class: 'at-lista' }, habs.map(k => { const x = HAB[k];
     const usada = x.gasto?.cena && f.usos[k], falta = (x.gasto?.pd && f.pd.v < x.gasto.pd) || (x.gasto?.pv && f.pv.v < x.gasto.pv) || (x.dado?.pd && f.pd.v < x.dado.pd);
     const custo = x.gasto ? ([x.gasto.pd ? x.gasto.pd + ' PD' : '', x.gasto.pv ? x.gasto.pv + ' PV' : ''].filter(Boolean).join(' e ') || 'sem custo') : '+' + x.dado.d + (x.dado.pd ? ' por ' + x.dado.pd + ' PD' : ', sem custo');
     return h('button', { type: 'button', class: 'at hab', id: 'hr-' + k, disabled: usada || falta || null, title: String(x.txt || '').replace(/<[^>]+>/g, ''), onclick: () => x.gasto ? usarGasto(f, k) : rolarComHab(f, k) }, h('b', null, x.nome), h('small', null, custo + (usada ? ' · já usada nesta cena' : falta ? ' · falta ' + (x.gasto?.pv && f.pv.v < x.gasto.pv ? 'PV' : 'PD') : ''))); }))) : null;
@@ -1895,7 +1935,7 @@ function visaoInvest(f, p) {
   return h('div', { class: 'foco-v invest' },
     h('div', { class: 'foco-cab' }, h('b', null, 'Investigação'), h('span', { class: 'foco-dica' }, 'Examinar, perguntar e juntar pistas. As perícias mais fortes vêm primeiro.')),
     h('div', { class: 'duas' },
-      h('div', { class: 'pilha' }, painelInvest(f), testesRapidos(f, lista, 'Perícias para investigar'), botoesPreset(f, ['barreira', 'medo'], 'Quando o medo aparece')),
+      h('div', { class: 'pilha' }, painelInvest(f), testesRapidos(f, lista, 'Perícias para investigar'), botoesPreset(f, ['barreira', 'medo'], 'Quando o medo aparece'), MODO.narr ? blocoHabsLeitura(f) : null),
       h('div', { class: 'pilha' }, blocoCondicoes(f), p.notas, p.itens, ultimasAcoes(f, 5), recolhe('foco-per', 'Todas as perícias', p.pericias))));
 }
 const MED_ANT = {};
@@ -2093,7 +2133,7 @@ function renderFicha() {
   const rits = blocoRituais(f);
   const corpo = {
     personagem: [cab, h('div', { class: 'duas' }, h('div', { class: 'pilha' }, atr, blocoApresentacao(f), notas), h('div', { class: 'pilha' }, pericias))],
-    combate: [painelCombate(f), h('div', { class: 'duas' }, h('div', { class: 'pilha' }, armas), h('div', { class: 'pilha' }, recursos))],
+    combate: [MODO.narr ? null : painelCombate(f), h('div', { class: 'duas' }, h('div', { class: 'pilha' }, armas), h('div', { class: 'pilha' }, recursos))],
     habilidades: [h('div', { class: 'duas' }, h('div', { class: 'pilha' }, habs), h('div', { class: 'pilha' }, rits || h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Rituais'), h('p', { class: 'legenda' }, 'Com NEX 0 ninguém conjura. O NEX sobe nos marcos de exposição que o mestre dá.'))))],
     inventario: [itens],
     relacoes: [blocoRelacoes(f)],
@@ -2183,9 +2223,9 @@ function cardHab(f, k) {
     h('button', { class: 'btn sm', type: 'button', disabled: f.pd.v < 2 || f.banco >= 2 || null, onclick: () => { f.pd.v -= 2; f.banco = 2; salvar(); renderTudo(); toast('Avaliação: 2 PD gastos, dois d4 guardados.'); } }, 'Avaliar (1 ação + 2 PD)')));
   else if (k === 'avaliacao') acoes.push(h('div', { class: 'row' }, h('span', { style: { fontSize: '13px' } }, 'Marcadores: ', h('b', null, f.banco + '/4')),
     h('button', { class: 'btn sm', type: 'button', disabled: f.banco >= 4 || null, onclick: () => { f.banco = Math.min(4, f.banco + 2); salvar(); renderTudo(); toast('Análise: +2 marcadores (' + f.banco + '/4).'); } }, 'Analisar (1 ação)')),
-    h('p', { style: { fontSize: '12.5px', color: 'var(--muted)' } }, 'Depois de rolar, o resultado mostra os botões para mexer nos dados.'));
-  if (x.gasto) { const usado = x.gasto.cena && f.usos[k]; acoes.push(h('div', { class: 'row' }, h('button', { class: 'btn sm', type: 'button', disabled: usado || (x.gasto.pd && f.pd.v < x.gasto.pd) || (x.gasto.pv && f.pv.v < x.gasto.pv) || null, onclick: () => usarGasto(f, k) }, usado ? 'Já usada nesta cena' : 'Usar (' + x.custo + ')'))); }
-  if (x.dado) acoes.push(h('p', { style: { fontSize: '12.5px', color: 'var(--muted)' } }, 'Aparece como opção na mesa de dados quando o teste combina.'));
+    MODO.narr ? null : h('p', { style: { fontSize: '12.5px', color: 'var(--muted)' } }, 'Depois de rolar, o resultado mostra os botões para mexer nos dados.'));
+  if (x.gasto && !MODO.narr) { const usado = x.gasto.cena && f.usos[k]; acoes.push(h('div', { class: 'row' }, h('button', { class: 'btn sm', type: 'button', disabled: usado || (x.gasto.pd && f.pd.v < x.gasto.pd) || (x.gasto.pv && f.pv.v < x.gasto.pv) || null, onclick: () => usarGasto(f, k) }, usado ? 'Já usada nesta cena' : 'Usar (' + x.custo + ')'))); }
+  if (x.dado && !MODO.narr) acoes.push(h('p', { style: { fontSize: '12.5px', color: 'var(--muted)' } }, 'Aparece como opção na mesa de dados quando o teste combina.'));
   const m = metaHab(k), lim = typeof m.limite === 'function' ? m.limite() : m.limite;
   const pdNec = x.dado?.pd || x.gasto?.pd || 0, pvNec = x.gasto?.pv || 0, usadaCena = x.gasto?.cena && f.usos[k];
   const disp = usadaCena ? ['usada', 'nao'] : (pdNec && f.pd.v < pdNec) || (pvNec && f.pv.v < pvNec) ? ['sem ' + (pdNec ? 'PD' : 'PV'), 'nao'] : (pdNec || pvNec || x.gasto) ? ['disponível', ''] : null;
@@ -2233,6 +2273,7 @@ function carregarRetrato(f, file) {
 
 /* ===================== mesa de dados ===================== */
 function abrirRolagem(f, o) {
+  if (MODO.narr) { abrirBandeja(f, o); return; }
   const per = o.per ?? 'percepcao', atr = o.atr || (per ? PER_ATR[per] : 'fisico');
   UIS.roll = { semProf: !!o.semProf, mods: {}, manual: UIS.manualOn || false, mv: [], just: '', sid: f.id, atr, per, dt: o.dt ?? 7, pa: 0, pp: 0, ajuda: 0, extras: [], arma: o.arma || null, especial: o.especial || null, esquiva: !!o.defesa, preset: o.preset || 'comum', cura: o.cura ?? null, item: o.item ?? null, pvCusto: o.pv || 0, soma: o.soma || null, somaFalha: o.somaFalha, sust: o.sust || 0, pavor: 'rolar', ritual: o.ritual || null };
   if (o.especial === 'trau' && HAB.estoico && temHab(f, 'estoico')) UIS.roll.extras.push({ d: 'd6', fonte: 'Estoico', auto: true });
@@ -2358,6 +2399,88 @@ function montarTeste(f, r) {
       blocoManual(f, r, lista)),
     h('button', { class: 'btn red rolar', type: 'button', id: 'r-rolar', onclick: () => fazerRolagem(f, r) }, 'Rolar')];
 }
+const PAVOR_COR = '#8e6bbf';
+const nomePer = k => PER_N[k] || (String(k).startsWith('apt:') ? 'Aptidão (' + ((APT.find(a => 'apt:' + a[0] === k) || [])[1] || '') + ')' : k);
+function abrirBandeja(f, o, livre) {
+  f = f || F(); o = o || {};
+  const dados = []; let rot = 'Rolar dados', info = '', dica = '';
+  if (livre) dados.push({ d: livre, fonte: 'Livre' });
+  else {
+    const per = o.per ?? 'percepcao', atr = o.atr || (per ? PER_ATR[per] : 'fisico') || 'mente';
+    dados.push({ d: atrEf(f, atr), fonte: ATR_N[atr] });
+    if (per) dados.push({ d: perDie(f, per), fonte: nomePer(per) });
+    if (o.defesa) dados.push({ d: 'd6', fonte: 'Defesa' });
+    rot = per ? nomePer(per) + ' + ' + ATR_N[atr] : ATR_N[atr];
+    if (o.ritual && RITUAIS[o.ritual]) rot = RITUAIS[o.ritual].nome + ' · ' + rot;
+    if (o.preset && o.preset !== 'comum' && PRESETS[o.preset]) { rot = PRESETS[o.preset][0] + ' · ' + rot; dica = PRESETS[o.preset][2]; }
+    if (o.arma) { rot = o.arma.nome + ' · ' + rot; info = 'Dano se acertar: ' + (o.arma.dano || 'RA') + (+o.arma.bonus ? ' + ' + o.arma.bonus : '') + (o.semProf ? '. Sem proficiência: o mestre pode pedir um dado menor.' : ''); }
+  }
+  UIS.band = { sid: f.id, rot, info, dica, dados, pavor: null, res: null };
+  UIS.res = null; UIS.roll = null; UIS.modal = 'bandeja'; renderRolar();
+}
+/* a conta da bandeja: o pavor apaga os dados menores que ele; somam os 3 maiores que sobraram */
+function contaBandeja(dados, pavor) {
+  for (const x of dados) x.apagado = !!(pavor && x.v < pavor.v);
+  const vivos = dados.filter(x => !x.apagado), top = vivos.slice().sort((a, b) => b.v - a.v).slice(0, 3);
+  for (const x of dados) x.conta = top.includes(x);
+  const rep = {}; for (const x of vivos) rep[x.v] = (rep[x.v] || 0) + 1;
+  return { tot: top.reduce((a, x) => a + x.v, 0), ra: top.length ? Math.max(...top.map(x => x.v)) : 0, rb: top.length ? Math.min(...top.map(x => x.v)) : 0,
+    crit: Object.entries(rep).some(([v, n]) => +v >= 6 && n >= 2), fumble: dados.length > 0 && (dados.every(x => x.v === 1) || dados.every(x => x.apagado)), apagados: dados.filter(x => x.apagado).length, vivos: vivos.length };
+}
+function rolarBandeja() {
+  const b = UIS.band; if (!b || !b.dados.length) return;
+  const f = S.fichas.find(x => x.id === b.sid) || F();
+  const dados = b.dados.map(x => ({ d: x.d, fonte: x.fonte, v: rolar(x.d) })), pavor = b.pavor ? { d: b.pavor, v: rolar(b.pavor) } : null, c = contaBandeja(dados, pavor);
+  b.res = { dados, pavor, c, t: Date.now(), novo: true };
+  S.hist.unshift({ t: b.res.t, quem: f.nome, fid: f.id, cat: 'rolagem', o: b.rot, tot: c.tot, v: c.crit ? 'ok' : c.fumble ? 'bad' : '', vt: c.crit ? 'crítico' : c.fumble ? 'falha crítica' : '',
+    det: dados.map(x => x.d + ': ' + x.v + (x.apagado ? ' (apagado)' : '')).join(' · ') + (pavor ? ' · pavor ' + pavor.d + ': ' + pavor.v : '') });
+  salvar();
+  const itens = dados.map(x => ({ d: x.d, v: x.v, rot: x.fonte, tipo: '', depois: x.apagado ? 'anulado' : x.conta ? '' : 'fora' }));
+  if (pavor) itens.push({ d: pavor.d, v: pavor.v, rot: 'Pavor', tipo: 'pavor' });
+  animarDados(itens, () => renderDados(), [h('b', null, c.tot), h('span', { class: c.crit ? 'crit' : c.fumble ? 'bad' : '' }, c.crit ? 'crítico' : c.fumble ? 'falha crítica' : 'soma')]);
+  renderRolar();
+}
+function bandejaUI() {
+  const b = UIS.band, f = S.fichas.find(x => x.id === b.sid) || F(), r = b.res, MAX = 8, re = () => renderRolar();
+  const meu = f.pavorD && RG.pavor !== 'nenhum' ? f.pavorD : null, n = b.dados.length + (b.pavor ? 1 : 0);
+  const out = [h('div', { class: 'mr-cab' }, h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }), h('div', null, h('small', null, f.nome), h('b', { id: 'mr-titulo' }, b.rot)))];
+  if (b.info) out.push(h('p', { class: 'band-info' }, b.info));
+  if (r) {
+    const c = r.c, novo = r.novo; r.novo = false;
+    out.push(h('div', { class: 'band-res' + (r.pavor ? ' com-pavor' : ''), role: 'status' },
+      h('div', { class: 'band-mesa', 'aria-label': 'Resultado' }, r.dados.map(x => h('span', { class: 'band-d' + (x.apagado ? ' apagado' : x.conta ? '' : ' fora'), title: x.fonte + (x.apagado ? ': apagado pelo pavor' : x.conta ? '' : ': fora da soma, só os 3 maiores contam') }, dado(x.d, x.v, 42), h('small', null, x.apagado ? 'apagado' : x.fonte))),
+        r.pavor ? h('span', { class: 'band-d pavor' + (novo ? ' pulsa' : ''), title: 'Dado de pavor' }, dado(r.pavor.d, r.pavor.v, 42, PAVOR_COR), h('small', null, 'Pavor')) : null),
+      h('div', { class: 'band-tot' }, h('b', { id: 'b-total' }, c.tot), h('span', null, c.vivos > 3 ? 'soma dos 3 maiores' : 'soma'), c.vivos ? h('span', null, 'RA ' + c.ra + ' · RB ' + c.rb) : null),
+      c.crit ? h('div', { class: 'band-msg ok' }, 'Dois dados iguais de 6 ou mais: crítico.') : null,
+      c.fumble ? h('div', { class: 'band-msg bad' }, c.apagados === r.dados.length ? 'O pavor apagou todos os dados: falha crítica.' : 'Todos os dados no 1: falha crítica.') : null,
+      r.pavor && c.apagados && c.apagados < r.dados.length ? h('div', { class: 'band-msg pavor' }, 'O pavor tirou ' + r.pavor.v + ' e apagou ' + c.apagados + (c.apagados > 1 ? ' dados.' : ' dado.')) : null,
+      r.pavor && !c.apagados && r.pavor.v > 1 ? h('div', { class: 'band-msg pavor' }, 'O pavor tirou ' + r.pavor.v + ' e não apagou nenhum dado.') : null,
+      r.pavor && r.pavor.v === 1 ? h('div', { class: 'band-msg pavor' }, 'O pavor caiu 1: o medo passa. Avise o mestre.') : null));
+    out.push(h('div', { class: 'row mr-pe' }, h('button', { class: 'btn sm red', type: 'button', id: 'b-denovo', onclick: rolarBandeja }, 'Rolar de novo'),
+      h('button', { class: 'btn sm', type: 'button', id: 'b-mudar', onclick: () => { b.res = null; re(); } }, 'Mudar os dados'), h('button', { class: 'btn sm', type: 'button', id: 'b-fechar', onclick: fecharRolar }, 'Fechar')));
+    return out;
+  }
+  if (b.dica) out.push(h('div', { class: 'dica' }, b.dica));
+  out.push(h('div', { class: 'band-mesa', 'aria-label': 'Dados na bandeja' }, n ? [
+    b.dados.map((x, i) => h('span', { class: 'band-d' }, dado(x.d, null, 38), h('small', null, x.fonte), h('button', { type: 'button', 'aria-label': 'Tirar ' + x.d + ' (' + x.fonte + ')', onclick: () => { b.dados.splice(i, 1); re(); } }, '×'))),
+    b.pavor ? h('span', { class: 'band-d pavor' }, dado(b.pavor, null, 38, PAVOR_COR), h('small', null, 'Pavor'), h('button', { type: 'button', 'aria-label': 'Tirar o dado de pavor', onclick: () => { b.pavor = null; re(); } }, '×')) : null]
+    : h('p', { class: 'band-vazia' }, 'Bandeja vazia. Escolha os dados abaixo.')));
+  out.push(h('div', { class: 'band-grupo' }, h('span', { class: 'band-rot' }, 'Somar um dado', h('small', null, ' · vantagem, relação, ajuda: o que o mestre disser')),
+    h('div', { class: 'band-add' }, ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(d => h('button', { type: 'button', id: 'b-add-' + d, disabled: b.dados.length >= MAX || null, onclick: () => { b.dados.push({ d, fonte: 'Extra' }); re(); } }, dado(d, null, 24), d)))));
+  if (RG.pavor !== 'nenhum') out.push(h('div', { class: 'band-grupo pavor' }, h('span', { class: 'band-rot' }, 'Dado de pavor', h('small', null, meu ? ' · o seu agora é ' + meu : ' · só quando o mestre pedir')),
+    h('div', { class: 'band-add' }, ['d4', 'd6', 'd8', 'd10', 'd12'].map(d => h('button', { type: 'button', id: 'b-pav-' + d, class: [b.pavor === d ? 'on' : '', meu === d ? 'meu' : ''].filter(Boolean).join(' '), 'aria-pressed': b.pavor === d ? 'true' : 'false', onclick: () => { b.pavor = b.pavor === d ? null : d; re(); } }, dado(d, null, 24, PAVOR_COR), d))),
+    h('p', { class: 'band-nota' }, 'Rola junto com os outros e apaga todo dado que tirar menos que ele.')));
+  out.push(h('div', { class: 'row' }, h('button', { class: 'btn sm ghost', type: 'button', id: 'b-limpar', disabled: !n || null, onclick: () => { b.dados = []; b.pavor = null; re(); } }, 'Limpar a bandeja')));
+  out.push(h('button', { class: 'btn red rolar', type: 'button', id: 'b-rolar', disabled: !b.dados.length || null, onclick: rolarBandeja }, b.dados.length ? 'Rolar ' + n + (n > 1 ? ' dados' : ' dado') : 'Escolha os dados'));
+  return out;
+}
+function blocoHabsLeitura(f) {
+  const ks = (f.hab || []).filter(k => HAB[k]);
+  if (!ks.length) return null;
+  return h('div', { class: 'bloco' }, h('div', { class: 'fita' }, 'Suas habilidades'),
+    h('div', null, ks.map(k => { const x = HAB[k]; return h('details', { class: 'hab-ler', id: 'hl-' + k }, h('summary', null, x.nome, x.custo ? h('small', null, x.custo) : null), h('p', { html: x.txt })); })),
+    h('p', { class: 'legenda' }, 'Para usar, conte ao mestre o que o personagem faz. Se custar PD, tire na barra de cima; se der dado, some na bandeja.'));
+}
 function renderRolar() {
   let m = $('#rolar');
   if (!m) {
@@ -2367,23 +2490,23 @@ function renderRolar() {
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#rolar').hidden) { e.preventDefault(); fecharRolar(); } });
   }
   const r = UIS.roll, f = r ? S.fichas.find(x => x.id === r.sid) : null, resF = UIS.res ? S.fichas.find(x => x.id === UIS.res.sid) : null;
-  const modo = UIS.modal === 'montar' && r && f ? 'montar' : UIS.modal === 'res' && UIS.res && resF ? 'res' : null;
+  const modo = UIS.modal === 'bandeja' && UIS.band ? 'bandeja' : UIS.modal === 'montar' && r && f ? 'montar' : UIS.modal === 'res' && UIS.res && resF ? 'res' : null;
   if (!modo) { if (!m.hidden) { m.hidden = true; fill(m); document.body.classList.remove('com-modal'); } return; }
   const abrindo = m.hidden || m.dataset.modo !== modo, cx = m.querySelector('.mr-caixa'), st = cx && !abrindo ? cx.scrollTop : 0;
   const foco = document.activeElement && m.contains(document.activeElement) ? document.activeElement.id : '';
   m.hidden = false; m.dataset.modo = modo; document.body.classList.add('com-modal');
-  m.classList.toggle('com-pavor', modo === 'res' ? !!UIS.res.pavor : !!(f.pavorD && RG.pavor !== 'nenhum'));
-  fill(m, h('div', { class: 'mr-caixa', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': modo === 'res' ? 'rs-titulo' : 'mr-titulo' },
+  m.classList.toggle('com-pavor', modo === 'bandeja' ? !!UIS.band.pavor : modo === 'res' ? !!UIS.res.pavor : !!(f.pavorD && RG.pavor !== 'nenhum'));
+  fill(m, h('div', { class: 'mr-caixa' + (abrindo ? '' : ' fixo'), role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': modo === 'res' ? 'rs-titulo' : 'mr-titulo' },
     h('button', { class: 'mr-fechar', type: 'button', id: 'mr-fechar', 'aria-label': 'Fechar', onclick: fecharRolar }, '×'),
     modo === 'res' ? [cardResultado(UIS.res), h('div', { class: 'row mr-pe' },
         r && f ? h('button', { class: 'btn sm', type: 'button', id: 'mr-de-novo', onclick: () => { UIS.modal = 'montar'; renderRolar(); } }, 'Ajustar e rolar de novo') : null,
         h('button', { class: 'btn sm', type: 'button', onclick: fecharRolar }, 'Fechar'))]
-      : montarTeste(f, r)));
+      : modo === 'bandeja' ? bandejaUI() : montarTeste(f, r)));
   const ncx = m.querySelector('.mr-caixa'); if (ncx && st) ncx.scrollTop = st;
   if (foco && document.getElementById(foco)) document.getElementById(foco).focus({ preventScroll: true });
-  else if (abrindo) setTimeout(() => { const b = document.getElementById(modo === 'res' ? 'mr-fechar' : 'r-rolar'); if (b && !m.hidden) b.focus({ preventScroll: true }); }, 40);
+  else if (abrindo) setTimeout(() => { const b = document.getElementById(modo === 'res' ? 'mr-fechar' : modo === 'bandeja' ? 'b-rolar' : 'r-rolar'); if (b && !m.hidden) b.focus({ preventScroll: true }); }, 40);
 }
-function fecharRolar() { UIS.modal = null; UIS.roll = null; UIS.trocando = false; renderRolar(); renderDados(); if (UIS.sec === 'combate') renderFicha(); }
+function fecharRolar() { UIS.modal = null; UIS.roll = null; UIS.band = null; UIS.trocando = false; renderRolar(); renderDados(); if (UIS.sec === 'combate') renderFicha(); }
 /* resumo do último resultado, no painel de combate */
 function resumoRes(res) {
   const c = res.c || calcular(res), v = VEREDITO(res, c);
@@ -2398,10 +2521,11 @@ function renderDados() {
   const kids = [h('h3', null, 'Mesa de dados')];
   renderRolar();
   if (UIS.res && UIS.modal !== 'res') kids.push(cardResultado(UIS.res));
-  else if (!UIS.res) kids.push(h('div', { class: 'montar' }, h('p', { style: { margin: 0, color: 'var(--paper-2)' } }, 'Toque num atributo ou numa perícia, ou use a aba Combate da ficha: o teste abre numa janela, com o essencial à mostra.')));
+  else if (!UIS.res) kids.push(MODO.narr ? h('div', { class: 'montar' }, h('p', { style: { margin: 0, color: 'var(--paper-2)' } }, 'Toque num atributo, perícia ou arma para pôr os dados na bandeja. Some dados ou o pavor quando o mestre pedir, e role.'), h('button', { class: 'btn red', type: 'button', id: 'abrir-bandeja', onclick: () => abrirBandeja(F(), null, null) }, 'Abrir a bandeja de dados'))
+    : h('div', { class: 'montar' }, h('p', { style: { margin: 0, color: 'var(--paper-2)' } }, 'Toque num atributo ou numa perícia, ou use a aba Combate da ficha: o teste abre numa janela, com o essencial à mostra.')));
   kids.push(blocoInvestigar());
   kids.push(blocoProlongado());
-  kids.push(h('h3', null, 'Dados livres'), cfgAnim(), h('div', { class: 'livres' }, ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(d => h('button', { type: 'button', id: 'livre-' + d, onclick: () => { const v = rolar(d); S.hist.unshift({ t: Date.now(), quem: F().nome, o: 'Dado livre ' + d, tot: v, v: '' }); salvar(); animarDados([{ d, v, rot: 'Dado livre' }], () => { renderDados(); toast(d + ': ' + v); }, [h('b', null, v), h('span', null, d)]); } }, dado(d, null, 26), d))));
+  kids.push(h('h3', null, 'Dados livres'), cfgAnim(), h('div', { class: 'livres' }, ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(d => h('button', { type: 'button', id: 'livre-' + d, onclick: () => { if (MODO.narr) { abrirBandeja(F(), null, d); return; } const v = rolar(d); S.hist.unshift({ t: Date.now(), quem: F().nome, o: 'Dado livre ' + d, tot: v, v: '' }); salvar(); animarDados([{ d, v, rot: 'Dado livre' }], () => { renderDados(); toast(d + ': ' + v); }, [h('b', null, v), h('span', null, d)]); } }, dado(d, null, 26), d))));
   kids.push(h('h3', null, 'Histórico'), S.hist.length ? h('div', { class: 'hist' }, S.hist.slice(0, 30).map(x => h('div', { class: 'hist-it' }, h('span', { class: 't' }, x.tot), h('span', { class: 'w' }, h('b', null, x.quem + ' · ' + x.o), h('small', null, (x.det ? x.det + ' · ' : '') + new Date(x.t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))), h('span', { class: 'v ' + (x.v || '') }, x.vt || '')))) : h('p', { style: { color: 'var(--muted)', fontSize: '13px', margin: 0 } }, 'As rolagens aparecem aqui.'));
   if (!PONTE) kids.push(h('p', { class: 'nota-proto' }, 'Protótipo: a call, o mapa e a sincronização com os jogadores ficam no site de verdade. Aqui tudo roda só neste navegador.'));
   fill(el, kids);
@@ -2654,7 +2778,7 @@ function cardItens(f) {
   return h('div', { class: 'card' }, (f.itens || []).map((it, i) => { const cat = ITEM_CAT[it.nome]; return h('div', { class: 'item' },
       h('input', { class: 'nm', id: 'f-it-' + i, value: it.nome, 'aria-label': 'Item', oninput: e => { it.nome = e.target.value; salvar(); }, onchange: () => renderFicha() }),
       h('span', { class: 'row' },
-        cat?.usar ? h('button', { class: 'btn sm', type: 'button', disabled: !(it.qtd ?? 1) || null, onclick: () => usarItem(f, i) }, 'Usar') : null,
+        cat?.usar && !MODO.narr ? h('button', { class: 'btn sm', type: 'button', disabled: !(it.qtd ?? 1) || null, onclick: () => usarItem(f, i) }, 'Usar') : null,
         h('button', { class: 'mini', type: 'button', 'aria-label': 'Menos', onclick: () => { it.qtd = Math.max(0, (it.qtd ?? 1) - 1); salvar(); renderFicha(); } }, '−'), h('b', { style: { minWidth: '22px', textAlign: 'center' } }, it.qtd ?? 1), h('button', { class: 'mini', type: 'button', 'aria-label': 'Mais', onclick: () => { it.qtd = (it.qtd ?? 1) + 1; salvar(); renderFicha(); } }, '+'),
         UIS.edit ? h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar item', onclick: () => { f.itens.splice(i, 1); salvar(); renderFicha(); } }, '×') : null),
       cat ? h('div', { class: 'desc' }, cat.txt) : null); }),
@@ -3324,6 +3448,7 @@ function renderRegras() {
 }
 /* testes das regras: rodam sem mexer nas fichas salvas */
 function rodarTestes() {
+  const narr0 = MODO.narr; MODO.narr = false;
   const T = [], ok = (nome, cond, det = '') => T.push({ nome, ok: !!cond, det });
   const res = (vals, dt, pav) => { const r = { dados: vals.map(v => ({ d: 'd8', v })), dt, pavor: pav != null ? { modo: 'rolar', d: 'd6', v: pav } : null }; recontar(r); return calcular(r); };
   ok('Escala: d6 sobe para d8 e desce para d4', passo('d6', 1) === 'd8' && passo('d6', -1) === 'd4');
@@ -3369,6 +3494,13 @@ function rodarTestes() {
   ok('Ep. 2: itens novos no catálogo', !!ITEM_CAT['Cuia de chimarrão'] && !!ITEM_CAT['Cigarro de palha'] && ARMAS_2016.some(a => a.nome.startsWith('Lança')));
   ok('Cor clara calculada certo', clara('#000000', 0.5) === '#808080');
   ok('Trocar de versão não mexe nas fichas', S.fichas.length > 0 && S.fichas.every(f => f.atr && f.per));
+  { const B = (vals, pv) => { const ds = vals.map(v => ({ d: 'd8', v })); return [contaBandeja(ds, pv != null ? { d: 'd6', v: pv } : null), ds]; };
+    const [a] = B([5, 3, 6, 2]); ok('Bandeja: somam os 3 maiores', a.tot === 14 && a.ra === 6 && a.rb === 3);
+    const [b2, d2] = B([5, 3, 6], 4); ok('Bandeja: pavor 4 apaga o 3 e deixa 5 e 6', b2.tot === 11 && d2[1].apagado && !d2[0].apagado && b2.apagados === 1);
+    const [c3] = B([2, 3], 6); ok('Bandeja: pavor que apaga tudo é falha crítica', c3.fumble && c3.tot === 0);
+    const [c4] = B([7, 7, 1]); ok('Bandeja: dois 7 é crítico', c4.crit && !c4.fumble);
+    const [c5] = B([6, 6, 2], 7); ok('Bandeja: crítico apagado pelo pavor não vale', !c5.crit); }
+  MODO.narr = narr0;
   return T;
 }
 window.rodarTestes = rodarTestes;
