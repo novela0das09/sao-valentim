@@ -1326,6 +1326,15 @@ function recortarFolha(im, n) {
     if (col[x] > minCol) { if (cur && branco <= vao) { cur.x1 = x; cur.m += col[x]; } else { cur = { x0: x, x1: x, m: col[x] }; grupos.push(cur); } branco = 0; }
     else if (cur) branco++;
   }
+  /* figuras encostadas (um rabo, uma pá): se faltou figura, corta a mais larga onde tem menos desenho */
+  for (let k = 0; grupos.length < n && k < n; k++) {
+    const g0 = grupos.reduce((a, b) => (b.x1 - b.x0 > a.x1 - a.x0 ? b : a)); if (g0.x1 - g0.x0 < W * 0.3) break;
+    let melhor = -1, menor = 1e9;
+    for (let x = Math.round(g0.x0 + (g0.x1 - g0.x0) * 0.3); x <= g0.x0 + (g0.x1 - g0.x0) * 0.7; x++) if (col[x] < menor) { menor = col[x]; melhor = x; }
+    if (melhor < 0) break;
+    let m1 = 0; for (let x = g0.x0; x < melhor; x++) m1 += col[x];
+    grupos.push({ x0: melhor + 1, x1: g0.x1, m: g0.m - m1 }); g0.x1 = melhor; g0.m = m1;
+  }
   const escolhidos = grupos.sort((a, b) => b.m - a.m).slice(0, n).sort((a, b) => a.x0 - b.x0);
   return escolhidos.map(gr => {
     let y0 = H, y1 = 0;
