@@ -1781,7 +1781,7 @@ function montaMata() {
   const espalha = (n, fn) => { for (let i = 0, f = 0; i < n * 8 && f < n; i++) { const x = -135 + rnd() * 270, z = -135 + rnd() * 270; if (fn(x, z)) f++; } };
   espalha(fraco ? 260 : 560, (x, z) => { if (!livreM(x, z, 1.5)) return false; inst('n', sorteia(['tree_pineTallA_detailed', 'tree_pineTallC_detailed', 'tree_pineRoundC', 'tree_pineDefaultA']), x, altM(x, z) - 0.2, z, rnd() * TAU, 1.6 + rnd() * 1.4, 'escura', null, 'mata'); return true; });
   espalha(fraco ? 120 : 260, (x, z) => { if (!livreM(x, z, 1)) return false; inst('u', sorteia(['tree-large', 'tree-park-large']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.6 + rnd(), 'escura', null, 'mata'); return true; });
-  espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.2, 'escura', null, 'mata'); return true; });
+  espalha(fraco ? 300 : 700, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', sorteia(['plant_bushLarge', 'plant_bushDetailed', 'plant_bushLarge']), x, altM(x, z) - 0.1, z, rnd() * TAU, 0.8 + rnd() * 0.8, 'escura', null, 'mata'); return true; });
   espalha(fraco ? 200 : 500, (x, z) => { if (naTrilhaM(x, z)) return false; inst('n', 'grass_large', x, altM(x, z), z, rnd() * TAU, 1.3 + rnd(), 'escura', null, 'mata'); return true; });
   espalha(90, (x, z) => { if (!livreM(x, z, 0)) return false; inst('n', sorteia(['log', 'stump_old', 'stump_old', 'rock_largeA', 'stone_largeA']), x, altM(x, z) - 0.1, z, rnd() * TAU, 1.2 + rnd() * 1.4, '', null, 'mata'); return true; });
   espalha(60, (x, z) => { if (!livreM(x, z, -0.5)) return false; inst('n', 'mushroom_redGroup', x, altM(x, z), z, rnd() * TAU, 1 + rnd(), '', null, 'mata'); return true; });
@@ -1790,7 +1790,7 @@ function montaMata() {
 
   /* 1. a entrada da trilha */
   { const { x, z } = LUG_M.entrada, y = altM(x, z);
-    postesPlaca(x + 3.5, z + 1, 0, 2.6); placaM('Trilha da mata', x + 3.5, y + 2.2, z + 1, 0, 2.6, 'sobe até o morro da antena');
+    postesPlaca(x + 3.5, z + 1, Math.PI, 2.6); placaM('Trilha da mata', x + 3.5, y + 2.2, z + 1, Math.PI, 2.6, 'sobe até o morro da antena');
     for (const k of [-1, 1]) cilindro(x + k * 2.2, y - 0.2, z - 1, 0.1, 0.12, 1.6, matMadeira, 6, gMata);
     const tr = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.12, 0.12), matMadeira); tr.position.set(x - 1.3, y + 1.1, z - 1); tr.rotation.y = 0.5; gMata.add(tr); // a porteira ficou aberta
     pistaM('A porteira aberta', x - 1, y + 1.4, z - 1, 'ENTRADA DA TRILHA. A trilha sobe do cemitério para a mata. A porteira está aberta e amarrada com arame novo. No barro, pegadas de bota de borracha (do Seu Benedito, F5) e, por cima, marcas de patas de graxaim. Daqui saem as trilhas para a capelinha, o acampamento da Usina e, do outro lado da sanga, o morro da antena.'); }
@@ -1848,7 +1848,7 @@ function montaMata() {
     pistaM('O pinheiro morto', x + 2, y + 1.4, z + 1, 'O PINHEIRO MORTO (Verdade 4). Uma araucária seca, branca como osso, a mais alta da mata. No alto, o ninho da Rasga-Mortalha, feito de papel. O chão em volta tem "penas" de papel molhado com letra borrada: páginas arrancadas dos registros de 1979. Juntando as tiras saem nomes dos 32 que sumiram dos papéis, e um pedaço do índice do livro de atas ("termo lavrado por A. Busatto"), outro caminho para o nome do Rosto Liso.'); }
   /* 9. o fim da trilha: dali se sai no morro da antena, que fica no vale */
   { const x = 0, z = 92, y = altM(x, z);
-    postesPlaca(x - 2, z - 3, 0.2, 2.6); placaM('Morro da antena', x - 2, y + 2.2, z - 3, 0.2, 2.6, 'a trilha sai no alto do morro, sobre o lago');
+    postesPlaca(x - 2, z - 3, Math.PI + 0.2, 2.6); placaM('Morro da antena', x - 2, y + 2.2, z - 3, Math.PI + 0.2, 2.6, 'a trilha sai no alto do morro, sobre o lago');
     pistaM('O fim da trilha', x, y + 1.3, z, 'FIM DA TRILHA. A subida termina no morro da antena, já no vale (botão "Voltar ao vale"). Quem chega por aqui vê o ferro da antena por cima das árvores e ouve o vento no cabo que desce até a represa.'); }
 
   /* luzes, céu e névoa da mata */
@@ -1885,13 +1885,14 @@ function camerasDaMata() {
 function aplicaLuzMata() {
   mataNoiteAt = noite; mataNevoaAt = nevoaOn;
   mataCena.fog = nevoaOn ? (noite ? fogMataNoite : fogMataDia) : null;
-  mataCena.background = new THREE.Color(noite ? 0x0a1110 : 0x76817d);
-  mataHemi.color.set(noite ? 0x7f969a : 0xd3ddd8); mataHemi.groundColor.set(noite ? 0x14120d : 0x3a3428); mataHemi.intensity = noite ? 0.75 : 1.4;
-  mataLua.color.set(noite ? 0xb4c8d2 : 0xf0ece0); mataLua.intensity = noite ? 0.55 : 1.3;
+  mataCena.background = new THREE.Color(noite ? 0x0d1615 : 0x76817d);
+  mataHemi.color.set(noite ? 0x7f969a : 0xd3ddd8); mataHemi.groundColor.set(noite ? 0x14120d : 0x3a3428); mataHemi.intensity = noite ? 1.25 : 1.6;
+  mataLua.color.set(noite ? 0xb4c8d2 : 0xf0ece0); mataLua.intensity = noite ? 0.9 : 1.4;
   mataVaga.visible = noite; nevoasM.forEach(n => n.visible = nevoaOn);
 }
 function quadroMata(t, dt) {
   if (mataNoiteAt !== noite || mataNevoaAt !== nevoaOn) aplicaLuzMata();
+  { const dist = camera.position.distanceTo(controls.target); fogMataNoite.density = 0.03 / Math.max(1, dist / 16); fogMataDia.density = 0.018 / Math.max(1, dist / 22); }
   const alvo = controls.target;
   mataLua.position.set(alvo.x - 40, alvo.y + 70, alvo.z + 30); mataLua.target.position.copy(alvo);
   const sg = mataCena.userData.sanga; if (sg) sg.userData.nm.offset.set(t * 0.06, 0);
@@ -1974,7 +1975,7 @@ function camerasDosLugares() {
     ['Represa Velha', { pos: [-40, 8, 70], alvo: [20, -2, -17] }, 'Um lago escuro e parado. Ninguém vê nada lá embaixo. A estrada velha desce e entra na água: é o caminho para Remanso (botão Remanso). Use "Seca" para a sessão 6.'],
     ['A torre', perto(L.torre, -16, 6, 14, 2), 'A torre de 1936, inteira debaixo d\'água. Só aparece na seca (sessão 6) ou com "Ver o fundo". É o selo do ritual.'],
   ];
-  if (L.antena) cams.splice(cams.findIndex(c => c[0] === 'Campo') + 1, 0, ['Antena velha', perto(L.antena, -18, 12, 22, 6), 'O ferro da Rádio Vale Alto, fechada em 1979, no alto do morro com a vista do lago inteiro. O cabo desce o morro e entra na represa (Verdade 10). O tripé e o tênis do Matheus aparecem na margem no Ato 2. É o lugar mais alto do vale: refúgio na Noite Alagada. A trilha da mata do Lajeado sai daqui.']);
+  if (L.antena) cams.splice(cams.findIndex(c => c[0] === 'Campo') + 1, 0, ['Antena velha', perto(L.antena, -18, 12, 22, 6), 'O ferro da Rádio Vale Alto, fechada em 1979, no alto do morro com a vista do lago inteiro. O cabo desce o morro e entra na represa (Verdade 10). O tripé e o tênis do Matheus aparecem na margem no Ato 2. É o lugar mais alto do vale: refúgio na Noite Alagada. A trilha da mata termina aqui.']);
   for (const [nome, c, nota] of cams) {
     if (SO_JOGADOR && nome === 'A torre') continue; // a torre é segredo até a seca
     const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = nome;
