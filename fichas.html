@@ -800,6 +800,13 @@ button.cond.nova { animation: condNova 1.4s ease-out; }
 .band-msg.ok { border-left-color: var(--ok); } .band-msg.bad { border-left-color: #e5484d; } .band-msg.pavor { border-left-color: #8e6bbf; color: #d9c6ff; background: #17111f; }
 .band-res { display: grid; gap: 10px; }
 .band-res.com-pavor .band-mesa { border-color: rgba(142, 107, 191, .65); box-shadow: inset 0 0 34px rgba(60, 32, 110, .4); }
+.band-ajuste { display: flex; gap: 3px; }
+.band-ajuste button { width: 22px; height: 22px; padding: 0; border: 1px solid var(--line-2); background: var(--panel); color: var(--paper); font: 700 12px var(--f-body); border-radius: 3px; cursor: pointer; }
+.band-ajuste button.re { width: auto; padding: 0 5px; }
+.band-extra { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--paper-2); }
+.pav-gm { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 12px; color: #c9b3f0; }
+.pav-gm select { background: var(--panel-2); border: 1px solid #8e6bbf; color: var(--paper); padding: 3px 6px; font: 13px var(--f-body); }
+.tf-pavor { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #c9b3f0; }
 .hab-ler { border: 1px solid var(--line); padding: 8px 10px; background: var(--panel-2); }
 .hab-ler + .hab-ler { margin-top: 6px; }
 .hab-ler summary { cursor: pointer; font-weight: 600; }
@@ -917,6 +924,7 @@ button.cond.nova { animation: condNova 1.4s ease-out; }
 .tj-b > i { display: block; height: 100%; background: #e5484d; }
 .tj-b.pd > i { background: #d8b23a; }
 .tj-meds em { font-style: normal; font-size: 10.5px; color: #c9b3f0; margin-left: 2px; }
+.av img.tok { object-fit: cover; object-position: 50% 0; transform: scale(1.45); transform-origin: 50% 0; background: radial-gradient(circle at 50% 30%, #3a2a2a, #150e0e); }
 .mk { font-size: .85em; } .mk.novo { color: var(--muted); } .mk.livro { color: var(--gold); }
 @media (max-width: 700px) { .npc-filtros { grid-template-columns: 1fr; } .npc-chk { margin-left: 0; } .npc-tit h2 { font-size: 24px; } }
 </style>
@@ -1595,6 +1603,12 @@ const rolar = d => 1 + Math.floor(Math.random() * faces(d));
 /* modo narrativo: a ficha não gasta PD nem rola sozinha. Habilidades, rituais e itens ficam só para ler;
    tocar num atributo, perícia ou arma põe os dados na bandeja, e quem joga escolhe o que somar e quando rolar. */
 const MODO = { narr: true };
+const ehMestre = () => { try { return typeof PONTE === 'undefined' || !PONTE || PONTE.isGM(); } catch (e) { return true; } };
+/* o dado de pavor: só o mestre põe e tira, a qualquer momento */
+function seletorPavor(f, id) {
+  return h('label', { class: 'pav-gm', title: 'Só você, mestre, vê isto' }, 'Pavor:', h('select', { id, 'aria-label': 'Dado de pavor de ' + (f.nome || 'personagem'), onchange: e => { f.pavorD = e.target.value || null; salvar(); renderTudo(); } },
+    [['', 'nenhum'], ['d4', 'd4'], ['d6', 'd6'], ['d8', 'd8'], ['d10', 'd10'], ['d12', 'd12']].map(([v, n]) => h('option', { value: v, selected: (f.pavorD || '') === v || null }, n))));
+}
 /* animação: só mostra os valores que o sistema JÁ rolou. Durante o giro o dado fica sem número; ao pousar, aparece o valor verdadeiro. */
 const ANIM = { modo: 'completa', som: true };
 try { ANIM.modo = localStorage.getItem('sv.anim') || 'completa'; ANIM.som = localStorage.getItem('sv.animSom') !== '0'; } catch (e) {}
@@ -1985,7 +1999,8 @@ function topoFicha(f, nomeRow) {
         h('div', { class: 'tf-atr', role: 'group', 'aria-label': 'Atributos: toque para rolar' }, ATR.map(([k, n]) => { const ef = atrEf(f, k), mud = ef !== f.atr[k];
           return h('button', { type: 'button', class: 'tf-a' + (mud ? (f.boost[k] ? ' bem' : ' mal') : ''), id: 'tf-atr-' + k, title: 'Rolar ' + n + ' (' + ef + ')', onclick: () => abrirRolagem(f, { atr: k, per: '' }) }, dado(ef, null, 24, mud ? (f.boost[k] ? 'var(--gold)' : '#e5484d') : 'var(--red)'), n); })),
         trilhasTopo(f), seletorFoco()),
-      blocoEstado(f)));
+      blocoEstado(f),
+      MODO.narr && ehMestre() && RG.pavor !== 'nenhum' ? h('div', { class: 'tf-pavor' }, seletorPavor(f, 'pav-topo')) : null));
 }
 function trilhasTopo(f) {
   const out = [], tr = (rot, v, m, cls, tit) => h('span', { class: 'tf-trilha ' + cls, title: tit || rot + ': ' + v + ' de ' + m, role: 'meter', 'aria-label': rot, 'aria-valuemin': 0, 'aria-valuemax': m, 'aria-valuenow': v }, rot, h('span', { class: 'seg' }, Array.from({ length: m }, (_, i) => h('i', { class: i < v ? 'on' : '' }))));
@@ -2237,6 +2252,7 @@ function cardHab(f, k) {
     acoes.push(h('div', { class: 'barra', 'aria-label': 'Ímpeto: ' + f.impeto + ' de ' + RG.impetoMax }, Array.from({ length: RG.impetoMax }, (_, i) => h('i', { class: i < f.impeto ? 'on' : '' })), h('span', { style: { marginLeft: '6px', fontSize: '12px' } }, f.impeto + '/' + RG.impetoMax)));
     acoes.push(h('div', { class: 'row' },
       h('button', { class: 'btn sm', type: 'button', disabled: f.impeto >= RG.impetoMax || null, onclick: () => { f.impeto++; salvar(); renderFicha(); } }, '+ Espaço'),
+      h('button', { class: 'btn sm', type: 'button', id: 'imp-d4', disabled: f.impeto < 1 || null, title: 'Ação livre: gaste 1 espaço e some um d4 no teste', onclick: () => { f.impeto--; salvar(); renderTudo(); toast('Ímpeto: some um d4 no teste.'); } }, 'Gastar 1: +d4'),
       h('select', { id: 'f-imp-atr', 'aria-label': 'Atributo para subir', style: { background: 'var(--panel-2)', border: '1px solid var(--line-2)', padding: '4px' } }, ATR.map(([a, n]) => h('option', { value: a }, n))),
       h('button', { class: 'btn sm red', type: 'button', disabled: f.impeto < 3 || null, onclick: () => { const a = $('#f-imp-atr').value; f.impeto -= 3; f.boost[a] = (f.boost[a] || 0) + 1; salvar(); renderTudo(); toast(ATR_N[a] + ' sobe um passo até o fim da cena.'); } }, 'Gastar 3: subir atributo'),
       RG.hab === 'alpha' ? null : h('button', { class: 'btn sm', type: 'button', disabled: f.impeto < 3 || null, onclick: () => { f.impeto -= 3; S.hist.unshift({ t: Date.now(), quem: f.nome, fid: f.id, cat: 'hab', o: 'Ímpeto: ação extra', tot: '•', v: '', custo: '3 espaços de Ímpeto' }); salvar(); renderTudo(); toast(f.nome + ' ganhou uma ação extra neste conflito.'); } }, 'Gastar 3: ação extra')));
@@ -2469,8 +2485,14 @@ function bandejaUI() {
   if (b.info) out.push(h('p', { class: 'band-info' }, b.info));
   if (r) {
     const c = r.c, novo = r.novo; r.novo = false;
+    const an = temHab(f, 'avaliacao') && f.banco > 0, pr = temHab(f, 'prontidao') && !r.pront;
+    const nota = (o, det) => { S.hist.unshift({ t: Date.now(), quem: f.nome, fid: f.id, cat: 'rolagem', o: b.rot + ' · ' + o, tot: r.c.tot, v: r.c.crit ? 'ok' : r.c.fumble ? 'bad' : '', vt: r.c.crit ? 'crítico' : r.c.fumble ? 'falha crítica' : '', det }); salvar(); };
+    const ajusta = (x, d) => { const nv = Math.max(1, Math.min(faces(x.d), x.v + d)); if (nv === x.v) return; const v0 = x.v; x.v = nv; f.banco--; r.c = contaBandeja(r.dados, r.pavor); nota('Análise', x.d + ': ' + v0 + ' virou ' + nv); re(); };
+    const rerrola = x => { const v0 = x.v; x.v = rolar(x.d); r.pront = true; r.c = contaBandeja(r.dados, r.pavor); nota('Prontidão', x.d + ': ' + v0 + ' rolou de novo e deu ' + x.v + ' (2 PD: tire na barra)'); re(); };
+    const ajustes = x => (an || (pr && x.v !== 1)) ? h('span', { class: 'band-ajuste' }, an ? [h('button', { type: 'button', title: 'Gastar 1 marcador de análise: −1 neste dado', onclick: () => ajusta(x, -1) }, '−'), h('button', { type: 'button', title: 'Gastar 1 marcador de análise: +1 neste dado', onclick: () => ajusta(x, 1) }, '+')] : null,
+      pr && x.v !== 1 ? h('button', { type: 'button', class: 're', title: 'Prontidão: rolar este dado de novo (custa 2 PD, tire na barra)', onclick: () => rerrola(x) }, '↻') : null) : null;
     out.push(h('div', { class: 'band-res' + (r.pavor ? ' com-pavor' : ''), role: 'status' },
-      h('div', { class: 'band-mesa', 'aria-label': 'Resultado' }, r.dados.map(x => h('span', { class: 'band-d' + (x.apagado ? ' apagado' : x.conta ? '' : ' fora'), title: x.fonte + (x.apagado ? ': apagado pelo pavor' : x.conta ? '' : ': fora da soma, só os 3 maiores contam') }, dado(x.d, x.v, 42), h('small', null, x.apagado ? 'apagado' : x.fonte))),
+      h('div', { class: 'band-mesa', 'aria-label': 'Resultado' }, r.dados.map(x => h('span', { class: 'band-d' + (x.apagado ? ' apagado' : x.conta ? '' : ' fora'), title: x.fonte + (x.apagado ? ': apagado pelo pavor' : x.conta ? '' : ': fora da soma, só os 3 maiores contam') }, dado(x.d, x.v, 42, x.fonte === 'Ímpeto' ? 'var(--gold)' : undefined), h('small', null, x.apagado ? 'apagado' : x.fonte), ajustes(x))),
         r.pavor ? h('span', { class: 'band-d pavor' + (novo ? ' pulsa' : ''), title: 'Dado de pavor' }, dado(r.pavor.d, r.pavor.v, 42, PAVOR_COR), h('small', null, 'Pavor')) : null),
       h('div', { class: 'band-tot' }, h('b', { id: 'b-total' }, c.tot), h('span', null, c.vivos > 3 ? 'soma dos 3 maiores' : 'soma'), c.vivos ? h('span', null, 'RA ' + c.ra + ' · RB ' + c.rb) : null),
       c.crit ? h('div', { class: 'band-msg ok' }, 'Dois dados iguais de 6 ou mais: crítico.') : null,
@@ -2478,17 +2500,23 @@ function bandejaUI() {
       r.pavor && c.apagados && c.apagados < r.dados.length ? h('div', { class: 'band-msg pavor' }, 'O pavor tirou ' + r.pavor.v + ' e apagou ' + c.apagados + (c.apagados > 1 ? ' dados.' : ' dado.')) : null,
       r.pavor && !c.apagados && r.pavor.v > 1 ? h('div', { class: 'band-msg pavor' }, 'O pavor tirou ' + r.pavor.v + ' e não apagou nenhum dado.') : null,
       r.pavor && r.pavor.v === 1 ? h('div', { class: 'band-msg pavor' }, 'O pavor caiu 1: o medo passa. Avise o mestre.') : null));
+    if (an || pr || temHab(f, 'impeto')) out.push(h('div', { class: 'band-extra' },
+      an ? h('span', null, 'Análise: ' + f.banco + (f.banco > 1 ? ' marcadores' : ' marcador') + ' (− e + nos dados)') : null,
+      pr ? h('span', null, 'Prontidão: ↻ num dado que não deu 1') : null,
+      temHab(f, 'impeto') ? h('button', { class: 'btn sm ghost', type: 'button', id: 'b-falhei', disabled: (f.impeto || 0) >= (RG.impetoMax || 5) || null, title: 'Cada teste em que você falha enche um espaço do Ímpeto', onclick: () => { f.impeto = Math.min(RG.impetoMax || 5, (f.impeto || 0) + 1); salvar(); toast('Ímpeto: ' + f.impeto + ' de ' + (RG.impetoMax || 5) + '.'); re(); } }, 'Falhei: +1 Ímpeto') : null));
     out.push(h('div', { class: 'row mr-pe' }, h('button', { class: 'btn sm red', type: 'button', id: 'b-denovo', onclick: rolarBandeja }, 'Rolar de novo'),
       h('button', { class: 'btn sm', type: 'button', id: 'b-mudar', onclick: () => { b.res = null; re(); } }, 'Mudar os dados'), h('button', { class: 'btn sm', type: 'button', id: 'b-fechar', onclick: fecharRolar }, 'Fechar')));
     return out;
   }
   if (b.dica) out.push(h('div', { class: 'dica' }, b.dica));
   out.push(h('div', { class: 'band-mesa', 'aria-label': 'Dados na bandeja' }, n ? [
-    b.dados.map((x, i) => h('span', { class: 'band-d' }, dado(x.d, null, 38), h('small', null, x.fonte), h('button', { type: 'button', 'aria-label': 'Tirar ' + x.d + ' (' + x.fonte + ')', onclick: () => { b.dados.splice(i, 1); re(); } }, '×'))),
+    b.dados.map((x, i) => h('span', { class: 'band-d' }, dado(x.d, null, 38, x.fonte === 'Ímpeto' ? 'var(--gold)' : undefined), h('small', null, x.fonte), h('button', { type: 'button', 'aria-label': 'Tirar ' + x.d + ' (' + x.fonte + ')', onclick: () => { b.dados.splice(i, 1); if (x.fonte === 'Ímpeto') { f.impeto = Math.min(RG.impetoMax || 5, (f.impeto || 0) + 1); salvar(); } re(); } }, '×'))),
     b.pavor ? h('span', { class: 'band-d pavor' }, dado(b.pavor, null, 38, PAVOR_COR), h('small', null, 'Pavor'), h('button', { type: 'button', 'aria-label': 'Tirar o dado de pavor', onclick: () => { b.pavor = null; re(); } }, '×')) : null]
     : h('p', { class: 'band-vazia' }, 'Bandeja vazia. Escolha os dados abaixo.')));
   out.push(h('div', { class: 'band-grupo' }, h('span', { class: 'band-rot' }, 'Somar um dado', h('small', null, ' · vantagem, relação, ajuda: o que o mestre disser')),
     h('div', { class: 'band-add' }, ['d4', 'd6', 'd8', 'd10', 'd12', 'd20'].map(d => h('button', { type: 'button', id: 'b-add-' + d, disabled: b.dados.length >= MAX || null, onclick: () => { b.dados.push({ d, fonte: 'Extra' }); re(); } }, dado(d, null, 24), d)))));
+  if (temHab(f, 'impeto')) out.push(h('div', { class: 'band-grupo' }, h('span', { class: 'band-rot' }, 'Ímpeto', h('small', null, ' · ' + (f.impeto || 0) + ' de ' + (RG.impetoMax || 5) + ' espaços')),
+    h('div', { class: 'band-add' }, h('button', { type: 'button', id: 'b-imp', disabled: !(f.impeto > 0) || b.dados.length >= MAX || null, title: 'Ação livre: gasta 1 espaço da barra', onclick: () => { f.impeto--; b.dados.push({ d: 'd4', fonte: 'Ímpeto' }); salvar(); re(); } }, dado('d4', null, 24, 'var(--gold)'), 'Gastar 1: +d4'))));
   if (RG.pavor !== 'nenhum') out.push(h('div', { class: 'band-grupo pavor' }, h('span', { class: 'band-rot' }, 'Dado de pavor', h('small', null, meu ? ' · o seu agora é ' + meu : ' · só quando o mestre pedir')),
     h('div', { class: 'band-add' }, ['d4', 'd6', 'd8', 'd10', 'd12'].map(d => h('button', { type: 'button', id: 'b-pav-' + d, class: [b.pavor === d ? 'on' : '', meu === d ? 'meu' : ''].filter(Boolean).join(' '), 'aria-pressed': b.pavor === d ? 'true' : 'false', onclick: () => { b.pavor = b.pavor === d ? null : d; re(); } }, dado(d, null, 24, PAVOR_COR), d))),
     h('p', { class: 'band-nota' }, 'Rola junto com os outros e apaga todo dado que tirar menos que ele.')));
@@ -2782,7 +2810,8 @@ function linhaMedo(f) {
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Um bando surgindo, alguém morto na sua frente', onclick: () => perdePD(f, 'd6', 'Dano emocional: horror') }, 'Horror −d6'),
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Presença Aterradora: encarar uma Máscara. Disciplina DT 10 reduz à metade', onclick: () => perdePD(f, '2d6', 'Dano emocional: Presença Aterradora') }, 'Máscara −2d6'),
     h('button', { class: 'btn sm ghost', type: 'button', title: 'Um momento tranquilo recupera PD. Com PD cheio, você fica inspirado: +1 passo no próximo teste de Emoção', onclick: () => calma(f) }, 'Momento de calma')),
-    RG.pavor === 'nenhum' ? null : h('div', { class: 'pavor' }, f.pavorD ? [dado(f.pavorD, null, 24, '#8e6bbf'), 'Dado de pavor ' + f.pavorD + ': rola junto em todo teste e apaga os dados menores. Some quando cair 1.'] : 'Sem dado de pavor.',
+    RG.pavor === 'nenhum' ? null : MODO.narr ? h('div', { class: 'pavor' }, f.pavorD ? [dado(f.pavorD, null, 24, '#8e6bbf'), 'Dado de pavor ' + f.pavorD + ': rola junto quando o mestre pedir e apaga os dados menores.'] : 'Sem dado de pavor.', ehMestre() ? seletorPavor(f, 'pav-sel') : null)
+    : h('div', { class: 'pavor' }, f.pavorD ? [dado(f.pavorD, null, 24, '#8e6bbf'), 'Dado de pavor ' + f.pavorD + ': rola junto em todo teste e apaga os dados menores. Some quando cair 1.'] : 'Sem dado de pavor.',
       h('button', { class: 'btn sm ghost', type: 'button', title: 'Falhou num teste de medo, ou trauma de pânico. Se já tem, o dado sobe um passo', onclick: () => { darPavor(f); salvar(); renderTudo(); } }, f.pavorD ? 'Pavor +1 passo' : 'Receber pavor'),
       f.pavorD ? h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.pavorD = null; salvar(); renderTudo(); } }, 'Tirar') : null)];
 }
@@ -3600,6 +3629,8 @@ function novaComo(papel) {
   salvar(); renderTudo();
 }
 if (PONTE) {
+  const tokMapa = () => { const m = {}; try { const M = window.parent.SV && window.parent.SV.M; for (const x of (M && M.arteLib ? M.arteLib() : [])) if (x.arte && x.arte.frente) m[x.chave] = x.arte.frente; } catch (e) {} return m; };
+  const avHtml = f => { const t = (UIS._tok ||= tokMapa())[f.id]; if (t && (f.papel !== 'pj' || !f.retrato)) return `<img class="tok" src="${esc(t)}" alt="">`; return f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)); };
   const renderTudo0 = renderTudo;
   renderTudo = function () {
     if (S.fichas.length) return renderTudo0();
@@ -3608,9 +3639,9 @@ if (PONTE) {
     if (UIS.modo === 'regras') renderRegras();
   };
   renderLista = function () {
-    const gm = PONTE.isGM();
+    const gm = PONTE.isGM(); UIS._tok = tokMapa();
     const item = f => h('button', { class: 'ficha-it' + (f.id === S.sel ? ' on' : ''), type: 'button', style: f.cor ? { '--cor-f': f.cor, '--red': clara(f.cor, 0.22) } : null, onclick: () => { S.sel = f.id; UIS.outro = null; UIS.roll = null; salvarLocal(); irAba('ficha'); renderTudo(); } },
-      h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }),
+      h('span', { class: 'av', html: avHtml(f) }),
       h('span', null, h('b', null, f.nome || 'Sem nome'), h('small', null, [(PERFIS[f.perfil]?.[0] || ''), f.ocupacao, 'nv ' + f.nivel].filter(Boolean).join(' · ') +
         (gm && f.papel === 'pj' ? ' · ' + (f.dono ? PONTE.nomeDe(f.dono).split(' ')[0] : 'sem jogador') : '') + (gm && f.papel !== 'pj' && !f.visivel ? ' · oculto' : ''))));
     const npcs = gm ? S.fichas.filter(f => f.papel === 'npc') : [];
@@ -3625,7 +3656,7 @@ if (PONTE) {
     const barra = (r, cls) => { const p = r && r.m ? Math.max(0, Math.min(100, Math.round(r.v / r.m * 100))) : 0; return h('i', { class: 'tj-b ' + cls }, h('i', { style: { width: p + '%' } })); };
     const itemPJ = f => { const pv = f.pv || { v: 0, m: 0 }, pd = f.pd || { v: 0, m: 0 };
       return h('button', { class: 'ficha-it pj' + (f.id === S.sel ? ' on' : ''), type: 'button', style: f.cor ? { '--cor-f': f.cor, '--red': clara(f.cor, 0.22) } : null, onclick: () => { S.sel = f.id; UIS.outro = null; UIS.roll = null; salvarLocal(); irAba('ficha'); renderTudo(); } },
-        h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }),
+        h('span', { class: 'av', html: avHtml(f) }),
         h('span', { class: 'tj-txt' }, h('b', null, f.nome || 'Sem nome'), h('small', null, [f.ocupacao, f.dono ? PONTE.nomeDe(f.dono).split(' ')[0] : 'sem jogador'].filter(Boolean).join(' · ')),
           h('span', { class: 'tj-meds', title: 'PV ' + pv.v + ' de ' + pv.m + ' · PD ' + pd.v + ' de ' + pd.m }, barra(pv, 'pv'), h('small', null, pv.v), barra(pd, 'pd'), h('small', null, pd.v), f.pavorD ? h('em', null, 'pavor ' + f.pavorD) : null))); };
     const grupos = gm
@@ -3703,7 +3734,7 @@ if (PONTE) {
       h('input', { type: 'checkbox', id: 'npc-conhecido', checked: f.visivel || null, onchange: e => { if (f.pecaVisivel === undefined) f.pecaVisivel = !!(PONTE.mapaDe && PONTE.mapaDe(f.id).visivel); f.visivel = e.target.checked; salvar(); renderTudo(); } }), 'Conhecido pelos jogadores');
     return h('div', { class: 'npc-cab' },
       h('div', { class: 'npc-tit' },
-        h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }),
+        h('span', { class: 'av', html: avHtml(f) }),
         h('div', null, h('h2', null, f.nome || 'Sem nome'), h('p', null, [f.ocupacao || n.rapida.profissao, n.funcao, f.idade].filter(Boolean).join(' · '))),
         n.canon ? h('span', { class: 'npc-tag ' + (n.canon === 'livro' ? 'livro' : 'novo'), title: n.canon === 'livro' ? 'Personagem do Livro do Mestre' : 'Criado para o elenco' }, n.canon === 'livro' ? 'Do Livro' : 'Novo') : null,
         h('span', { class: 'sp' }),
@@ -3794,7 +3825,7 @@ if (PONTE) {
       const m = PONTE.mapaDe ? PONTE.mapaDe(f.id) : { tem: PONTE.temPeca(f.id), visivel: false };
       const prof = f.ocupacao || (f.npc && f.npc.rapida && f.npc.rapida.profissao) || '';
       return h('button', { class: 'ficha-it npc' + (f.id === S.sel ? ' on' : ''), type: 'button', style: f.cor ? { '--cor-f': f.cor } : null, onclick: () => { S.sel = f.id; UIS.outro = null; UIS.roll = null; UIS.npcEdit = false; salvarLocal(); irAba('ficha'); renderTudo(); } },
-        h('span', { class: 'av', html: f.retrato ? `<img src="${esc(f.retrato)}" alt="">` : esc(ini(f.nome)) }),
+        h('span', { class: 'av', html: avHtml(f) }),
         h('span', null, h('b', null, f.nome || 'Sem nome'), h('small', null, [prof.length > 60 ? prof.slice(0, 58) + '…' : prof, f.visivel ? 'conhecido' : ''].filter(Boolean).join(' · '))),
         h('i', { class: 'npc-pino' + (m.tem ? (m.visivel ? ' vis' : ' tem') : ''), title: m.tem ? (m.visivel ? 'No mapa: os jogadores veem' : 'No mapa: só você vê') : 'Fora do mapa', role: 'img', 'aria-label': m.tem ? (m.visivel ? 'No mapa, visível' : 'No mapa, escondido') : 'Fora do mapa' }));
     });
@@ -3919,6 +3950,7 @@ if (PONTE) {
   const off = PONTE.onMuda(recebe);
   const off4 = PONTE.onAbrir && PONTE.onAbrir(abrirFicha);
   const off6 = PONTE.onNpcs && PONTE.onNpcs(() => { if (PONTE.isGM()) return; if (UIS.modo === 'criar') renderCriar(); else if (!document.activeElement || !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) renderFicha(); });
+  const off7 = PONTE.onArte && PONTE.onArte(() => { if (!PONTE.isGM()) return; UIS._tok = null; const a = document.activeElement; if (!a || !/INPUT|TEXTAREA|SELECT/.test(a.tagName)) { renderLista(); if (F() && F().papel === 'npc') renderFicha(); } });
   const off5 = PONTE.onPecas && PONTE.onPecas(() => { if (PONTE.isGM()) atualizaMapaNPC(); });
   setTimeout(() => { const x = PONTE.pedidoAbrir && PONTE.pedidoAbrir(); if (x) abrirFicha(x); }, 0);
   const off3 = PONTE.onOutros && PONTE.onOutros(() => { if (!PONTE.isGM()) { renderLista(); if (UIS.outro) renderTudo(); } });

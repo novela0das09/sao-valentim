@@ -88,7 +88,7 @@
     if (SV.isGM) db.on('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
     /* a arte das peças fica guardada no caderno de cada um (só a pessoa lê), para voltar quando a peça sai e entra no mapa */
-    db.on('notas/' + me + '/arte', v => { D.arteLib = v && typeof v === 'object' ? v : {}; });
+    db.on('notas/' + me + '/arte', v => { D.arteLib = v && typeof v === 'object' ? v : {}; avisa('arteLib'); });
     db.on('mesa/cena3d', v => { D.cena3d = v || null; avisa('cena3d'); });
     db.on('mesa/regras', v => { const j = v && v.json ? v.json : null, m = (v && typeof v.modo === 'string' && v.modo) || ''; if (j !== D.regras || !D.regrasOk) { D.regras = j; D.regrasOk = true; avisa('regras'); } if (m !== D.modo) { D.modo = m; avisa('modo'); } });
     db.on('mesa/mural', v => {
@@ -192,6 +192,7 @@
     /* moradores que o mestre marcou como conhecidos: só nome e ocupação (a ficha e os segredos ficam com o mestre) */
     npcsConhecidos() { return Object.entries(D.npcs || {}).filter(([, n]) => n && n.nome && n.papel !== 'inimigo').map(([id, n]) => ({ id, nome: String(n.nome), ocupacao: String(n.ocupacao || '') })).sort((a, b) => a.nome.localeCompare(b.nome)); },
     onNpcs(cb) { return ouve('npcs', () => cb()); },
+    onArte(cb) { return ouve('arteLib', () => cb()); },
     sessao() { return SV.isGM && SV.central && SV.central.sessao ? SV.central.sessao() : null; },
     reconhecer(npcId) { if (SV.isGM && SV.central && SV.central.reconhecer) SV.central.reconhecer(npcId); },
     isGM: () => !!SV.isGM,
@@ -320,7 +321,7 @@
       if (p.x == null) { delete p.x; delete p.z; }
       if (dados.arte && typeof dados.arte === 'object') { p.arte = dados.arte; p.alt = +dados.alt || 1.75; }
       if (dados.estado && dados.estado !== 'normal') p.estado = dados.estado;
-      if (dados.cena === 'mata') p.cena = 'mata';
+      if (dados.cena === 'mata' || dados.cena === 'estrada') p.cena = dados.cena;
       (publica ? D.pecas : D.pecasGM)[id] = p;
       SV.db.set((publica ? 'pecas/' : 'pecas_gm/') + id, p).catch(e => SV.toast('Não deu para pôr a peça (' + (e.code || e.message) + ').', 'err'));
       avisa('pecas');
@@ -369,7 +370,7 @@
   /* posição de cada pessoa para a call: a peça de jogador dela no mapa */
   SV.posDe = uid => {
     const e = Object.entries(D.pecas).find(([, p]) => p && p.dono === uid && p.tipo === 'pj' && p.x != null) || Object.entries(D.pecas).find(([, p]) => p && p.dono === uid && p.x != null);
-    return e ? { x: +e[1].x, z: +e[1].z, cena: e[1].cena === 'mata' ? 'mata' : 'vale' } : null;
+    return e ? { x: +e[1].x, z: +e[1].z, cena: e[1].cena === 'mata' || e[1].cena === 'estrada' ? e[1].cena : 'vale' } : null;
   };
 
   /* ==========================================================
@@ -387,8 +388,8 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=12' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=25' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=13' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=26' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
     if (a === 'notas') abaNotas();
