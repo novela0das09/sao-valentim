@@ -2835,14 +2835,14 @@ async function sustoPousada(fid, pjIds) {
     pjIds.forEach((id, i) => { const o = (i - (pjIds.length - 1) / 2) * 0.95; PM.editar(id, { x: r2(pes[0] + sx * o), z: r2(pes[1] + sz * o), cena: null, r: r2(Math.atan2(dx, dz)) }); });
     const id = 'f_' + fid; const virado = Math.atan2(pes[0] - ro[0], pes[1] - ro[1]);
     F.porNoMapa(fid, false, { x: r2(ro[0]), z: r2(ro[1]), cena: '' });
-    await espera(500); PM.editar(id, { r: r2(virado) }); await PM.setVisivel(id, true, true);
+    await espera(500); PM.editar(id, { r: r2(virado) }); await PM.setVisivel(id, true, true); await espera(300); rotulos(false);
     const yc = alt(cam[0], cam[1]), yr = alt(ro[0], ro[1]);
-    const vista1 = { p: [r2(cam[0]), r2(yc + 2.7), r2(cam[1])], a: [r2(ro[0]), r2(yr + 1.2), r2(ro[1])] };
+    const vista1 = { p: [r2(cam[0]), r2(yc + 2.2), r2(cam[1])], a: [r2(ro[0]), r2(yr + 1.2), r2(ro[1])] };
     CAM_TRAVA = vista1; voar({ pos: vista1.p, alvo: vista1.a }); PM.setCena(estadoCena());
     await espera(4200);
     /* ele olha: a câmera chega mais perto e a tela pesa */
-    const k = 0.35, vista2 = { p: vista1.p.map((v, i) => r2(v + (vista1.a[i] - v) * k * (i === 1 ? 0.4 : 1))), a: vista1.a };
-    CAM_TRAVA = vista2; SUSTO = { t: Date.now(), cine: true }; voar({ pos: vista2.p, alvo: vista2.a }); PM.setCena(estadoCena()); efeitoSusto();
+    const k = 0.14, vista2 = { p: vista1.p.map((v, i) => r2(v + (vista1.a[i] - v) * k * (i === 1 ? 0.4 : 1))), a: vista1.a };
+    CAM_TRAVA = vista2; SUSTO = { t: Date.now(), cine: true }; voar({ pos: vista2.p, alvo: vista2.a }); PM.setCena(estadoCena()); efeitoSusto(); rotulos(false);
     await espera(3200);
     /* dá as costas, anda até a esquina, vira e some */
     let x = ro[0], z = ro[1];
