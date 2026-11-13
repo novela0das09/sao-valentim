@@ -229,7 +229,7 @@ function altCidade(x, z, b) {
   const L = sz => altBruto(x, sz), n = RUAS_EO[0], s1 = RUAS_EO[RUAS_EO.length - 1];
   if (z <= n) return L(n) + (b - L(n)) * sm(n - 13, n - 26, z);
   if (z >= s1) return L(s1) + (b - L(s1)) * sm(s1 + 12, s1 + 27, z); // o barranco para o lago só depois das casas da Rua Principal
-  for (let i = 0; i < RUAS_EO.length - 1; i++) { const a = RUAS_EO[i], c = RUAS_EO[i + 1]; if (z >= a && z <= c) { const m = (a + c) / 2, ns = Math.max(...RUAS_NS.map(rx => 1 - sm(4, 10, Math.abs(x - rx)))), w = 1.2 + 7 * ns; return L(a) + (L(c) - L(a)) * sm(m - w, m + w, z); } }
+  for (let i = 0; i < RUAS_EO.length - 1; i++) { const a = RUAS_EO[i], c = RUAS_EO[i + 1]; if (z >= a && z <= c) { const m = (a + c) / 2, ns = Math.max(...RUAS_NS.map(rx => 1 - sm(3, 6, Math.abs(x - rx)))), w = 0.8 + 6 * ns; return L(a) + (L(c) - L(a)) * sm(m - w, m + w, z); } }
   return b;
 }
 function alt(x, z) {
@@ -764,7 +764,7 @@ function livre(x0, z0, w, d, folga = 1.2) {
   return true;
 }
 // um lote na beira de uma rua leste-oeste; lado -1 = norte (frente para +z), lado 1 = sul (frente para -z)
-function lote(rz, lado, x0, dc, afasta = 5.4) { const z0 = lado < 0 ? rz - afasta - dc * R : rz + afasta; return { z0, frente: lado < 0 ? '+z' : '-z', fz: lado < 0 ? z0 + dc * R : z0 }; }
+function lote(rz, lado, x0, dc, afasta = 4.8) { const z0 = lado < 0 ? rz - afasta - dc * R : rz + afasta; return { z0, frente: lado < 0 ? '+z' : '-z', fz: lado < 0 ? z0 + dc * R : z0 }; }
 function especial(rz, lado, x0, wc, dc, andares, estilo, opt = {}) {
   const l = lote(rz, lado, x0, dc); reserva(x0, l.z0, wc * R, dc * R);
   const b = bloco(x0, l.z0, wc, dc, andares, estilo, l.frente, opt); b.fz = l.fz; b.lado = lado; return b;
@@ -776,7 +776,7 @@ function ruaDeCasas(rz, xa, xb, opt = {}) {
   for (const lado of opt.lados ?? [-1, 1]) {
     let x = xa + rnd() * 3;
     while (x < xb) {
-      const wc = 2 + Math.floor(rnd() * 2), dc = opt.dc ?? 2, w = wc * R, l = lote(rz, lado, x, dc, opt.afasta ?? 5.4);
+      const wc = 2 + Math.floor(rnd() * 2), dc = opt.dc ?? 2, w = wc * R, l = lote(rz, lado, x, dc, opt.afasta ?? 4.8);
       if (!livre(x, l.z0, w, dc * R)) { x += 1.5; continue; } // tenta um pouco mais adiante
       {
         reserva(x, l.z0, w, dc * R);
