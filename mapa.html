@@ -1282,7 +1282,7 @@ function figura(nome, cor, x, z, cena = 'vale') {
   const s = { cena, nome, cor, g, card, pivot, mat, rot, base: fundo, tex: {}, H: 1.75, largura: 0.875, face: Math.PI / 4, tras: false, est: 'normal', rotH: 0.24, rotW: 0.24 * rt.userData.asp, flip: null };
   card.userData.standee = s; standees.push(s); poeTex(s); return s;
 }
-/* qual imagem mostrar: de costas quando a câmera está atrás da figura; ferida ou em pavor quando a ficha diz */
+/* qual imagem mostrar: de costas quando alguém virou a figura (rodinha do mouse); ferida ou em pavor quando a ficha diz */
 function texAlvo(s) {
   const T = s.tex || {};
   if (s.est === 'morto' && T.caido) return T.caido; // deitado no chão: não vira de costas
@@ -1307,7 +1307,7 @@ function poseFigura(s, dx, dz) {
   if (s.ult) { const mx = p.x - s.ult.x, mz = p.z - s.ult.z; if (mx * mx + mz * mz > 1e-5) s.face = Math.atan2(mx, mz); s.ult.x = p.x; s.ult.z = p.z; } else s.ult = { x: p.x, z: p.z };
   if (s.deitado) s.pivot.rotation.set(0, s.face, 0); else { s.pivot.rotation.set(0, Math.atan2(dx, dz), 0); s.card.rotation.x = 0; }
   const d = Math.hypot(dx, dz) || 1, dot = (dx * Math.sin(s.face) + dz * Math.cos(s.face)) / d;
-  const tras = s.tras ? dot < 0.15 : dot < -0.15;
+  const tras = !!s.costas; // quem vira a figura é a rodinha do mouse, não a câmera
   if (tras !== s.tras) { s.tras = tras; if (!s.deitado && texAlvo(s) !== s.texAtual) { s.flip = performance.now(); s.flipFeito = false; } }
   if (s.flip != null) {
     const k = (performance.now() - s.flip) / 220;
@@ -1483,6 +1483,16 @@ canvas.addEventListener('pointermove', e => {
   if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const ch = modoMata ? chaoM : modoEstr ? chaoE : chao, h = ch && ray.intersectObject(ch, true)[0]; if (h) { arrasto.g.position.set(h.point.x, altC(arrasto.cena, h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
   if (e.pointerType === 'mouse') { const s = pegar(e); canvas.style.cursor = s && (!PM || PM.podeMover(s.id)) ? 'grab' : ''; }
 });
+// rodinha do mouse em cima de uma figura: vira de frente / de costas (fora de uma figura, a rodinha continua dando zoom)
+let aoVirar = PM ? (s, teste) => { if (!s.id) return true; if (teste) return PM.isGM() || PM.podeMover(s.id); s.viradoEm = Date.now(); PM.editar(s.id, { costas: !!s.costas }); } : null, ultVirada = 0;
+window.addEventListener('wheel', e => {
+  if (e.target !== canvas || arrasto) return;
+  const s = pegar(e); if (!s || s.deitado) return;
+  if (aoVirar && aoVirar(s, true) === false) return; // essa figura não é sua
+  e.preventDefault(); e.stopImmediatePropagation();
+  const agora = performance.now(); if (agora - ultVirada < 280) return; ultVirada = agora;
+  s.costas = !s.costas; if (aoVirar) aoVirar(s);
+}, { capture: true, passive: false });
 const soltar = () => { if (!arrasto) return; if (PM) PM.mover(arrasto.id, arrasto.g.position.x, arrasto.g.position.z, true, arrasto.face); arrasto = null; controls.enabled = true; canvas.style.cursor = ''; guardar(); };
 canvas.addEventListener('pointerup', soltar); canvas.addEventListener('pointercancel', soltar);
 
@@ -2818,6 +2828,7 @@ function sincPecas(ps) {
     const asig = assinaArte(p.arte, p.alt);
     if (s.asig !== asig) { s.asig = asig; aplicaArte(s, p.arte, p.alt); }
     estadoFig(s, p.estado);
+    if (!!p.costas !== !!s.costas && Date.now() - (s.viradoEm || 0) > 1500) s.costas = !!p.costas; // de costas ou de frente: quem virou foi a rodinha
     s.dados = p;
     s.mat.opacity = p.visivel === false ? 0.5 : 1;
     if (focoPend === id) { focoPend = null; setTimeout(() => olharPeca(s), 50); }
@@ -2880,10 +2891,10 @@ async function sustoPousada(fid, pjIds) {
     const pes = P(m.r + 0.6), cam = P(m.r - 3.2), outro = P(rOut - 0.6); // a câmera fica dentro da pousada (a parede de dentro não aparece); ele fica na beira da rua, do outro lado
     const ro = [outro[0] + sx * 1.6, outro[1] + sz * 1.6];
     SUSTO = { t: 0, cine: true }; rotulos(false);
-    pjIds.forEach((id, i) => { const o = (i - (pjIds.length - 1) / 2) * 0.95; PM.editar(id, { x: r2(pes[0] + sx * o), z: r2(pes[1] + sz * o), cena: null, r: r2(Math.atan2(dx, dz)) }); });
+    pjIds.forEach((id, i) => { const o = (i - (pjIds.length - 1) / 2) * 0.95; PM.editar(id, { x: r2(pes[0] + sx * o), z: r2(pes[1] + sz * o), cena: null, r: r2(Math.atan2(dx, dz)), costas: true }); }); // de costas para a câmera
     const id = 'f_' + fid; const virado = Math.atan2(pes[0] - ro[0], pes[1] - ro[1]);
     F.porNoMapa(fid, false, { x: r2(ro[0]), z: r2(ro[1]), cena: '' });
-    await espera(500); PM.editar(id, { r: r2(virado) }); await PM.setVisivel(id, true, true); await espera(300); rotulos(false);
+    await espera(500); PM.editar(id, { r: r2(virado), costas: false }); await PM.setVisivel(id, true, true); await espera(300); rotulos(false);
     const yc = alt(cam[0], cam[1]), yr = alt(ro[0], ro[1]);
     const vista1 = { p: [r2(cam[0]), r2(yc + 2.2), r2(cam[1])], a: [r2(ro[0]), r2(yr + 1.2), r2(ro[1])] };
     CAM_TRAVA = vista1; voar({ pos: vista1.p, alvo: vista1.a }); PM.setCena(estadoCena());
@@ -2893,10 +2904,10 @@ async function sustoPousada(fid, pjIds) {
     CAM_TRAVA = vista2; SUSTO = { t: Date.now(), cine: true }; voar({ pos: vista2.p, alvo: vista2.a }); PM.setCena(estadoCena()); efeitoSusto(); rotulos(false);
     await espera(3200);
     /* dá as costas, anda até a esquina, vira e some */
-    let x = ro[0], z = ro[1];
+    let x = ro[0], z = ro[1]; PM.editar(id, { costas: true });
     for (let i = 0; i < 18; i++) { x += sx * 0.32; z += sz * 0.32; PM.mover(id, x, z, true); await espera(260); }
     for (let i = 0; i < 10; i++) { x += dx * 0.32; z += dz * 0.32; PM.mover(id, x, z, true); await espera(260); }
-    await espera(600); PM.remover(id);
+    await espera(600); PM.remover(id); pjIds.forEach(pid => PM.editar(pid, { costas: false }));
     await espera(1800);
     CAM_TRAVA = null; SUSTO = null; rotulos(true); PM.setCena(estadoCena());
     const n = $('#nota'); $('#nota-t').textContent = 'Depois do susto'; $('#nota-x').textContent = 'Quem estava ali perde d4 PD. Na esquina onde ele virou: a folha arrancada do livro de atas de 1979 ("...o vale será entregue...", assinatura rasgada).'; n.hidden = false;
