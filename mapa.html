@@ -119,6 +119,10 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 #ch-list .btn.grupo { width: 100%; justify-content: center; margin-top: 4px; }
 .cam-aviso { position: fixed; left: 50%; top: 64px; transform: translateX(-50%); z-index: 30; padding: 6px 12px; border-radius: 999px; background: rgba(10, 12, 14, .78); border: 1px solid var(--line); color: var(--mist); font: 600 12px var(--f-ui); pointer-events: none; }
 #b-cam[aria-pressed="true"] { border-color: #e0b45e; color: #fff; }
+.susto-vinheta { position: fixed; inset: 0; z-index: 40; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(60,0,4,.55) 70%, rgba(10,0,0,.92) 100%); opacity: 0; }
+.susto-form { display: grid; gap: 6px; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; margin-top: 4px; font: 500 12px var(--f-ui); color: var(--mist); }
+.susto-form select { background: rgba(255,255,255,.06); color: var(--mist); border: 1px solid var(--line); border-radius: 8px; padding: 4px; font: inherit; }
+.susto-form label { display: flex; gap: 6px; align-items: center; }
 .na-mesa .ch { grid-template-columns: auto minmax(0, 1fr); row-gap: 6px; }
 .na-mesa .ch .acts { grid-column: 1 / -1; flex-wrap: wrap; }
 .na-mesa .ch.longe { border-style: dashed; }
@@ -2801,10 +2805,71 @@ function jogadoresNoOnibus() {
   if (!PM || !PM.isGM() || !PM.fichasPJ) return;
   PM.fichasPJ().forEach((fid, i) => PM.porFicha(fid, { x: -4.2 + i * 1.5, z: ESTR.zb + (i % 2 ? 0.25 : -0.25), cena: 'estrada' }));
 }
+/* ---------- susto na pousada: a câmera fecha nas costas de quem sai, alguém observa do outro lado da rua, olha, vira a esquina e some ---------- */
+let SUSTO = null, ultimoSusto = 0, sustoRodando = false;
+const SUSTO_UI = { aberto: false, fid: (() => { try { return localStorage.getItem('sv.susto.fid') || ''; } catch (e) { return ''; } })(), pjs: new Set() };
+function efeitoSusto() {
+  const v = document.createElement('div'); v.className = 'susto-vinheta'; document.body.append(v);
+  v.animate([{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 0.7, offset: 0.6 }, { opacity: 0 }], { duration: 2200, easing: 'ease-out' }).onfinish = () => v.remove();
+  canvas.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(-6px,3px)' }, { transform: 'translate(5px,-4px)' }, { transform: 'translate(-3px,2px)' }, { transform: 'translate(0,0)' }], { duration: 420, iterations: 2 });
+}
+const espera = ms => new Promise(r => setTimeout(r, ms));
+const r2 = v => Math.round(v * 100) / 100;
+async function sustoPousada(fid, pjIds) {
+  if (sustoRodando || !fid) return; sustoRodando = true;
+  try {
+    const F = window.parent.SV.F;
+    if (modoMata) entrarMata(false); if (modoEstr) entrarEstrada(false); if (modoRem) entrarRemanso(false); if (modoSonho) entrarSonho(false);
+    if (!noite) $('#b-hora').onclick();
+    arrumarNPCs('noite');
+    /* a frente da pousada: a direção em que a rua está mais perto */
+    const c = L.pousada; let m = null;
+    for (let k = 0; k < 48; k++) { const a = (k / 48) * TAU; for (let r = 1; r < 30; r += 0.25) if (naEstrada(c.x + Math.cos(a) * r, c.z + Math.sin(a) * r)) { if (!m || r < m.r) m = { a, r }; break; } }
+    if (!m) return;
+    const dx = Math.cos(m.a), dz = Math.sin(m.a), sx = -dz, sz = dx, P = d => [c.x + dx * d, c.z + dz * d];
+    let rOut = m.r; while (naEstrada(...P(rOut)) && rOut < m.r + 25) rOut += 0.25;
+    const pes = P(m.r + 0.9), cam = P(m.r - 0.45), outro = P(rOut + 1.4);
+    const ro = [outro[0] + sx * 1.8, outro[1] + sz * 1.8];
+    pjIds.forEach((id, i) => { const o = (i - (pjIds.length - 1) / 2) * 0.95; PM.editar(id, { x: r2(pes[0] + sx * o), z: r2(pes[1] + sz * o), cena: null, r: r2(Math.atan2(dx, dz)) }); });
+    const id = 'f_' + fid; const virado = Math.atan2(pes[0] - ro[0], pes[1] - ro[1]);
+    F.porNoMapa(fid, false, { x: r2(ro[0]), z: r2(ro[1]), cena: '' });
+    await espera(500); PM.editar(id, { r: r2(virado) }); await PM.setVisivel(id, true, true);
+    const yc = alt(cam[0], cam[1]), yr = alt(ro[0], ro[1]);
+    const vista1 = { p: [r2(cam[0]), r2(yc + 2.05), r2(cam[1])], a: [r2(ro[0]), r2(yr + 1.35), r2(ro[1])] };
+    CAM_TRAVA = vista1; voar({ pos: vista1.p, alvo: vista1.a }); PM.setCena(estadoCena());
+    await espera(4200);
+    /* ele olha: a câmera chega mais perto e a tela pesa */
+    const k = 0.35, vista2 = { p: vista1.p.map((v, i) => r2(v + (vista1.a[i] - v) * k * (i === 1 ? 0.4 : 1))), a: vista1.a };
+    CAM_TRAVA = vista2; SUSTO = { t: Date.now() }; voar({ pos: vista2.p, alvo: vista2.a }); PM.setCena(estadoCena()); efeitoSusto();
+    await espera(3200);
+    /* dá as costas, anda até a esquina, vira e some */
+    let x = ro[0], z = ro[1];
+    for (let i = 0; i < 18; i++) { x += sx * 0.32; z += sz * 0.32; PM.mover(id, x, z, true); await espera(260); }
+    for (let i = 0; i < 10; i++) { x += dx * 0.32; z += dz * 0.32; PM.mover(id, x, z, true); await espera(260); }
+    await espera(600); PM.remover(id);
+    await espera(1800);
+    CAM_TRAVA = null; SUSTO = null; PM.setCena(estadoCena());
+    const n = $('#nota'); $('#nota-t').textContent = 'Depois do susto'; $('#nota-x').textContent = 'Quem estava ali perde d4 PD. Na esquina onde ele virou: a folha arrancada do livro de atas de 1979 ("...o vale será entregue...", assinatura rasgada).'; n.hidden = false;
+  } finally { sustoRodando = false; renderLista(); }
+}
+function formSusto(box, bt) {
+  const f = document.createElement('div'); f.className = 'susto-form';
+  const sel = document.createElement('select'); sel.setAttribute('aria-label', 'Quem observa');
+  const inimigos = (window.parent.SV.F.lista() || []).filter(x => x.papel === 'inimigo');
+  sel.innerHTML = '<option value="">quem observa…</option>'; inimigos.forEach(x => { const o = document.createElement('option'); o.value = x.id; o.textContent = x.nome; sel.append(o); });
+  sel.value = SUSTO_UI.fid; sel.onchange = () => { SUSTO_UI.fid = sel.value; try { localStorage.setItem('sv.susto.fid', sel.value); } catch (e) {} };
+  const t = document.createElement('span'); t.textContent = 'Quem sai da pousada:'; f.append(sel, t);
+  for (const s of [...porId.values()].filter(s => s.dados?.tipo === 'pj')) {
+    const l = document.createElement('label'), c = document.createElement('input'); c.type = 'checkbox'; c.checked = SUSTO_UI.pjs.has(s.id);
+    c.onchange = () => { c.checked ? SUSTO_UI.pjs.add(s.id) : SUSTO_UI.pjs.delete(s.id); }; l.append(c, document.createTextNode(s.nome)); f.append(l);
+  }
+  const go = bt(sustoRodando ? 'Rodando…' : 'Começar', 'Leva todos para a frente da pousada à noite e roda a cena', () => { if (!SUSTO_UI.fid) { sel.focus(); return; } const ids = [...SUSTO_UI.pjs].filter(i => porId.has(i)); if (!ids.length) return; SUSTO_UI.aberto = false; sustoPousada(SUSTO_UI.fid, ids); });
+  go.disabled = sustoRodando; f.append(go); box.append(f);
+}
 function renderLista() {
   if (!PM) { renderListaLocal(); return; }
   const box = $('#ch-list'), gm = PM.isGM(), eu = PM.me();
-  if (box.contains(document.activeElement) && document.activeElement.tagName === 'INPUT') return;
+  if (box.contains(document.activeElement) && /INPUT|SELECT/.test(document.activeElement.tagName)) return;
   box.innerHTML = '';
   const lista = [...porId.values()].sort((a, b) => ((b.dados?.dono === eu) - (a.dados?.dono === eu)) || ((a.dados?.tipo === 'pj' ? 0 : 1) - (b.dados?.tipo === 'pj' ? 0 : 1)) || a.nome.localeCompare(b.nome));
   const bt = (txt, title, fn, pressed) => { const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = txt; b.title = title; b.setAttribute('aria-label', title); if (pressed != null) b.setAttribute('aria-pressed', String(pressed)); b.onclick = fn; return b; };
@@ -2843,6 +2908,8 @@ function renderLista() {
   if (gm && PM.posicoes) {
     const turno = noite ? 'noite' : 'dia', b1 = bt('NPCs nos lugares (' + turno + ')', 'Põe cada NPC onde ele costuma estar ' + (noite ? 'à noite' : 'de dia'), () => arrumarNPCs(turno)); b1.classList.add('grupo'); box.append(b1);
     const b2 = bt('Jogadores no ônibus', 'Põe as peças de todos os jogadores no corredor do ônibus (estrada)', () => jogadoresNoOnibus()); b2.classList.add('grupo'); box.append(b2);
+    const b3 = bt(SUSTO_UI.aberto ? 'Fechar susto' : 'Susto na pousada', 'À noite, na saída da pousada: alguém observa do outro lado da rua, olha, vira a esquina e some', () => { SUSTO_UI.aberto = !SUSTO_UI.aberto; renderLista(); }); b3.classList.add('grupo'); box.append(b3);
+    if (SUSTO_UI.aberto) formSusto(box, bt);
   }
   if (gm && fora.length) { const b = bt('Trazer os jogadores para ' + NOME_CENA[cenaAqui()], 'Leva as peças de todos os jogadores para cá', () => fora.forEach(trazer)); b.classList.add('grupo'); box.append(b); }
   const add = $('#b-add');
@@ -2851,11 +2918,12 @@ function renderLista() {
   add.lastChild.textContent = gm ? 'Adicionar figura' : 'Pôr a minha figura';
 }
 function estadoCena() {
-  return { cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
+  return { susto: SUSTO, cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
 }
 function aplicaCena(c) {
   if (!c) return;
-  if (SO_JOGADOR) setTimeout(() => travaCamJogador(c.cam), 0); // depois de trocar de cena, para a vista valer na cena certa
+  if (SO_JOGADOR) setTimeout(() => travaCamJogador(c.cam), 0);
+  if (SO_JOGADOR && c.susto && c.susto.t && c.susto.t !== ultimoSusto) { ultimoSusto = c.susto.t; if (Date.now() - c.susto.t < 15000) setTimeout(efeitoSusto, 350); } // depois de trocar de cena, para a vista valer na cena certa
   if (c.sonho === false && modoSonho) entrarSonho(false);
   if (c.mata === false && modoMata) entrarMata(false);
   if (c.estr === false && modoEstr) entrarEstrada(false);
