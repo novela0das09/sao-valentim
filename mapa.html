@@ -224,12 +224,12 @@ const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
 const FUNDO = -9;
 const rioZ = x => 5 * Math.sin(x / 70);
 /* a cidade em patamares: cada rua leste-oeste tem o seu nível (de lado a lado da rua é plano) */
-const RUAS_EO = [-160, -141, -124, -100, -75];
+const RUAS_EO = [-160, -141, -124, -100, -75], RUAS_NS = [-100, -60, -22.5, 20, 60]; // entre as casas o degrau é curto (um barranco); nas ruas que sobem, vira rampa
 function altCidade(x, z, b) {
   const L = sz => altBruto(x, sz), n = RUAS_EO[0], s1 = RUAS_EO[RUAS_EO.length - 1];
   if (z <= n) return L(n) + (b - L(n)) * sm(n - 13, n - 26, z);
   if (z >= s1) return L(s1) + (b - L(s1)) * sm(s1 + 12, s1 + 27, z); // o barranco para o lago só depois das casas da Rua Principal
-  for (let i = 0; i < RUAS_EO.length - 1; i++) { const a = RUAS_EO[i], c = RUAS_EO[i + 1]; if (z >= a && z <= c) { const m = (a + c) / 2; return L(a) + (L(c) - L(a)) * sm(m - 3, m + 3, z); } }
+  for (let i = 0; i < RUAS_EO.length - 1; i++) { const a = RUAS_EO[i], c = RUAS_EO[i + 1]; if (z >= a && z <= c) { const m = (a + c) / 2, ns = Math.max(...RUAS_NS.map(rx => 1 - sm(4, 10, Math.abs(x - rx)))), w = 1.2 + 7 * ns; return L(a) + (L(c) - L(a)) * sm(m - w, m + w, z); } }
   return b;
 }
 function alt(x, z) {
