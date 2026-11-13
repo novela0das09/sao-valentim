@@ -2840,7 +2840,7 @@ function sincPecas(ps) {
 const LUGARES_NPC = ['pousada', 'prefeitura', 'praca', 'orelhao', 'comercio', 'iracema', 'rodoviaria', 'posto', 'escola', 'brigada', 'saude', 'capela', 'salao', 'cemiterio', 'canteiro', 'campo', 'cooperativa', 'serraria', 'colonia', 'antena'];
 function pontoNoLugar(lug, usados) {
   const c = L[lug]; if (!c) return null;
-  if (lug === 'canteiro') for (let i = 0; i < 13; i++) { const x = 130 + i * 2, z = i % 2 ? -62.4 : -63.4; if (usados.some(u => Math.hypot(u[0] - x, u[1] - z) < 1.4)) continue; usados.push([x, z]); return [x, z]; } // dentro do pátio, na frente dos contêineres
+  if (lug === 'canteiro') for (let i = 0; i < 16; i++) { const x = 150.5 + (i % 4) * 1.8, z = -63.2 - Math.floor(i / 4) * 1.6; if (usados.some(u => Math.hypot(u[0] - x, u[1] - z) < 1.4)) continue; usados.push([x, z]); return [x, z]; } // dentro do pátio, no canto livre depois dos caminhões
   const solto = (x, z) => { for (const [a, b, cc, e] of RES) if (x > a - 0.5 && x < cc + 0.5 && z > b - 0.5 && z < e + 0.5) return false; return alt(x, z) > nivelAlvo + 0.4; };
   for (let r = 1.5; r < 30; r += 0.5) for (let k = 0; k < 24; k++) {
     const a = (k / 24) * TAU + r * 0.41, x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r;
