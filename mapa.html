@@ -246,9 +246,17 @@ function altCidade(x, z, b) {
   }
   return b;
 }
-function alt(x, z) {
+function altSemPlato(x, z) {
   const b = altBruto(x, z), k = sm(-168, -146, x) * (1 - sm(132, 152, x));
   return k <= 0 ? b : b + (altCidade(x, z, b) - b) * k;
+}
+// platôs: chão aplainado embaixo de um pátio, no nível da entrada, e uma rampa suave em volta
+const PLATOS = [{ x0: 124, x1: 160, z0: -72, z1: -55, ex: 142, ez: -72, m: 7 }]; // canteiro de obras
+for (const p of PLATOS) p.y = altSemPlato(p.ex, p.ez);
+function alt(x, z) {
+  let y = altSemPlato(x, z);
+  for (const p of PLATOS) { const dx = Math.max(0, p.x0 - x, x - p.x1), dz = Math.max(0, p.z0 - z, z - p.z1); if (dx < p.m && dz < p.m) y += (p.y - y) * (1 - sm(0, p.m, Math.hypot(dx, dz))); }
+  return y;
 }
 function altBruto(x, z) {
   const zc = rioZ(x), d = z - zc, ad = Math.abs(d);
@@ -2821,6 +2829,7 @@ function sincPecas(ps) {
 const LUGARES_NPC = ['pousada', 'prefeitura', 'praca', 'orelhao', 'comercio', 'iracema', 'rodoviaria', 'posto', 'escola', 'brigada', 'saude', 'capela', 'salao', 'cemiterio', 'canteiro', 'campo', 'cooperativa', 'serraria', 'colonia', 'antena'];
 function pontoNoLugar(lug, usados) {
   const c = L[lug]; if (!c) return null;
+  if (lug === 'canteiro') for (let i = 0; i < 13; i++) { const x = 130 + i * 2, z = i % 2 ? -62.4 : -63.4; if (usados.some(u => Math.hypot(u[0] - x, u[1] - z) < 1.4)) continue; usados.push([x, z]); return [x, z]; } // dentro do pátio, na frente dos contêineres
   const solto = (x, z) => { for (const [a, b, cc, e] of RES) if (x > a - 0.5 && x < cc + 0.5 && z > b - 0.5 && z < e + 0.5) return false; return alt(x, z) > nivelAlvo + 0.4; };
   for (let r = 1.5; r < 30; r += 0.5) for (let k = 0; k < 24; k++) {
     const a = (k / 24) * TAU + r * 0.41, x = c.x + Math.cos(a) * r, z = c.z + Math.sin(a) * r;
