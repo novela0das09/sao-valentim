@@ -2808,6 +2808,7 @@ function jogadoresNoOnibus() {
 /* ---------- susto na pousada: a câmera fecha nas costas de quem sai, alguém observa do outro lado da rua, olha, vira a esquina e some ---------- */
 let SUSTO = null, ultimoSusto = 0, sustoRodando = false;
 const SUSTO_UI = { aberto: false, fid: (() => { try { return localStorage.getItem('sv.susto.fid') || ''; } catch (e) { return ''; } })(), pjs: new Set() };
+function rotulos(on) { for (const s of standees) s.rot.visible = on; } // na cena de susto, sem nomes flutuando
 function efeitoSusto() {
   const v = document.createElement('div'); v.className = 'susto-vinheta'; document.body.append(v);
   v.animate([{ opacity: 0 }, { opacity: 1, offset: 0.25 }, { opacity: 0.7, offset: 0.6 }, { opacity: 0 }], { duration: 2200, easing: 'ease-out' }).onfinish = () => v.remove();
@@ -2828,19 +2829,20 @@ async function sustoPousada(fid, pjIds) {
     if (!m) return;
     const dx = Math.cos(m.a), dz = Math.sin(m.a), sx = -dz, sz = dx, P = d => [c.x + dx * d, c.z + dz * d];
     let rOut = m.r; while (naEstrada(...P(rOut)) && rOut < m.r + 25) rOut += 0.25;
-    const pes = P(m.r + 0.9), cam = P(m.r - 0.45), outro = P(rOut + 1.4);
-    const ro = [outro[0] + sx * 1.8, outro[1] + sz * 1.8];
+    const pes = P(m.r + 0.6), cam = P(m.r - 3.2), outro = P(rOut - 0.6); // a câmera fica dentro da pousada (a parede de dentro não aparece); ele fica na beira da rua, do outro lado
+    const ro = [outro[0] + sx * 1.6, outro[1] + sz * 1.6];
+    SUSTO = { t: 0, cine: true }; rotulos(false);
     pjIds.forEach((id, i) => { const o = (i - (pjIds.length - 1) / 2) * 0.95; PM.editar(id, { x: r2(pes[0] + sx * o), z: r2(pes[1] + sz * o), cena: null, r: r2(Math.atan2(dx, dz)) }); });
     const id = 'f_' + fid; const virado = Math.atan2(pes[0] - ro[0], pes[1] - ro[1]);
     F.porNoMapa(fid, false, { x: r2(ro[0]), z: r2(ro[1]), cena: '' });
     await espera(500); PM.editar(id, { r: r2(virado) }); await PM.setVisivel(id, true, true);
     const yc = alt(cam[0], cam[1]), yr = alt(ro[0], ro[1]);
-    const vista1 = { p: [r2(cam[0]), r2(yc + 2.05), r2(cam[1])], a: [r2(ro[0]), r2(yr + 1.35), r2(ro[1])] };
+    const vista1 = { p: [r2(cam[0]), r2(yc + 2.7), r2(cam[1])], a: [r2(ro[0]), r2(yr + 1.2), r2(ro[1])] };
     CAM_TRAVA = vista1; voar({ pos: vista1.p, alvo: vista1.a }); PM.setCena(estadoCena());
     await espera(4200);
     /* ele olha: a câmera chega mais perto e a tela pesa */
     const k = 0.35, vista2 = { p: vista1.p.map((v, i) => r2(v + (vista1.a[i] - v) * k * (i === 1 ? 0.4 : 1))), a: vista1.a };
-    CAM_TRAVA = vista2; SUSTO = { t: Date.now() }; voar({ pos: vista2.p, alvo: vista2.a }); PM.setCena(estadoCena()); efeitoSusto();
+    CAM_TRAVA = vista2; SUSTO = { t: Date.now(), cine: true }; voar({ pos: vista2.p, alvo: vista2.a }); PM.setCena(estadoCena()); efeitoSusto();
     await espera(3200);
     /* dá as costas, anda até a esquina, vira e some */
     let x = ro[0], z = ro[1];
@@ -2848,9 +2850,9 @@ async function sustoPousada(fid, pjIds) {
     for (let i = 0; i < 10; i++) { x += dx * 0.32; z += dz * 0.32; PM.mover(id, x, z, true); await espera(260); }
     await espera(600); PM.remover(id);
     await espera(1800);
-    CAM_TRAVA = null; SUSTO = null; PM.setCena(estadoCena());
+    CAM_TRAVA = null; SUSTO = null; rotulos(true); PM.setCena(estadoCena());
     const n = $('#nota'); $('#nota-t').textContent = 'Depois do susto'; $('#nota-x').textContent = 'Quem estava ali perde d4 PD. Na esquina onde ele virou: a folha arrancada do livro de atas de 1979 ("...o vale será entregue...", assinatura rasgada).'; n.hidden = false;
-  } finally { sustoRodando = false; renderLista(); }
+  } finally { sustoRodando = false; if (SUSTO) { SUSTO = null; rotulos(true); } renderLista(); }
 }
 function formSusto(box, bt) {
   const f = document.createElement('div'); f.className = 'susto-form';
@@ -2923,6 +2925,7 @@ function estadoCena() {
 function aplicaCena(c) {
   if (!c) return;
   if (SO_JOGADOR) setTimeout(() => travaCamJogador(c.cam), 0);
+  if (SO_JOGADOR) rotulos(!(c.susto && c.susto.cine));
   if (SO_JOGADOR && c.susto && c.susto.t && c.susto.t !== ultimoSusto) { ultimoSusto = c.susto.t; if (Date.now() - c.susto.t < 15000) setTimeout(efeitoSusto, 350); } // depois de trocar de cena, para a vista valer na cena certa
   if (c.sonho === false && modoSonho) entrarSonho(false);
   if (c.mata === false && modoMata) entrarMata(false);
