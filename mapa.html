@@ -223,13 +223,27 @@ const sm = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
 // A cidade nova sobe pela encosta norte (z negativo). A barragem fecha o vale em x = 170.
 const FUNDO = -9;
 const rioZ = x => 5 * Math.sin(x / 70);
-/* a cidade em patamares: cada rua leste-oeste tem o seu nível (de lado a lado da rua é plano) */
-const RUAS_EO = [-160, -141, -124, -100, -75], RUAS_NS = [-100, -60, -22.5, 20, 60]; // entre as casas o degrau é curto (um barranco); nas ruas que sobem, vira rampa
+/* a cidade em patamares: cada rua leste-oeste é reta e tem uma altura só, de ponta a ponta e de lado a lado */
+const RUAS_EO = [-160, -141, -124, -100, -75], NIV_RUA = [7, 5, 4.5, 2.5, 0], BASE_CIDADE = 15, RUAS_NS = [-100, -60, -22.5, 20, 60];
+const dentro = (x, a, b) => x >= a && x <= b;
+// onde fica o degrau entre duas ruas: no vão entre os fundos dos lotes (atrás dos lotes mais fundos, ele recua)
+function degrau(i, x) {
+  if (i === 0) return { m: -150.5, w: 8 };            // colônia: rampa comprida
+  if (i === 1) return { m: -132.5, w: 7 };            // Capela e Bento Gonçalves quase no mesmo nível
+  if (i === 2) return { m: dentro(x, -16, 8) ? -117 : -112.1, w: 0.5 };                       // atrás da escola
+  return { m: dentro(x, -44, -26) || dentro(x, -20.5, 1.5) ? -92 : -87.8, w: 0.5 };            // atrás da pousada e da prefeitura
+}
 function altCidade(x, z, b) {
-  const L = sz => altBruto(x, sz), n = RUAS_EO[0], s1 = RUAS_EO[RUAS_EO.length - 1];
-  if (z <= n) return L(n) + (b - L(n)) * sm(n - 13, n - 26, z);
-  if (z >= s1) return L(s1) + (b - L(s1)) * sm(s1 + 12, s1 + 27, z); // o barranco para o lago só depois das casas da Rua Principal
-  for (let i = 0; i < RUAS_EO.length - 1; i++) { const a = RUAS_EO[i], c = RUAS_EO[i + 1]; if (z >= a && z <= c) { const m = (a + c) / 2, ns = Math.max(...RUAS_NS.map(rx => 1 - sm(3, 6, Math.abs(x - rx)))), w = 0.8 + 6 * ns; return L(a) + (L(c) - L(a)) * sm(m - w, m + w, z); } }
+  const n = RUAS_EO[0], s1 = RUAS_EO[RUAS_EO.length - 1], Ln = BASE_CIDADE + NIV_RUA[0], Ls = BASE_CIDADE;
+  if (z <= n) return Ln + (b - Ln) * sm(n - 6, n - 34, z);       // atrás da última rua, o morro
+  if (z >= s1) return Ls + (b - Ls) * sm(s1 + 17, s1 + 32, z);   // o caimento para o lago só depois das casas da Rua Principal
+  for (let i = 0; i < RUAS_EO.length - 1; i++) {
+    const a = RUAS_EO[i], c = RUAS_EO[i + 1];
+    if (z >= a && z <= c) {
+      const d = degrau(i, x), ns = Math.max(...RUAS_NS.map(rx => 1 - sm(3, 6, Math.abs(x - rx)))), w = Math.max(d.w, 0.5 + 6 * ns); // nas ruas que sobem, o degrau vira rampa
+      return BASE_CIDADE + NIV_RUA[i] + (NIV_RUA[i + 1] - NIV_RUA[i]) * sm(d.m - w, d.m + w, z);
+    }
+  }
   return b;
 }
 function alt(x, z) {
@@ -764,7 +778,8 @@ function livre(x0, z0, w, d, folga = 1.2) {
   return true;
 }
 // um lote na beira de uma rua leste-oeste; lado -1 = norte (frente para +z), lado 1 = sul (frente para -z)
-function lote(rz, lado, x0, dc, afasta = 4.8) { const z0 = lado < 0 ? rz - afasta - dc * R : rz + afasta; return { z0, frente: lado < 0 ? '+z' : '-z', fz: lado < 0 ? z0 + dc * R : z0 }; }
+const afastaRua = rz => rz === S1 ? 5.4 : rz === S2 ? 4.8 : 4.6; // meia rua + uma faixa de terra
+function lote(rz, lado, x0, dc, afasta = afastaRua(rz)) { const z0 = lado < 0 ? rz - afasta - dc * R : rz + afasta; return { z0, frente: lado < 0 ? '+z' : '-z', fz: lado < 0 ? z0 + dc * R : z0 }; }
 function especial(rz, lado, x0, wc, dc, andares, estilo, opt = {}) {
   const l = lote(rz, lado, x0, dc); reserva(x0, l.z0, wc * R, dc * R);
   const b = bloco(x0, l.z0, wc, dc, andares, estilo, l.frente, opt); b.fz = l.fz; b.lado = lado; return b;
@@ -776,7 +791,7 @@ function ruaDeCasas(rz, xa, xb, opt = {}) {
   for (const lado of opt.lados ?? [-1, 1]) {
     let x = xa + rnd() * 3;
     while (x < xb) {
-      const wc = 2 + Math.floor(rnd() * 2), dc = opt.dc ?? 2, w = wc * R, l = lote(rz, lado, x, dc, opt.afasta ?? 4.8);
+      const wc = 2 + Math.floor(rnd() * 2), dc = opt.dc ?? 2, w = wc * R, l = lote(rz, lado, x, dc, opt.afasta ?? afastaRua(rz));
       if (!livre(x, l.z0, w, dc * R)) { x += 1.5; continue; } // tenta um pouco mais adiante
       {
         reserva(x, l.z0, w, dc * R);
@@ -795,6 +810,7 @@ function ruaNS(rx, za, zb, opt = {}) {
     while (z < zb) {
       const wc = 2, dc = 2 + Math.floor(rnd() * 2), x0 = lado < 0 ? rx - 4 - wc * R : rx + 4;
       if (!livre(x0, z, wc * R, dc * R)) { z += 1.5; continue; }
+      { const nv = nivel(x0, z, wc, dc); if (nv.y - nv.lo > 0.9) { z += 1.5; continue; } } // em cima do degrau, não
       reserva(x0, z, wc * R, dc * R); bloco(x0, z, wc, dc, rnd() < 0.15 ? 2 : 1, rnd() < 0.2 ? 'b' : 'a', lado < 0 ? '+x' : '-x', { acesas: opt.acesas ?? 0.3 });
       z += dc * R + 2.5 + rnd() * 4;
     }
