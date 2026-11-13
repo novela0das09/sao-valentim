@@ -84,8 +84,8 @@
     };
     if (SV.isGM) db.on('fichas', fichas); else db.query('fichas', 'dono', me, fichas);
     db.on('npcs', v => { D.npcs = v || {}; avisa('npcs'); render.mesa(); });
-    db.on('pecas', v => { D.pecas = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); SV.voz.mix && SV.voz.mix(); render.voz(); });
-    if (SV.isGM) db.on('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); });
+    (db.onFilhos ? db.onFilhos.bind(db) : db.on)('pecas', v => { D.pecas = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); SV.voz.mix && SV.voz.mix(); render.voz(); });
+    if (SV.isGM) (db.onFilhos ? db.onFilhos.bind(db) : db.on)('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
     /* a arte das peças fica guardada no caderno de cada um (só a pessoa lê), para voltar quando a peça sai e entra no mapa */
     if (SV.isGM) db.on('notas/' + me + '/posicoes', v => { D.posicoes = v && typeof v === 'object' ? v : {}; avisa('posicoes'); });
@@ -339,8 +339,8 @@
       clearTimeout(ultimoEnvio[id + 't']);
       const o = { x, z }; if (final && Number.isFinite(r)) o.r = alvo.r = Math.round(r * 100) / 100;
       const envia = () => { if (!(D.pecas[id] || D.pecasGM[id])) return; /* a peça saiu do mapa: não recria um fantasma só com x e z */ ultimoEnvio[id] = Date.now(); SV.db.update(M.caminho(id), o).catch(e => SV.toast('Não deu para mover a peça (' + (e.code || e.message) + ').', 'err')); };
-      if (final || agora - (ultimoEnvio[id] || 0) > 150) envia();
-      else ultimoEnvio[id + 't'] = setTimeout(envia, 160);
+      if (final || agora - (ultimoEnvio[id] || 0) > 90) envia();
+      else ultimoEnvio[id + 't'] = setTimeout(envia, 100);
     },
     novaPeca(id, dados, publica = true) {
       if (!SV.isGM && dados.dono !== SV.me.uid) return null;
@@ -425,7 +425,7 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=33' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=34' + location.search.replace('?', '&'); }
     if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=26' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();

@@ -1306,6 +1306,12 @@ function poseFigura(s, dx, dz) {
   const p = s.g.position;
   if (s.ult) { const mx = p.x - s.ult.x, mz = p.z - s.ult.z; if (mx * mx + mz * mz > 1e-5) s.face = Math.atan2(mx, mz); s.ult.x = p.x; s.ult.z = p.z; } else s.ult = { x: p.x, z: p.z };
   if (s.deitado) s.pivot.rotation.set(0, s.face, 0); else { s.pivot.rotation.set(0, Math.atan2(dx, dz), 0); s.card.rotation.x = 0; }
+  // respiração: o peito sobe e desce e o corpo balança de leve, com os pés no chão (cada figura no seu tempo; com medo, mais rápido)
+  if (!s.deitado) {
+    const t = performance.now() / 1000, f = s.fase ?? (s.fase = Math.random() * TAU), v = s.est === 'pavor' ? 2.6 : s.est === 'ferido' ? 2.1 : 1.5;
+    s.card.scale.y = s.H * (1 + 0.016 * Math.sin(t * v + f));
+    s.card.rotation.z = 0.014 * Math.sin(t * v * 0.5 + f * 1.7);
+  } else s.card.rotation.z = 0;
   const d = Math.hypot(dx, dz) || 1, dot = (dx * Math.sin(s.face) + dz * Math.cos(s.face)) / d;
   const tras = !!s.costas; // quem vira a figura é a rodinha do mouse, não a câmera
   if (tras !== s.tras) { s.tras = tras; if (!s.deitado && texAlvo(s) !== s.texAtual) { s.flip = performance.now(); s.flipFeito = false; } }
@@ -2776,7 +2782,7 @@ function frame() {
   if (submerso) scene.fog = fogAgua; else if (scene.fog === fogAgua) aplicaNevoa();
   const dist = camera.position.distanceTo(controls.target);
   fogNoite.density = 0.0062 / Math.max(1, dist / 55); fogDia.density = 0.0032 / Math.max(1, dist / 70);
-  for (const s of standees) if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 8); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = alt(p.x, p.z) + 0.13; }
+  for (const s of standees) if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 14); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = alt(p.x, p.z) + 0.13; }
   for (const s of standees) { const dx = camera.position.x - s.g.position.x, dz = camera.position.z - s.g.position.z; poseFigura(s, dx, dz); }
   for (const n of nevoas) { const u = n.userData; n.position.x = u.x + Math.sin(t * 0.04 + u.v * 10) * 14; n.position.y = Math.max(alt(u.x, u.z), agua.position.y) + u.sobe; }
   try { renderer.render(scene, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
@@ -2834,8 +2840,11 @@ function sincPecas(ps) {
     if (focoPend === id) { focoPend = null; setTimeout(() => olharPeca(s), 50); }
   }
   for (const [id, s] of [...porId]) if (!vistos.has(id)) { if (s.g.parent) s.g.parent.remove(s.g); const i = standees.indexOf(s); if (i >= 0) standees.splice(i, 1); if (arrasto === s) arrasto = null; porId.delete(id); }
-  renderLista();
+  /* a lista só refaz quando muda o que ela mostra (mover uma peça não muda nada nela) */
+  const sigL = [...porId.values()].map(s => [s.id, s.nome, s.cor, s.cena || '', s.dados?.dono, s.dados?.visivel, s.dados?.trava, s.dados?.estado, s.dados?.tipo].join('~')).join('|');
+  if (sigL !== ultSigLista) { ultSigLista = sigL; renderLista(); }
 }
+let ultSigLista = '';
 /* lugares de dia e de noite: o mestre guarda nas notas dele qual NPC fica onde; aqui vira um ponto livre na frente do lugar */
 const LUGARES_NPC = ['pousada', 'prefeitura', 'praca', 'orelhao', 'comercio', 'iracema', 'rodoviaria', 'posto', 'escola', 'brigada', 'saude', 'capela', 'salao', 'cemiterio', 'canteiro', 'campo', 'cooperativa', 'serraria', 'colonia', 'antena'];
 function pontoNoLugar(lug, usados) {
@@ -2932,7 +2941,7 @@ function renderLista() {
   const box = $('#ch-list'), gm = PM.isGM(), eu = PM.me();
   if (box.contains(document.activeElement) && /INPUT|SELECT/.test(document.activeElement.tagName)) return;
   box.innerHTML = '';
-  const lista = [...porId.values()].sort((a, b) => ((b.dados?.dono === eu) - (a.dados?.dono === eu)) || ((a.dados?.tipo === 'pj' ? 0 : 1) - (b.dados?.tipo === 'pj' ? 0 : 1)) || a.nome.localeCompare(b.nome));
+  const lista = [...porId.values()].filter(s => gm || s.dados?.dono === eu).sort((a, b) => ((b.dados?.dono === eu) - (a.dados?.dono === eu)) || ((a.dados?.tipo === 'pj' ? 0 : 1) - (b.dados?.tipo === 'pj' ? 0 : 1)) || a.nome.localeCompare(b.nome));
   const bt = (txt, title, fn, pressed) => { const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = txt; b.title = title; b.setAttribute('aria-label', title); if (pressed != null) b.setAttribute('aria-pressed', String(pressed)); b.onclick = fn; return b; };
   for (const s of lista) {
     const d = s.dados || {}, minha = d.dono === eu;
@@ -3024,7 +3033,7 @@ function iniciaPonte() {
   if (gm) $('#b-anda').addEventListener('click', () => setTimeout(() => PM.setCena(estadoCena()), 0));
   if (gm) $('#b-hora').addEventListener('click', () => setTimeout(() => { arrumarNPCs(noite ? 'noite' : 'dia'); renderLista(); }, 0)); // virou dia ou noite: cada NPC vai para o seu lugar
   focoPend = PM._foco || null; PM._foco = null;
-  const off1 = PM.onPecas(sincPecas), off2 = PM.onCena(aplicaCena);
+  let psPend = null; const off1 = PM.onPecas(ps => { const ja = psPend; psPend = ps; if (!ja) requestAnimationFrame(() => { const v = psPend; psPend = null; sincPecas(v); }); }), off2 = PM.onCena(aplicaCena);
   const off3 = PM.onFoco(id => { PM._foco = null; const s = porId.get(id); if (s) olharPeca(s); else focoPend = id; });
   addEventListener('pagehide', () => { try { off1(); off2(); off3(); } catch (e) {} });
   sincPecas(PM.pecas());

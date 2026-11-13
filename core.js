@@ -50,6 +50,7 @@
     return {
       local: true,
       on(path, cb) { const s = { path: norm(path), cb }; subs.add(s); dispara(s); return () => subs.delete(s); },
+      onFilhos(path, cb) { return this.on(path, cb); },
       query(path, child, eq, cb) { const s = { path: norm(path), cb, q: { child, eq } }; subs.add(s); dispara(s); return () => subs.delete(s); },
       async get(path) { return clone(pega(norm(path))); },
       async set(path, v) { poe(norm(path), v); mudou(norm(path)); },
@@ -64,6 +65,17 @@
     return {
       local: false,
       rt,
+      /* um filho por vez: mexer numa peça não baixa e copia a árvore inteira (com as artes) de novo */
+      onFilhos(path, cb) {
+        const r = rt.ref(path), o = {}; let pend = false, morto = false;
+        const agenda = () => { if (pend || morto) return; pend = true; setTimeout(() => { pend = false; if (!morto) cb(o); }, 0); };
+        const err = e => { console.warn('sem acesso a', path, e && e.code); cb(null); };
+        const a = r.on('child_added', s => { o[s.key] = s.val(); agenda(); }, err);
+        const c = r.on('child_changed', s => { o[s.key] = s.val(); agenda(); }, err);
+        const d = r.on('child_removed', s => { delete o[s.key]; agenda(); }, err);
+        r.once('value').then(agenda, () => {});
+        return () => { morto = true; r.off('child_added', a); r.off('child_changed', c); r.off('child_removed', d); };
+      },
       on(path, cb) { const r = rt.ref(path), f = r.on('value', s => cb(s.val()), e => { console.warn('sem acesso a', path, e && e.code); cb(null); }); return () => r.off('value', f); },
       query(path, child, eq, cb) { const q = rt.ref(path).orderByChild(child).equalTo(eq), f = q.on('value', s => cb(s.val()), e => { console.warn('sem acesso a', path, e && e.code); cb(null); }); return () => q.off('value', f); },
       async get(path) { return (await rt.ref(path).once('value')).val(); },
