@@ -2853,6 +2853,13 @@ function raioLivre(de, dir, longe, lista) {
   let d = longe; for (const x of h) if (x.distance < d) d = x.distance;
   return d;
 }
+/* um ponto está "dentro" de uma construção quando tem teto em cima e parede em quase toda volta */
+const _ddir = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)], _cima = new THREE.Vector3(0, 1, 0);
+function fechado(pt, lista) {
+  if (raioLivre(pt, _cima, 12, lista) >= 12) return false;
+  let n = 0; for (const d of _ddir) if (raioLivre(pt, d, 16, lista) < 16) n++;
+  return n >= 3;
+}
 /* calcula onde a câmera pode ficar, sem mexer na desejada */
 function colideCamera(raiz) {
   if (!COL.ligada || !raiz) return;
@@ -2869,6 +2876,13 @@ function colideCamera(raiz) {
   if (dist < 0.4) { COL.distMostrada = dist; return; }
   d.divideScalar(dist);
   const lista = solidosDa(raiz);
+  /* o alvo dentro de uma casa (os lugares miram o meio do prédio) e a câmera do lado de fora: fica do lado de fora,
+     olhando a fachada. Puxar a câmera até o alvo a colocaria dentro da casa. */
+  if (!COL.fA || COL.fA.p.distanceToSquared(alvo) > 0.01) COL.fA = { p: alvo.clone(), v: fechado(alvo, lista) };
+  if (COL.fA.v) {
+    if (!COL.fD || COL.fD.p.distanceToSquared(COL.desejada) > 0.01) COL.fD = { p: COL.desejada.clone(), v: fechado(COL.desejada, lista) };
+    if (!COL.fD.v) { COL.distMostrada = dist; COL.quer = dist; return; }
+  }
   COL.lado.set(-d.z, 0, d.x); if (COL.lado.lengthSq() < 1e-6) COL.lado.set(1, 0, 0); COL.lado.normalize();
   COL.cima.crossVectors(COL.lado, d).normalize();
   let livre = raioLivre(alvo, d, dist, lista);
