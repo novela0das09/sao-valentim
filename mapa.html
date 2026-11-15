@@ -2810,7 +2810,6 @@ function loop() { if (!(PM && PM.pausado())) { frame(); soltaCamera(); } request
    Os sólidos usam uma árvore de colisão (three-mesh-bvh), então dá para testar as construções inteiras, inclusive as fundidas. */
 const COL = { ray: new THREE.Raycaster(), lista: new Map(), dir: new THREE.Vector3(), lado: new THREE.Vector3(), cima: new THREE.Vector3(), orig: new THREE.Vector3(),
   desejada: new THREE.Vector3(), tem: false, distMostrada: null, raio: 0.35, ligada: true, caixa: new THREE.Box3(), tam: new THREE.Vector3() };
-COL.ray.firstHitOnly = true;
 if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => cenaAtiva(), chao: (x, z) => chaoAqui(x, z), THREE }; // só no modo de teste local
 const cenaAtiva = () => (modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
 function chaoAqui(x, z) {
@@ -2855,10 +2854,18 @@ function duplaFace(raiz, on) {
   if (on) { em.lados = em.mats.map(m => m.side); em.mats.forEach(m => { m.side = THREE.DoubleSide; }); }
   else if (em.lados) { em.mats.forEach((m, i) => { m.side = em.lados[i]; }); em.lados = null; }
 }
+/* o objeto em que o alvo está (o monumento da praça, um poste, o banco): não bloqueia a própria câmera */
+const _mi = new THREE.Matrix4(), _bx = new THREE.Box3();
+function contemAlvo(x) {
+  const o = x.object, g = o.geometry, a = controls.target; if (!g.boundingBox) g.computeBoundingBox();
+  if (o.isInstancedMesh && x.instanceId != null) { o.getMatrixAt(x.instanceId, _mi); _mi.premultiply(o.matrixWorld); _bx.copy(g.boundingBox).applyMatrix4(_mi); }
+  else { _bx.copy(g.boundingBox).applyMatrix4(o.matrixWorld); if (Math.max(_bx.max.x - _bx.min.x, _bx.max.z - _bx.min.z) > 12) return false; } // prédios fundidos: não
+  return _bx.expandByScalar(0.4).containsPoint(a);
+}
 function raioLivre(de, dir, longe, lista) {
-  COL.ray.set(de, dir); COL.ray.near = 0.12; COL.ray.far = longe; // encostado numa superfície (o alvo no chão da praça) não conta
+  COL.ray.set(de, dir); COL.ray.near = 0.12; COL.ray.far = longe; COL.ray.firstHitOnly = false; // encostado numa superfície (o alvo no chão da praça) não conta
   const h = COL.ray.intersectObjects(lista, false);
-  let d = longe; for (const x of h) if (x.distance < d) d = x.distance;
+  let d = longe; for (const x of h) if (x.distance < d && !(x.distance < 3 && contemAlvo(x))) d = x.distance;
   return d;
 }
 /* um ponto está "dentro" de uma construção quando tem teto em cima e parede em quase toda volta */
