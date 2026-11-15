@@ -2873,6 +2873,10 @@ const _ddir = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THRE
 function fechado(pt, lista) {
   const raiz = cenaAtiva(); duplaFace(raiz, true);
   try {
+    // dentro de um sólido fechado (a barragem, um muro grosso): um raio para cima cruza as faces dele um número ímpar de vezes
+    COL.ray.set(pt, _cima); COL.ray.near = 0; COL.ray.far = 400;
+    const cont = new Map(); for (const x of COL.ray.intersectObjects(lista, false)) { const k = x.object.id + ':' + (x.instanceId ?? ''); cont.set(k, (cont.get(k) || 0) + 1); }
+    for (const v of cont.values()) if (v % 2 === 1) return true;
     if (raioLivre(pt, _cima, 12, lista) >= 12) return false;
     let n = 0; for (const d of _ddir) if (raioLivre(pt, d, 16, lista) < 16) n++;
     return n >= 3;
@@ -2887,7 +2891,7 @@ function livreAteCamera(origAlvo, d, dist, lista) {
   COL.ray.set(_cv, _cd); COL.ray.near = 0; COL.ray.far = Math.max(0, dist - 0.12);
   const h = COL.ray.intersectObjects(lista, false);
   let perto = dist; // menor distância do alvo até um oclusor
-  for (const x of h) { const doAlvo = dist - x.distance; if (doAlvo < perto && !(doAlvo < 3 && contemAlvo(x))) perto = doAlvo; }
+  for (const x of h) { const doAlvo = dist - x.distance; if (doAlvo < 0.5) continue; /* o chão ou a laje em que o alvo pisa */ if (doAlvo < perto && !(doAlvo < 3 && contemAlvo(x))) perto = doAlvo; }
   return perto;
 }
 /* calcula onde a câmera pode ficar, sem mexer na desejada */
