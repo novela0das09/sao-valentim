@@ -2917,13 +2917,15 @@ function colideCamera0(raiz) {
   /* o alvo dentro de uma casa (os lugares miram o meio do prédio) e a câmera do lado de fora: fica do lado de fora,
      olhando a fachada. Puxar a câmera até o alvo a colocaria dentro da casa. */
   if (!COL.fA || COL.fA.p.distanceToSquared(alvo) > 0.01) COL.fA = { p: alvo.clone(), v: fechado(alvo, lista) };
-  if (COL.fA.v) {
-    if (!COL.fD || COL.fD.p.distanceToSquared(COL.desejada) > 0.01) COL.fD = { p: COL.desejada.clone(), v: fechado(COL.desejada, lista) };
-    if (!COL.fD.v) { COL.distMostrada = dist; COL.quer = dist; return; }
-  }
+  if (!COL.fD || COL.fD.p.distanceToSquared(COL.desejada) > 0.01) COL.fD = { p: COL.desejada.clone(), v: fechado(COL.desejada, lista) };
+  if (COL.fA.v && !COL.fD.v) { COL.distMostrada = dist; COL.quer = dist; return; }
+  /* a câmera desejada caiu dentro de uma casa e o alvo está fora: de dentro, as paredes não aparecem (só têm face para fora),
+     então o teste "do que se vê" não pega. Aqui vale o teste físico: a primeira parede saindo do alvo. */
+  let fisico = dist;
+  if (COL.fD.v && !COL.fA.v) { duplaFace(raiz, true); try { fisico = raioLivre(alvo, d, dist, lista); } finally { duplaFace(raiz, false); } }
   COL.lado.set(-d.z, 0, d.x); if (COL.lado.lengthSq() < 1e-6) COL.lado.set(1, 0, 0); COL.lado.normalize();
   COL.cima.crossVectors(COL.lado, d).normalize();
-  let livre = livreAteCamera(alvo, d, dist, lista); const livre0 = livre;
+  let livre = Math.min(fisico, livreAteCamera(alvo, d, dist, lista)); const livre0 = livre;
   const r = COL.raio;
   for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     // o raio de lado só vale se a borda da "esfera" não estiver dentro de algo (o alvo encostado no chão da praça, numa parede)
