@@ -254,7 +254,8 @@ function altSemPlato(x, z) {
   return k <= 0 ? b : b + (altCidade(x, z, b) - b) * k;
 }
 // platôs: chão aplainado embaixo de um pátio, no nível da entrada, e uma rampa suave em volta
-const PLATOS = [{ x0: 124, x1: 160, z0: -72, z1: -55, ex: 142, ez: -72, m: 7 }]; // canteiro de obras
+const PLATOS = [{ x0: 124, x1: 160, z0: -72, z1: -55, ex: 142, ez: -72, m: 7 }, // canteiro de obras
+  { x0: -143, x1: -106, z0: -132, z1: -107, ex: -106, ez: -120, m: 6 }]; // cemitério: chão plano, sem o degrau dos patamares no meio das covas
 for (const p of PLATOS) p.y = altSemPlato(p.ex, p.ez);
 function alt(x, z) {
   let y = altSemPlato(x, z);
@@ -398,7 +399,38 @@ function trocaTextura(mat) {
   const m = mat.clone(); m.map = kenneyTex[nome] ??= repetida(t, nome === 'tabua' ? 0.09 : 0.06); m.color.set(0xffffff); return m;
 }
 const PINTAVEL = /^(wall_lines|wall_metal|roof|roof_plates)$/;
+/* objetos soltos no chão (postes, carros, bancos, cercas, lápides, cones) assentam no que estiver embaixo deles:
+   no terreno ou numa laje (praça, pátio, calçada). Nada flutua nem fica enterrado. Prédios e móveis de dentro das casas não mexem. */
+const ASSENTA = /^(c|r|g|n)$/, NAO_ASSENTA = /^(wall-|building|house)/;
+function assentaProps() {
+  const ray = new THREE.Raycaster(), baixo = new THREE.Vector3(0, -1, 0), o = new THREE.Vector3(), pos = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+  const solidos = { vale: [], mata: [] };
+  scene.updateMatrixWorld(true); mataCena.updateMatrixWorld(true);
+  const junta = (raiz, l) => raiz.traverse(m => { if (m.isMesh && !m.isInstancedMesh && m !== agua && m.visible && m.geometry && m.geometry.type !== 'PlaneGeometry' && !(m.material && m.material.transparent)) l.push(m); });
+  junta(scene, solidos.vale); junta(mataCena, solidos.mata);
+  if (BVH) for (const l of Object.values(solidos)) for (const m of l) if (!m.geometry.boundsTree) { try { m.geometry.boundsTree = new BVH.MeshBVH(m.geometry); } catch (er) { /* segue sem árvore */ } }
+  const lados = new Map(); for (const l of Object.values(solidos)) for (const m of l) for (const mt of [].concat(m.material)) if (mt && !lados.has(mt)) { lados.set(mt, mt.side); mt.side = THREE.DoubleSide; }
+  const apoio = (cena, x, y, z) => {
+    const h = cena === 'mata' ? altM(x, z) : alt(x, z);
+    o.set(x, y + 1.2, z); ray.set(o, baixo); ray.near = 0; ray.far = 4;
+    const hit = ray.intersectObjects(solidos[cena], false)[0];
+    return hit ? Math.max(h, hit.point.y) : h;
+  };
+  let n = 0;
+  try {
+    for (const e of INST.values()) {
+      if (!(e.cena === 'vale' || e.cena === 'mata') || !ASSENTA.test(e.kit) || NAO_ASSENTA.test(e.name)) continue;
+      for (const m of e.m) {
+        m.decompose(pos, q, sc);
+        const a = apoio(e.cena, pos.x, pos.y, pos.z);
+        if (pos.y < a - 0.12 || pos.y > a + 0.25) { pos.y = a; m.compose(pos, q, sc); n++; }
+      }
+    }
+  } finally { for (const [mt, sd] of lados) mt.side = sd; }
+  if (n) console.info('[mapa] objetos assentados no chão:', n);
+}
 async function montaInstancias() {
+  try { assentaProps(); } catch (er) { console.warn('[mapa] assentar', er); }
   for (const e of INST.values()) {
     let proto;
     try { proto = await load(e.kit, e.name, { keep: e.kit === 'r' }); } catch (er) { console.warn(er); continue; }
@@ -957,9 +989,12 @@ function cidadeNova() {
   for (let x = -128; x < 92; x += 16) { inst('r', 'electricity-pole', x, alt(x, S1 - 4.2), S1 - 4.2, 0); if (Math.round(x / 16) % 2 === 0) { inst('r', 'light-curved', x + 5, alt(x + 5, S1 - 4.1), S1 - 4.1, 0); luz(x + 5, alt(x + 5, S1 - 4) + 4.1, S1 - 2.8, 0xffb468, 30, 16); } }
   for (let x = -114; x < 80; x += 20) { inst('r', 'light-curved', x, alt(x, S2 + 3.6), S2 + 3.6, Math.PI); luz(x, alt(x, S2 + 3.6) + 4.1, S2 + 2.3, 0xffb468, 26, 14); }
   const CARROS = ['sedan', 'hatchback-sports', 'suv', 'van', 'truck', 'sedan'];
+  const vagas = []; // um carro não estaciona em cima do outro: 7 m entre eles na mesma fila
   for (let i = 0; i < 30; i++) {
     const rz = rnd() < 0.6 ? S1 : S2, lado = rnd() < 0.5 ? -1 : 1, x = -120 + rnd() * 195, z = rz + lado * 2.5;
     if ([-100, -60, -22.5, 20, 60].some(v => Math.abs(v - x) < 7)) continue;
+    if (vagas.some(v => v.z === z && Math.abs(v.x - x) < 7)) continue;
+    vagas.push({ x, z });
     inst('c', CARROS[i % CARROS.length], x, alt(x, z), z, lado < 0 ? Math.PI / 2 : -Math.PI / 2, 1);
   }
   // árvores de quintal
@@ -980,9 +1015,15 @@ function cemiterio() {
     inst('g', LAP[Math.floor(rnd() * LAP.length)], x, alt(x, z) - 0.05, z, Math.PI / 2 + (rnd() - 0.5) * 0.25, 1);
     if (rnd() < 0.4) inst('g', 'grave', x + 1.1, alt(x, z) - 0.02, z, Math.PI / 2, 1);
   }
-  for (let x = cx - w / 2; x < cx + w / 2; x += 2.4) { inst('g', rnd() < 0.15 ? 'iron-fence-damaged' : 'iron-fence', x + 1.2, alt(x + 1.2, cz - d / 2), cz - d / 2, 0); inst('g', 'iron-fence', x + 1.2, alt(x + 1.2, cz + d / 2), cz + d / 2, 0); }
-  for (let z = cz - d / 2; z < cz + d / 2; z += 2.4) { inst('g', 'iron-fence', cx - w / 2, alt(cx - w / 2, z + 1.2), z + 1.2, Math.PI / 2); if (Math.abs(z + 1.2 - cz) > 2) inst('g', 'iron-fence', cx + w / 2, alt(cx + w / 2, z + 1.2), z + 1.2, Math.PI / 2); }
-  inst('g', 'iron-fence-border-gate', cx + w / 2, alt(cx + w / 2, cz), cz, Math.PI / 2);
+  /* cemitério fechado: muro de alvenaria em volta (2 m), com o portão de ferro fechado na frente */
+  { const gy0 = alt(cx, cz), H = 2.1, E = 0.4, mMuro = matCalVelha, mTopo = new THREE.MeshStandardMaterial({ color: 0x6f6a5c, roughness: 1 });
+    const muro = (x, z, cw, cd) => { caixa(x, gy0 - 0.3, z, cw, H + 0.3, cd, mMuro); caixa(x, gy0 + H, z, cw + 0.16, 0.14, cd + 0.16, mTopo); };
+    muro(cx, cz - d / 2, w + E, E); muro(cx, cz + d / 2, w + E, E); muro(cx - w / 2, cz, E, d + E);
+    const vao = 3.2, lado = (d - vao) / 2; // a frente (leste) tem só o vão do portão
+    muro(cx + w / 2, cz - vao / 2 - lado / 2, E, lado + E / 2); muro(cx + w / 2, cz + vao / 2 + lado / 2, E, lado + E / 2);
+    for (let k = -2; k <= 2; k++) caixa(cx + w / 2 + 0.05, gy0, cz + k * 0.62, 0.08, 2.0, 0.08, matEscuro); // grade do portão, fechada
+    caixa(cx + w / 2 + 0.05, gy0 + 0.9, cz, 0.06, 0.08, vao, matEscuro); caixa(cx + w / 2 + 0.05, gy0 + 1.8, cz, 0.06, 0.08, vao, matEscuro);
+    caixa(cx + w / 2 + 0.12, gy0 + 0.95, cz, 0.12, 0.3, 0.3, new THREE.MeshStandardMaterial({ color: 0x3a3226, roughness: 0.6, metalness: 0.4 })); } // o cadeado
   put('g', 'crypt-large', cx - 12, cz - 7, Math.PI / 2); put('g', 'crypt-small', cx - 12, cz + 7, Math.PI / 2);
   put('g', 'shovel-dirt', cx + 4, cz + 4, 0.4); put('g', 'coffin-old', cx + 5.5, cz + 4.6, 0.2);
   plantaArvores(scene, [[-16, 9], [15, -10], [-3, -10]].map(([dx, dz]) => [cx + dx, alt(cx + dx, cz + dz) - 0.2, cz + dz, 0.5 + rnd() * 0.2, rnd() * TAU]), []);
