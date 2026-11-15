@@ -2829,8 +2829,9 @@ function solidosDa(raiz) {
     if (o.userData.semColisao) return;
     for (let p = o; p; p = p.parent) if (p.userData && (p.userData.standee || p.visible === false)) return;
     const m = Array.isArray(o.material) ? o.material[0] : o.material;
-    if (!m || m.transparent || m.depthWrite === false || m.isSpriteMaterial) return;
+    if (!m || m.visible === false || m.transparent || m.depthWrite === false || m.isSpriteMaterial) return;
     const g = o.geometry; if (!g || !g.attributes.position) return;
+    if (g.type === 'PlaneGeometry') return; // chão das cenas, placas, janelas e decalques: o chão é medido pela função de altura
     if (!g.boundingBox) g.computeBoundingBox();
     if (o.isInstancedMesh) {
       if (o.count > 400) return; // matos, cogumelos e pedrinhas às centenas
@@ -2844,8 +2845,15 @@ function solidosDa(raiz) {
     if (BVH && !g.boundsTree) { try { g.boundsTree = new BVH.MeshBVH(g); } catch (e) { /* sem árvore: o raio testa os triângulos, mais devagar */ } }
     l.push(o);
   });
-  COL.lista.set(raiz, { t: ag, l });
+  const mats = new Set(); for (const o of l) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m && mats.add(m));
+  COL.lista.set(raiz, { t: ag, l, mats: [...mats] });
   return l;
+}
+/* parede feita de plano só tem frente: para o raio, toda face conta (frente e costas). Volta ao normal antes de desenhar. */
+function duplaFace(raiz, on) {
+  const em = COL.lista.get(raiz); if (!em) return;
+  if (on) { em.lados = em.mats.map(m => m.side); em.mats.forEach(m => { m.side = THREE.DoubleSide; }); }
+  else if (em.lados) { em.mats.forEach((m, i) => { m.side = em.lados[i]; }); em.lados = null; }
 }
 function raioLivre(de, dir, longe, lista) {
   COL.ray.set(de, dir); COL.ray.near = 0; COL.ray.far = longe;
@@ -2863,6 +2871,10 @@ function fechado(pt, lista) {
 /* calcula onde a câmera pode ficar, sem mexer na desejada */
 function colideCamera(raiz) {
   if (!COL.ligada || !raiz) return;
+  solidosDa(raiz); duplaFace(raiz, true);
+  try { colideCamera0(raiz); } finally { duplaFace(raiz, false); }
+}
+function colideCamera0(raiz) {
   const alvo = controls.target;
   // o alvo nunca fica embaixo do chão
   const ga = chaoAqui(alvo.x, alvo.z); if (alvo.y < ga + 0.15) alvo.y = ga + 0.15;
@@ -2904,8 +2916,8 @@ function soltaCamera() { if (COL.tem) { camera.position.copy(COL.desejada); COL.
 /* andar com WASD não atravessa parede: testa o caminho do alvo antes de mover */
 function caminhoLivre(de, mov) {
   const dist = mov.length(); if (dist < 1e-4) return mov;
-  const dir = COL.orig.copy(mov).divideScalar(dist), lista = solidosDa(cenaAtiva());
-  const livre = raioLivre(de, dir, dist + 0.6, lista);
+  const raiz = cenaAtiva(), dir = COL.orig.copy(mov).divideScalar(dist), lista = solidosDa(raiz);
+  duplaFace(raiz, true); let livre; try { livre = raioLivre(de, dir, dist + 0.6, lista); } finally { duplaFace(raiz, false); }
   if (livre < dist + 0.6) return mov.multiplyScalar(Math.max(0, livre - 0.6) / dist);
   return mov;
 }
