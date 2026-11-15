@@ -2923,7 +2923,7 @@ function colideCamera0(raiz) {
   }
   COL.lado.set(-d.z, 0, d.x); if (COL.lado.lengthSq() < 1e-6) COL.lado.set(1, 0, 0); COL.lado.normalize();
   COL.cima.crossVectors(COL.lado, d).normalize();
-  let livre = livreAteCamera(alvo, d, dist, lista);
+  let livre = livreAteCamera(alvo, d, dist, lista); const livre0 = livre;
   const r = COL.raio;
   for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     // o raio de lado só vale se a borda da "esfera" não estiver dentro de algo (o alvo encostado no chão da praça, numa parede)
@@ -2931,7 +2931,8 @@ function colideCamera0(raiz) {
     duplaFace(raiz, true); const dentro = raioLivre(alvo, COL.orig, r, lista) < r; duplaFace(raiz, false);
     if (dentro) continue;
     COL.orig.multiplyScalar(r).add(alvo);
-    livre = Math.min(livre, livreAteCamera(COL.orig.clone(), d, dist, lista));
+    const lo = livreAteCamera(COL.orig.clone(), d, dist, lista);
+    if (lo >= livre0 - 1.5) livre = Math.min(livre, lo); // a borda da esfera só conta perto da câmera (não deixa a lente raspar a parede); uma lápide perto do alvo não puxa a câmera
   }
   let quer = livre < dist ? Math.max(0.4, livre - r) : dist; COL.quer = quer;
   // amaciar: aproxima na hora (para não mostrar o que está atrás da parede) e volta devagar
