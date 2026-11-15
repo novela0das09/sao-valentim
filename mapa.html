@@ -2886,12 +2886,21 @@ function fechado(pt, lista) {
    Assim um teto de corte (o do ônibus, visto de cima) não bloqueia, e uma parede de verdade bloqueia.
    Devolve a distância livre a partir do alvo. */
 const _cv = new THREE.Vector3(), _cd = new THREE.Vector3();
+/* só puxa a câmera o que é construção: malha grande (paredes e telhados fundidos, muros, a barragem, a igreja).
+   Modelos repetidos (árvores, carros, casas prontas) e peças pequenas não: a câmera atrás deles vê a parede deles, não atravessa. */
+function oclusorGrande(o) {
+  if (o.userData.grande != null) return o.userData.grande;
+  let g = false;
+  if (!o.isInstancedMesh) { const geo = o.geometry; if (!geo.boundingBox) geo.computeBoundingBox(); COL.caixa.copy(geo.boundingBox).applyMatrix4(o.matrixWorld).getSize(COL.tam); g = COL.tam.y >= 2.5 && Math.max(COL.tam.x, COL.tam.z) >= 3; }
+  o.userData.grande = g; return g;
+}
 function livreAteCamera(origAlvo, d, dist, lista) {
   _cv.copy(origAlvo).addScaledVector(d, dist); _cd.copy(d).negate();
   COL.ray.set(_cv, _cd); COL.ray.near = 0; COL.ray.far = Math.max(0, dist - 0.12);
   const h = COL.ray.intersectObjects(lista, false);
   let perto = dist; // menor distância do alvo até um oclusor
-  for (const x of h) { const doAlvo = dist - x.distance; if (doAlvo < 0.5) continue; /* o chão ou a laje em que o alvo pisa */ if (doAlvo < perto && !(doAlvo < 3 && contemAlvo(x))) perto = doAlvo; }
+  for (const x of h) { const doAlvo = dist - x.distance; if (doAlvo < 0.5) continue;
+    if (!oclusorGrande(x.object)) continue; /* carro, ônibus, árvore, lápide: podem tapar um pedaço da vista, não puxam a câmera */ /* o chão ou a laje em que o alvo pisa */ if (doAlvo < perto && !(doAlvo < 3 && contemAlvo(x))) perto = doAlvo; }
   return perto;
 }
 /* calcula onde a câmera pode ficar, sem mexer na desejada */
