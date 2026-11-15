@@ -1663,7 +1663,9 @@ S.sel ||= S.fichas[0]?.id;
 const UIS = { edit: false, aba: 'ficha', roll: null, res: null, apagar: null, mg: {}, modo: 'mesa', cr: null };
 try { const m = localStorage.getItem(KEY + '.modo'); if (['mesa', 'jogar', 'criar', 'regras'].includes(m)) UIS.modo = m; } catch {}
 const salvarLocal = (() => { let t; return () => { clearTimeout(t); t = setTimeout(() => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { toast('Este navegador não deixou guardar. As mudanças valem só até fechar a página.'); } }, 200); }; })();
-const salvar = () => { salvarLocal(); if (PONTE) ponteSalvar(); };
+/* item com quantidade 0 ou menos sai da mochila (o registro, não só a caixa na tela); item sem nome fica enquanto alguém digita */
+const limpaItens = f => { if (f && Array.isArray(f.itens)) f.itens = f.itens.filter(it => it && (it.qtd == null || it.qtd > 0)).map(it => (it.qtd != null && !Number.isFinite(+it.qtd) ? Object.assign(it, { qtd: 1 }) : it)); };
+const salvar = () => { try { (S.fichas || []).forEach(limpaItens); } catch (e) { /* segue */ } salvarLocal(); if (PONTE) ponteSalvar(); };
 const F = () => S.fichas.find(f => f.id === S.sel) || S.fichas[0];
 const uid = () => Math.random().toString(36).slice(2, 9);
 /* fichas salvas antes desta versão: completa os campos novos (relações, itens da Vigília, Olhar Protetor) */
@@ -1671,7 +1673,7 @@ aplicarVersao();
 function normaliza(f) {
   if (!Array.isArray(f.rel)) { const ex = EXEMPLOS().find(e => e.nome === f.nome); f.rel = ex ? ex.rel : []; if (ex) { for (const it of ex.itens) if (ITEM_CAT[it.nome] && !f.itens.some(x => x.nome === it.nome)) f.itens.push(it); for (const k of ex.hab) if (!f.hab.includes(k)) f.hab.push(k); } }
   for (const r of f.rel) r.id ||= uid();
-  if (!Array.isArray(f.insp)) f.insp = []; f.usos ||= {}; f.red ||= {}; f.boost ||= {}; f.itens ||= []; f.hab ||= [];
+  if (!Array.isArray(f.insp)) f.insp = []; f.usos ||= {}; f.red ||= {}; f.boost ||= {}; f.itens ||= []; f.hab ||= []; limpaItens(f);
   f.hab = f.hab.filter(k => k !== 'olhar-protetor'); f.relUsos ||= {}; if (f.pavorD === undefined) f.pavorD = null; f.banco = Math.min(4, f.banco || 0); f.impeto = f.impeto || 0; f.evol ||= []; migraHabPerfil(f); f.nl ||= 0; f.cor ||= ''; f.rit ||= [];
   const TROCA_IT = { 'Pomada de mel': 'Kit de primeiros socorros', 'Tônico fortificante': 'Energético', 'Chá calmante': 'Calmante natural', 'Elixir de mel': 'Chocolate e café', 'Tocha': 'Lanterna' }; for (const it of f.itens) if (TROCA_IT[it.nome]) it.nome = TROCA_IT[it.nome]; f.armadura ||= { v: 0, m: 0 };
   for (const r of f.rel) normRel(r); f.relBase ??= 3;
@@ -2618,7 +2620,7 @@ function abrirBandeja(f, o, livre) {
     if (o.preset && o.preset !== 'comum' && PRESETS[o.preset]) { rot = PRESETS[o.preset][0] + ' · ' + rot; dica = PRESETS[o.preset][2]; }
     if (o.arma) { rot = o.arma.nome + ' · ' + rot; info = 'Dano se acertar: ' + (o.arma.dano || 'RA') + (+o.arma.bonus ? ' + ' + o.arma.bonus : '') + (o.semProf ? '. Sem proficiência: o mestre pode pedir um dado menor.' : ''); }
   }
-  UIS.band = { sid: f.id, rot, info, dica, dados, pavor: null, res: null, pontaria: !livre && !!(o.arma && (o.per ?? 'percepcao') === 'pontaria') && x2Ligado(), armaIdx: o && o.arma && o.arma.tipo !== 'corpo' && o.arma.idx != null ? o.arma.idx : null };
+  UIS.band = { sid: f.id, rot, info, dica, dados, pavor: null, res: null, pontaria: !livre && (o.per ?? 'percepcao') === 'pontaria' && x2Ligado() /* todo teste de Pontaria (com ou sem arma) cai na mesa do alvo; Luta não */, armaIdx: o && o.arma && o.arma.tipo !== 'corpo' && o.arma.idx != null ? o.arma.idx : null };
   UIS.res = null; UIS.roll = null; UIS.modal = 'bandeja'; renderRolar();
 }
 /* REGRA DO NÚCLEO: cada teste usa no máximo 4 dados (o pavor rola à parte e não soma);
@@ -2715,7 +2717,7 @@ function bandejaUI() {
     return out;
   }
   if (b.dica) out.push(h('div', { class: 'dica' }, b.dica));
-  if (b.pontaria) out.push(h('div', { class: 'dica' }, 'Ataque com Pontaria: os dados caem na mesa. O dado que cair no alvo ×2 do centro vale o dobro (só ele).'));
+  if (b.pontaria) out.push(h('div', { class: 'dica' }, 'Pontaria: os dados caem na mesa. O dado que cair no alvo ×2 do centro vale o dobro (só ele). Somam os 3 maiores, até 4 dados.'), mesaAlvo([]));
   out.push(h('div', { class: 'band-mesa', 'aria-label': 'Dados na bandeja' }, n ? [
     b.dados.map((x, i) => h('span', { class: 'band-d' }, dado(x.d, null, 38, x.fonte === 'Ímpeto' ? 'var(--gold)' : undefined), h('small', null, x.fonte), h('button', { type: 'button', 'aria-label': 'Tirar ' + x.d + ' (' + x.fonte + ')', onclick: () => { b.dados.splice(i, 1); if (x.fonte === 'Ímpeto') { f.impeto = Math.min(RG.impetoMax || 5, (f.impeto || 0) + 1); salvar(); } re(); } }, '×'))),
     b.pavor ? h('span', { class: 'band-d pavor' }, dado(b.pavor, null, 38, PAVOR_COR), h('small', null, 'Pavor'), h('button', { type: 'button', 'aria-label': 'Tirar o dado de pavor', onclick: () => { b.pavor = null; re(); } }, '×')) : null]
@@ -3041,8 +3043,8 @@ function cardItens(f) {
       h('input', { class: 'nm', id: 'f-it-' + i, value: it.nome, 'aria-label': 'Item', disabled: (!ehMestre() && ehMunicao(it.nome)) || null, oninput: e => { if (!ehMestre() && ehMunicao(e.target.value)) return; it.nome = e.target.value; salvar(); }, onchange: e => { if (!ehMestre() && ehMunicao(e.target.value)) toast('Munição só o mestre dá.'); renderFicha(); } }),
       h('span', { class: 'row' },
         cat?.usar && !MODO.narr ? h('button', { class: 'btn sm', type: 'button', disabled: !(it.qtd ?? 1) || null, onclick: () => usarItem(f, i) }, 'Usar') : null,
-        h('button', { class: 'mini', type: 'button', 'aria-label': 'Menos', onclick: () => { it.qtd = Math.max(0, (it.qtd ?? 1) - 1); salvar(); renderFicha(); } }, '−'), h('b', { style: { minWidth: '22px', textAlign: 'center' } }, it.qtd ?? 1), h('button', { class: 'mini', type: 'button', 'aria-label': 'Mais', disabled: (!ehMestre() && ehMunicao(it.nome)) || null, onclick: () => { if (!ehMestre() && ehMunicao(it.nome)) { toast('Munição só o mestre dá.'); return; } it.qtd = (it.qtd ?? 1) + 1; salvar(); renderFicha(); } }, '+'),
-        UIS.edit ? h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar item', onclick: () => { f.itens.splice(i, 1); salvar(); renderFicha(); } }, '×') : null),
+        h('button', { class: 'mini', type: 'button', 'aria-label': 'Menos', onclick: () => { const q = (it.qtd ?? 1) - 1; if (q <= 0 && !confirm('Tirar ' + (it.nome || 'este item') + ' da mochila?')) return; it.qtd = Math.max(0, q); salvar(); renderFicha(); } }, '−'), h('input', { class: 'qtd', type: 'number', min: 0, step: 1, value: it.qtd ?? 1, 'aria-label': 'Quantidade de ' + (it.nome || 'item'), style: { width: '46px', textAlign: 'center' }, onchange: e => { let v = Math.floor(+e.target.value); if (!Number.isFinite(v) || v < 0) v = 0; if (!ehMestre() && ehMunicao(it.nome) && v > (it.qtd ?? 1)) { toast('Munição só o mestre dá.'); renderFicha(); return; } if (v === 0 && !confirm('Tirar ' + (it.nome || 'este item') + ' da mochila?')) { renderFicha(); return; } it.qtd = v; salvar(); renderFicha(); } }), h('button', { class: 'mini', type: 'button', 'aria-label': 'Mais', disabled: (!ehMestre() && ehMunicao(it.nome)) || null, onclick: () => { if (!ehMestre() && ehMunicao(it.nome)) { toast('Munição só o mestre dá.'); return; } it.qtd = (it.qtd ?? 1) + 1; salvar(); renderFicha(); } }, '+'),
+        h('button', { class: 'mini', type: 'button', 'aria-label': 'Tirar ' + (it.nome || 'item') + ' da mochila', title: 'Tirar da mochila', onclick: () => { if (it.nome && !confirm('Tirar ' + it.nome + ' da mochila?')) return; f.itens.splice(i, 1); salvar(); renderFicha(); } }, '×')),
       cat ? h('div', { class: 'desc' }, cat.txt) : null); }),
     h('div', { class: 'item' }, h('span', { class: 'row' },
       h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.itens.push({ nome: '', qtd: 1 }); salvar(); renderFicha(); setTimeout(() => $('#f-it-' + (f.itens.length - 1))?.focus(), 20); } }, '+ Item'),
