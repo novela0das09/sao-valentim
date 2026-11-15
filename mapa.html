@@ -2856,7 +2856,7 @@ function duplaFace(raiz, on) {
   else if (em.lados) { em.mats.forEach((m, i) => { m.side = em.lados[i]; }); em.lados = null; }
 }
 function raioLivre(de, dir, longe, lista) {
-  COL.ray.set(de, dir); COL.ray.near = 0; COL.ray.far = longe;
+  COL.ray.set(de, dir); COL.ray.near = 0.12; COL.ray.far = longe; // encostado numa superfície (o alvo no chão da praça) não conta
   const h = COL.ray.intersectObjects(lista, false);
   let d = longe; for (const x of h) if (x.distance < d) d = x.distance;
   return d;
@@ -2900,7 +2900,10 @@ function colideCamera0(raiz) {
   let livre = raioLivre(alvo, d, dist, lista);
   const r = COL.raio;
   for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-    COL.orig.copy(alvo).addScaledVector(COL.lado, a * r).addScaledVector(COL.cima, b * r);
+    // o raio de lado só vale se a borda da "esfera" não estiver dentro de algo (o alvo encostado no chão da praça, numa parede)
+    COL.orig.copy(COL.lado).multiplyScalar(a).addScaledVector(COL.cima, b);
+    if (raioLivre(alvo, COL.orig, r, lista) < r) continue;
+    COL.orig.multiplyScalar(r).add(alvo);
     livre = Math.min(livre, raioLivre(COL.orig, d, dist, lista));
   }
   let quer = livre < dist ? Math.max(0.4, livre - r) : dist; COL.quer = quer;
