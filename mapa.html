@@ -2862,10 +2862,10 @@ function contemAlvo(x) {
   else { _bx.copy(g.boundingBox).applyMatrix4(o.matrixWorld); if (Math.max(_bx.max.x - _bx.min.x, _bx.max.z - _bx.min.z) > 12) return false; } // prédios fundidos: não
   return _bx.expandByScalar(0.4).containsPoint(a);
 }
-function raioLivre(de, dir, longe, lista) {
+function raioLivre(de, dir, longe, lista, cru = false) {
   COL.ray.set(de, dir); COL.ray.near = 0.12; COL.ray.far = longe; COL.ray.firstHitOnly = false; // encostado numa superfície (o alvo no chão da praça) não conta
   const h = COL.ray.intersectObjects(lista, false);
-  let d = longe; for (const x of h) if (x.distance < d && !(x.distance < 3 && contemAlvo(x))) d = x.distance;
+  let d = longe; for (const x of h) if (x.distance < d && (cru || !(x.distance < 3 && contemAlvo(x)))) d = x.distance;
   return d;
 }
 /* um ponto está "dentro" de uma construção quando tem teto em cima e parede em quase toda volta */
@@ -2877,8 +2877,8 @@ function fechado(pt, lista) {
     COL.ray.set(pt, _cima); COL.ray.near = 0; COL.ray.far = 400;
     const cont = new Map(); for (const x of COL.ray.intersectObjects(lista, false)) { const k = x.object.id + ':' + (x.instanceId ?? ''); cont.set(k, (cont.get(k) || 0) + 1); }
     for (const v of cont.values()) if (v % 2 === 1) return true;
-    if (raioLivre(pt, _cima, 12, lista) >= 12) return false;
-    let n = 0; for (const d of _ddir) if (raioLivre(pt, d, 16, lista) < 16) n++;
+    if (raioLivre(pt, _cima, 12, lista, true) >= 12) return false;
+    let n = 0; for (const d of _ddir) if (raioLivre(pt, d, 16, lista, true) < 16) n++;
     return n >= 3;
   } finally { duplaFace(raiz, false); }
 }
