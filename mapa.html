@@ -2936,7 +2936,10 @@ function colideCamera0(raiz) {
     const lo = livreAteCamera(COL.orig.clone(), d, dist, lista);
     if (lo >= livre0 - 1.5) livre = Math.min(livre, lo); // a borda da esfera só conta perto da câmera (não deixa a lente raspar a parede); uma lápide perto do alvo não puxa a câmera
   }
-  let quer = livre < dist ? Math.max(0.4, livre - r) : dist; COL.quer = quer;
+  let quer = livre < dist ? Math.max(0.4, livre - r) : dist;
+  /* a câmera não fica dentro de uma casa (entrando por uma janela, por exemplo) quando o alvo está fora: chega mais perto até sair */
+  if (!COL.fA.v) { const pt = COL.orig; for (let i = 0; i < 24 && quer > 0.4; i++) { pt.copy(alvo).addScaledVector(d, quer); if (!fechado(pt, lista)) break; quer = Math.max(0.4, quer - 1); } }
+  COL.quer = quer;
   // amaciar: aproxima na hora (para não mostrar o que está atrás da parede) e volta devagar
   if (COL.distMostrada == null || voo) COL.distMostrada = quer;
   else COL.distMostrada = quer < COL.distMostrada ? quer : COL.distMostrada + (quer - COL.distMostrada) * 0.12;
