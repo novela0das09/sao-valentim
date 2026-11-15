@@ -234,7 +234,7 @@ function degrau(i, x) {
   if (i === 0) return { m: -150.5, w: 8 };            // colônia: rampa comprida
   if (i === 1) return { m: -132.5, w: 7 };            // Capela e Bento Gonçalves quase no mesmo nível
   if (i === 2) return { m: dentro(x, -16, 8) ? -117 : -112.1, w: 0.5 };                       // atrás da escola
-  return { m: dentro(x, -44, -26) || dentro(x, -20.5, 1.5) ? -92 : -87.8, w: 0.5 };            // atrás da pousada e da prefeitura
+  return { m: dentro(x, -44, -26) || dentro(x, -20.5, 1.5) || dentro(x, 66, 88) ? -92 : -87.8, w: 0.5 };            // e atrás do posto de gasolina            // atrás da pousada e da prefeitura
 }
 function altCidade(x, z, b) {
   const n = RUAS_EO[0], s1 = RUAS_EO[RUAS_EO.length - 1], Ln = BASE_CIDADE + NIV_RUA[0], Ls = BASE_CIDADE;
@@ -255,7 +255,8 @@ function altSemPlato(x, z) {
 }
 // platôs: chão aplainado embaixo de um pátio, no nível da entrada, e uma rampa suave em volta
 const PLATOS = [{ x0: 124, x1: 160, z0: -72, z1: -55, ex: 142, ez: -72, m: 7 }, // canteiro de obras
-  { x0: -143, x1: -106, z0: -132, z1: -107, ex: -106, ez: -120, m: 6 }]; // cemitério: chão plano, sem o degrau dos patamares no meio das covas
+  { x0: -143, x1: -106, z0: -132, z1: -107, ex: -106, ez: -120, m: 6 }, // cemitério
+  { x0: -121, x1: -103, z0: -153, z1: -141, ex: -112, ez: -141, m: 5 }]; // serraria: o pátio das toras plano: chão plano, sem o degrau dos patamares no meio das covas
 for (const p of PLATOS) p.y = altSemPlato(p.ex, p.ez);
 function alt(x, z) {
   let y = altSemPlato(x, z);
@@ -495,8 +496,8 @@ function placa(texto, x, y, z, ry, w = 4, cor = '#eef0e6', fundo = '#1b2726', su
 }
 function placaNoPoste(texto, x, z, ry, opt = {}) {
   const y = alt(x, z); const h = opt.h ?? 2.6, w = opt.w ?? 3.2;
-  cilindro(x - w * 0.42 * Math.cos(ry), y, z + w * 0.42 * Math.sin(ry), 0.07, 0.07, h + w / 8, matMadeira, 6);
-  cilindro(x + w * 0.42 * Math.cos(ry), y, z - w * 0.42 * Math.sin(ry), 0.07, 0.07, h + w / 8, matMadeira, 6);
+  // cada poste nasce do chão onde ele está (na encosta, um lado é mais alto que o outro) e sobe até a placa
+  for (const sg of [-1, 1]) { const px = x + sg * w * 0.42 * Math.cos(ry), pz = z - sg * w * 0.42 * Math.sin(ry), py = alt(px, pz) - 0.3; cilindro(px, py, pz, 0.07, 0.07, y + h + w / 8 - py, matMadeira, 6); }
   return placa(texto, x, y + h, z, ry, w, opt.cor, opt.fundo, opt.sub);
 }
 
@@ -1067,7 +1068,7 @@ function canteiro() {
   caixa(bx, -16, 0, 12, 28, 290, matConcreto);
   caixa(bx, 12, 0, 13, 1.2, 290, matConcreto);
   for (let i = -3; i <= 3; i++) { caixa(bx - 6.05, -9, i * 12, 0.15, 14, 7, matEscuro); caixa(bx - 6.1, 5.2, i * 12, 0.3, 1.2, 8, new THREE.MeshStandardMaterial({ color: 0x8a2a20, roughness: 0.6 })); }
-  for (let z = -130; z <= 130; z += 20) { cilindro(bx, 13.2, z, 0.12, 0.12, 5, matEscuro, 6); luz(bx, 18, z, 0xdde8f0, 18, 22); }
+  for (let z = -130; z <= 130; z += 20) { if (alt(bx, z) > 12.6) continue; /* a ponta da barragem entra no morro: ali não tem poste */ cilindro(bx, 13.2, z, 0.12, 0.12, 5, matEscuro, 6); luz(bx, 18, z, 0xdde8f0, 18, 22); }
   placa('UHE Vale Alto', bx - 6.6, 9, -24, -Math.PI / 2, 9, '#173b5c', '#e8e6df');
   caixa(bx, 13.2, 8, 7, 0.06, 206, new THREE.MeshStandardMaterial({ color: 0x3a3c3e, roughness: 0.85 })); // a estrada passa por cima da barragem
   for (const s2 of [-1, 1]) caixa(bx + s2 * 6.2, 13.2, 0, 0.3, 1.0, 290, matConcreto); // guarda-corpo
