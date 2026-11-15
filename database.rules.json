@@ -1,0 +1,181 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "mesa": {
+      ".read": "auth != null",
+      "mestres": {
+        "$uid": {
+          ".write": "auth != null && (root.child('mesa/mestres/' + auth.uid).val() === true || ($uid === auth.uid && !root.child('mesa/mestres').exists()))",
+          ".validate": "newData.val() === true"
+        }
+      },
+      "banidos": {
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+        "$uid": {
+          ".validate": "newData.val() === true"
+        }
+      },
+      "travas": {
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "mural": {
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "cena3d": {
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "regras": {
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "cheia": {
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      }
+    },
+    "mestre": {
+      ".read": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "users": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "online": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "fichas": {
+      ".read": "auth != null && (root.child('mesa/mestres/' + auth.uid).val() === true || (auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && query.orderByChild === 'dono' && query.equalTo === auth.uid))",
+      ".indexOn": [
+        "dono"
+      ],
+      "$id": {
+        ".write": "auth != null && (root.child('mesa/mestres/' + auth.uid).val() === true || (auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && (!data.exists() || data.child('dono').val() === auth.uid) && (!newData.exists() || (newData.child('dono').val() === auth.uid && newData.child('papel').val() === 'pj' && (data.exists() ? (newData.child('nivel').val() === data.child('nivel').val() && newData.child('nex').val() === data.child('nex').val() && newData.child('perfil').val() === data.child('perfil').val() && newData.child('ocupacao').val() === data.child('ocupacao').val() && newData.child('evol').val() === data.child('evol').val() && (data.child('evol').val() === true || newData.child('mec').val() === data.child('mec').val()) && (!data.child('habPerfil/2').exists() || newData.child('habPerfil/2').val() === data.child('habPerfil/2').val()) && (!data.child('habPerfil/3').exists() || newData.child('habPerfil/3').val() === data.child('habPerfil/3').val()) && (!data.child('habPerfil/5').exists() || newData.child('habPerfil/5').val() === data.child('habPerfil/5').val()) && (!data.child('habPerfil/7').exists() || newData.child('habPerfil/7').val() === data.child('habPerfil/7').val()) && (!data.child('habPerfil/9').exists() || newData.child('habPerfil/9').val() === data.child('habPerfil/9').val()) && (!data.child('habPerfil/10').exists() || newData.child('habPerfil/10').val() === data.child('habPerfil/10').val())) : (newData.child('nivel').val() === 1 && newData.child('nex').val() === 0 && newData.child('evol').val() !== true && !newData.child('habPerfil').exists()))))))",
+        "dono": {
+          ".validate": "newData.isString()"
+        },
+        "papel": {
+          ".validate": "newData.val() === 'pj' || newData.val() === 'npc' || newData.val() === 'inimigo'"
+        },
+        "json": {
+          ".validate": "newData.isString() && newData.val().length < 2000000"
+        },
+        "mec": {
+          ".validate": "newData.isString() && newData.val().length < 20000"
+        },
+        "nivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10"
+        },
+        "nex": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99"
+        },
+        "evol": {
+          ".validate": "newData.isBoolean()"
+        },
+        "habPerfil": {
+          "2": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && (root.child('mesa/mestres/' + auth.uid).val() === true || (newData.parent().parent().child('nivel').val() >= 2 && ((newData.parent().parent().child('perfil').val() === 'executor' && newData.val().beginsWith('ex-')) || (newData.parent().parent().child('perfil').val() === 'analista' && newData.val().beginsWith('an-')) || (newData.parent().parent().child('perfil').val() === 'vigilante' && newData.val().beginsWith('vi-')))))"
+          },
+          "3": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && (root.child('mesa/mestres/' + auth.uid).val() === true || (newData.parent().parent().child('nivel').val() >= 3 && ((newData.parent().parent().child('perfil').val() === 'executor' && newData.val().beginsWith('ex-')) || (newData.parent().parent().child('perfil').val() === 'analista' && newData.val().beginsWith('an-')) || (newData.parent().parent().child('perfil').val() === 'vigilante' && newData.val().beginsWith('vi-')))))"
+          },
+          "5": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && (root.child('mesa/mestres/' + auth.uid).val() === true || (newData.parent().parent().child('nivel').val() >= 5 && ((newData.parent().parent().child('perfil').val() === 'executor' && newData.val().beginsWith('ex-')) || (newData.parent().parent().child('perfil').val() === 'analista' && newData.val().beginsWith('an-')) || (newData.parent().parent().child('perfil').val() === 'vigilante' && newData.val().beginsWith('vi-')))))"
+          },
+          "7": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && (root.child('mesa/mestres/' + auth.uid).val() === true || (newData.parent().parent().child('nivel').val() >= 7 && ((newData.parent().parent().child('perfil').val() === 'executor' && newData.val().beginsWith('ex-')) || (newData.parent().parent().child('perfil').val() === 'analista' && newData.val().beginsWith('an-')) || (newData.parent().parent().child('perfil').val() === 'vigilante' && newData.val().beginsWith('vi-')))))"
+          },
+          "9": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && (root.child('mesa/mestres/' + auth.uid).val() === true || (newData.parent().parent().child('nivel').val() >= 9 && ((newData.parent().parent().child('perfil').val() === 'executor' && newData.val().beginsWith('ex-')) || (newData.parent().parent().child('perfil').val() === 'analista' && newData.val().beginsWith('an-')) || (newData.parent().parent().child('perfil').val() === 'vigilante' && newData.val().beginsWith('vi-')))))"
+          },
+          "10": {
+            ".validate": "newData.isString() && newData.val().length <= 40 && (root.child('mesa/mestres/' + auth.uid).val() === true || (newData.parent().parent().child('nivel').val() >= 10 && ((newData.parent().parent().child('perfil').val() === 'executor' && newData.val().beginsWith('ex-')) || (newData.parent().parent().child('perfil').val() === 'analista' && newData.val().beginsWith('an-')) || (newData.parent().parent().child('perfil').val() === 'vigilante' && newData.val().beginsWith('vi-')))))"
+          },
+          "$outro": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "npcs": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "pecas": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      "$id": {
+        ".write": "auth != null && (root.child('mesa/mestres/' + auth.uid).val() === true || (auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && root.child('mesa/travas/' + $id).val() !== true && (!data.exists() || data.child('dono').val() === auth.uid) && (!newData.exists() || newData.child('dono').val() === auth.uid)))"
+      }
+    },
+    "pecas_gm": {
+      ".read": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "rolagens": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+      "$uid": {
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && auth.uid === $uid"
+      }
+    },
+    "pedidos": {
+      ".read": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && auth.uid === $uid",
+        "$id": {
+          ".validate": "root.child('mesa/mestres/' + auth.uid).val() === true || (!newData.child('deMestre').exists() && (data.exists() ? (newData.child('resp').val() === data.child('resp').val() && newData.child('feito').val() === data.child('feito').val() && newData.child('texto').val() === data.child('texto').val()) : (!newData.child('resp').exists() && !newData.child('feito').exists())))"
+        }
+      }
+    },
+    "sons": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+    },
+    "sons_arq": {
+      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+      ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true",
+      "$id": {
+        ".validate": "newData.isString() && newData.val().length < 4500000"
+      }
+    },
+    "sons_priv": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid === $uid || root.child('mesa/mestres/' + auth.uid).val() === true)",
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      }
+    },
+    "call": {
+      "cfg": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+        ".write": "auth != null && root.child('mesa/mestres/' + auth.uid).val() === true"
+      },
+      "peers": {
+        ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
+        "$uid": {
+          ".write": "auth != null && ((auth.uid === $uid && (root.child('mesa/banidos/' + auth.uid).val() !== true || !newData.exists())) || root.child('mesa/mestres/' + auth.uid).val() === true)"
+        }
+      },
+      "sig": {
+        "$to": {
+          ".read": "auth != null && auth.uid === $to",
+          ".write": "auth != null && auth.uid === $to && !newData.exists()",
+          "$from": {
+            ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && (auth.uid === $from || (auth.uid === $to && !newData.exists()))"
+          }
+        }
+      }
+    },
+    "notas": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && auth.uid === $uid"
+      }
+    }
+  }
+}
