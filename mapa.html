@@ -2811,7 +2811,7 @@ function loop() { if (!(PM && PM.pausado())) { frame(); soltaCamera(); } request
 const COL = { ray: new THREE.Raycaster(), lista: new Map(), dir: new THREE.Vector3(), lado: new THREE.Vector3(), cima: new THREE.Vector3(), orig: new THREE.Vector3(),
   desejada: new THREE.Vector3(), tem: false, distMostrada: null, raio: 0.35, ligada: true, caixa: new THREE.Box3(), tam: new THREE.Vector3() };
 COL.ray.firstHitOnly = true;
-if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => cenaAtiva() }; // só no modo de teste local
+if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => cenaAtiva(), chao: (x, z) => chaoAqui(x, z), THREE }; // só no modo de teste local
 const cenaAtiva = () => (modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
 function chaoAqui(x, z) {
   if (modoEstr) return altE(x, z);
@@ -2910,6 +2910,7 @@ function colideCamera0(raiz) {
   camera.position.copy(alvo).addScaledVector(d, COL.distMostrada);
   // o chão debaixo da câmera mostrada (num morro entre o alvo e a câmera)
   const gm = chaoAqui(camera.position.x, camera.position.z); if (camera.position.y < gm + 0.45) camera.position.y = gm + 0.45;
+  if (window.__mapaTeste) (COL.mostrada ||= new THREE.Vector3()).copy(camera.position);
 }
 /* depois de desenhar: devolve a câmera para onde os controles a deixaram */
 function soltaCamera() { if (COL.tem) { camera.position.copy(COL.desejada); COL.tem = false; } }
