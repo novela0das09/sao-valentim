@@ -203,6 +203,8 @@ THREE.Cache.enabled = true; // o mesmo colormap.png e as mesmas texturas servem 
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+let BVH = null; // árvore de colisão para a câmera; se a CDN falhar, a colisão continua, só mais lenta
+try { BVH = await import('https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.8/build/index.module.js'); THREE.Mesh.prototype.raycast = BVH.acceleratedRaycast; } catch (e) { console.warn('three-mesh-bvh indisponível', e); }
 const PM = (() => { try { return window.parent !== window && window.parent.SV && window.parent.SV.M ? window.parent.SV.M : null; } catch (e) { return null; } })();
 const SO_JOGADOR = !!PM && !PM.isGM();
 if (PM) document.documentElement.classList.add('na-mesa', SO_JOGADOR ? 'pj' : 'gm');
@@ -286,7 +288,7 @@ renderer.shadowMap.enabled = !fraco;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(48, 1, 0.3, 2600);
+const camera = new THREE.PerspectiveCamera(48, 1, 0.12, 2600);
 const controls = new OrbitControls(camera, canvas);
 controls.zoomSpeed = 0.35; // a rodinha aproxima devagar (o padrão era forte demais)
 controls.enableDamping = true; controls.dampingFactor = 0.08;
@@ -2743,6 +2745,7 @@ function andar(dt) {
   camera.getWorldDirection(_f); _f.y = 0; _f.normalize(); _r.set(-_f.z, 0, _f.x);
   const v = (modoSonho ? 3.4 : modoEstr ? 4 : 30) * (teclas.has('shift') ? 2.6 : 1) * dt;
   _m.copy(_f).multiplyScalar(fz * v).addScaledVector(_r, fx * v);
+  caminhoLivre(controls.target, _m);
   camera.position.add(_m); controls.target.add(_m); voo = null;
 }
 
@@ -2759,7 +2762,7 @@ function frame() {
   }
   andar(dt);
   controls.update();
-  if (!voo) colideCamera(modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
+  colideCamera(cenaAtiva());
   agua.material.normalMap.offset.set(t * 0.004, t * 0.003);
   if (modoEstr) {
     quadroEstrada(t, dt);
@@ -2797,47 +2800,100 @@ function frame() {
   for (const n of nevoas) { const u = n.userData; n.position.x = u.x + Math.sin(t * 0.04 + u.v * 10) * 14; n.position.y = Math.max(alt(u.x, u.z), agua.position.y) + u.sobe; }
   try { renderer.render(scene, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
 }
-function loop() { if (!(PM && PM.pausado())) frame(); requestAnimationFrame(loop); }
-/* ===== câmera não atravessa construções =====
-   Um raio do alvo até a câmera; se uma parede, casa ou muro estiver no meio, a câmera para logo antes dela.
-   Só entram malhas sólidas e de tamanho de construção: chão, água, árvores instanciadas, figuras e efeitos ficam de fora.
-   A lista de cada cena é refeita a cada 4 s (peças e cenas mudam). Só roda quando a câmera ou o alvo se mexem. */
-const COL = { ray: new THREE.Raycaster(), lista: new Map(), ultP: new THREE.Vector3(1e9, 0, 0), ultA: new THREE.Vector3(), dir: new THREE.Vector3(), caixa: new THREE.Box3(), tam: new THREE.Vector3(), ligada: true };
-if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => (modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene) }; // só no modo de teste local
+function loop() { if (!(PM && PM.pausado())) { frame(); soltaCamera(); } requestAnimationFrame(loop); }
+/* ===== câmera não atravessa construções, chão nem teto =====
+   A câmera tem duas posições: a desejada (a que os controles calculam) e a mostrada.
+   A cada quadro, cinco raios saem do alvo até a posição desejada (um no centro e quatro em volta, como uma esfera de 0,35 m).
+   Se algo sólido estiver no meio (parede, teto, casa, muro, contêiner, ônibus), a câmera mostrada para antes dele;
+   se o caminho abrir de novo, ela volta devagar, sem tranco. Depois de desenhar, a câmera volta para a posição desejada,
+   para os controles não "encolherem" a distância. O chão de cada cena é medido pela própria função de altura dela.
+   Os sólidos usam uma árvore de colisão (three-mesh-bvh), então dá para testar as construções inteiras, inclusive as fundidas. */
+const COL = { ray: new THREE.Raycaster(), lista: new Map(), dir: new THREE.Vector3(), lado: new THREE.Vector3(), cima: new THREE.Vector3(), orig: new THREE.Vector3(),
+  desejada: new THREE.Vector3(), tem: false, distMostrada: null, raio: 0.35, ligada: true, caixa: new THREE.Box3(), tam: new THREE.Vector3() };
+COL.ray.firstHitOnly = true;
+if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => cenaAtiva() }; // só no modo de teste local
+const cenaAtiva = () => (modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
+function chaoAqui(x, z) {
+  if (modoEstr) return altE(x, z);
+  if (modoMata) return altM(x, z);
+  if (modoRem) return altR(x, z);
+  if (modoSonho) return 0;
+  return alt(x, z);
+}
 function solidosDa(raiz) {
   const ag = performance.now(), em = COL.lista.get(raiz);
-  if (em && ag - em.t < 4000) return em.l;
+  if (em && ag - em.t < 5000) return em.l;
   const l = [];
   raiz.traverse(o => {
-    if (!o.isMesh || !o.visible || o === agua) return;
-    if (o.isInstancedMesh && o.count > 40) return; // árvores, pedras e matos às centenas: ficam de fora
+    if (!o.isMesh || !o.visible || o === agua || o === chao || o === chaoM || o === chaoE) return;
+    if (o.userData.semColisao) return;
+    for (let p = o; p; p = p.parent) if (p.userData && (p.userData.standee || p.visible === false)) return;
     const m = Array.isArray(o.material) ? o.material[0] : o.material;
-    if (!m || m.transparent || m.opacity < 1 || m.depthWrite === false) return;
-    if (o.userData.standee) return; for (let p = o.parent; p; p = p.parent) if (p.userData && p.userData.standee) return;
-    const g = o.geometry; if (!g) return;
-    const tri = g.index ? g.index.count / 3 : (g.attributes.position ? g.attributes.position.count / 3 : 0);
-    if (tri > 6000) return; // terrenos e malhas enormes: o limite de ângulo já cuida
-    if (o.isInstancedMesh) { // mede uma cópia só (a caixa do conjunto todo pode cobrir a cidade inteira)
-      if (!g.boundingBox) g.computeBoundingBox();
+    if (!m || m.transparent || m.depthWrite === false || m.isSpriteMaterial) return;
+    const g = o.geometry; if (!g || !g.attributes.position) return;
+    if (!g.boundingBox) g.computeBoundingBox();
+    if (o.isInstancedMesh) {
+      if (o.count > 400) return; // matos, cogumelos e pedrinhas às centenas
       const mt = new THREE.Matrix4(); o.getMatrixAt(0, mt); mt.premultiply(o.matrixWorld);
       COL.caixa.copy(g.boundingBox).applyMatrix4(mt).getSize(COL.tam);
-    } else COL.caixa.setFromObject(o).getSize(COL.tam);
-    if (Math.max(COL.tam.x, COL.tam.z) > 60 || COL.tam.y < 1.2) return; // chão, estradas, tapetes, coisas baixas
+      if (COL.tam.y < 1.0 || Math.max(COL.tam.x, COL.tam.z) < 0.25) return; // coisas baixas ou finas demais (postes de cerca, cones)
+    } else {
+      COL.caixa.copy(g.boundingBox).applyMatrix4(o.matrixWorld).getSize(COL.tam);
+      if (COL.tam.y < 0.6 && Math.max(COL.tam.x, COL.tam.z) < 3) return; // objetos pequenos de chão
+    }
+    if (BVH && !g.boundsTree) { try { g.boundsTree = new BVH.MeshBVH(g); } catch (e) { /* sem árvore: o raio testa os triângulos, mais devagar */ } }
     l.push(o);
   });
   COL.lista.set(raiz, { t: ag, l });
   return l;
 }
+function raioLivre(de, dir, longe, lista) {
+  COL.ray.set(de, dir); COL.ray.near = 0; COL.ray.far = longe;
+  const h = COL.ray.intersectObjects(lista, false);
+  let d = longe; for (const x of h) if (x.distance < d) d = x.distance;
+  return d;
+}
+/* calcula onde a câmera pode ficar, sem mexer na desejada */
 function colideCamera(raiz) {
   if (!COL.ligada || !raiz) return;
-  if (camera.position.distanceToSquared(COL.ultP) < 1e-6 && controls.target.distanceToSquared(COL.ultA) < 1e-6) return;
-  const alvo = controls.target, d = COL.dir.subVectors(camera.position, alvo), dist = d.length();
-  if (dist < 0.3) { COL.ultP.copy(camera.position); COL.ultA.copy(alvo); return; }
+  const alvo = controls.target;
+  // o alvo nunca fica embaixo do chão
+  const ga = chaoAqui(alvo.x, alvo.z); if (alvo.y < ga + 0.15) alvo.y = ga + 0.15;
+  // a desejada também não (os controles podem levar a câmera para baixo do terreno em morros)
+  const gd = chaoAqui(camera.position.x, camera.position.z); if (camera.position.y < gd + 0.5) camera.position.y = gd + 0.5;
+  COL.desejada.copy(camera.position); COL.tem = true;
+  const d = COL.dir.subVectors(COL.desejada, alvo), dist = d.length();
+  // parado e já assentado: não precisa testar de novo
+  if (COL.ultD && COL.ultD.equals(COL.desejada) && COL.ultA.equals(alvo) && COL.quer != null && Math.abs(COL.distMostrada - COL.quer) < 0.005 && !voo) { camera.position.copy(alvo).addScaledVector(d.divideScalar(dist || 1), COL.distMostrada); return; }
+  COL.ultD = (COL.ultD || new THREE.Vector3()).copy(COL.desejada); COL.ultA = (COL.ultA || new THREE.Vector3()).copy(alvo);
+  if (dist < 0.4) { COL.distMostrada = dist; return; }
   d.divideScalar(dist);
-  COL.ray.set(alvo, d); COL.ray.far = dist; COL.ray.near = 0.05;
-  const hit = COL.ray.intersectObjects(solidosDa(raiz), false)[0];
-  if (hit && hit.distance < dist - 0.05) camera.position.copy(alvo).addScaledVector(d, Math.max(0.3, hit.distance - 0.25));
-  COL.ultP.copy(camera.position); COL.ultA.copy(alvo);
+  const lista = solidosDa(raiz);
+  COL.lado.set(-d.z, 0, d.x); if (COL.lado.lengthSq() < 1e-6) COL.lado.set(1, 0, 0); COL.lado.normalize();
+  COL.cima.crossVectors(COL.lado, d).normalize();
+  let livre = raioLivre(alvo, d, dist, lista);
+  const r = COL.raio;
+  for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    COL.orig.copy(alvo).addScaledVector(COL.lado, a * r).addScaledVector(COL.cima, b * r);
+    livre = Math.min(livre, raioLivre(COL.orig, d, dist, lista));
+  }
+  let quer = livre < dist ? Math.max(0.4, livre - r) : dist; COL.quer = quer;
+  // amaciar: aproxima na hora (para não mostrar o que está atrás da parede) e volta devagar
+  if (COL.distMostrada == null || voo) COL.distMostrada = quer;
+  else COL.distMostrada = quer < COL.distMostrada ? quer : COL.distMostrada + (quer - COL.distMostrada) * 0.12;
+  camera.position.copy(alvo).addScaledVector(d, COL.distMostrada);
+  // o chão debaixo da câmera mostrada (num morro entre o alvo e a câmera)
+  const gm = chaoAqui(camera.position.x, camera.position.z); if (camera.position.y < gm + 0.45) camera.position.y = gm + 0.45;
+}
+/* depois de desenhar: devolve a câmera para onde os controles a deixaram */
+function soltaCamera() { if (COL.tem) { camera.position.copy(COL.desejada); COL.tem = false; } }
+/* andar com WASD não atravessa parede: testa o caminho do alvo antes de mover */
+function caminhoLivre(de, mov) {
+  const dist = mov.length(); if (dist < 1e-4) return mov;
+  const dir = COL.orig.copy(mov).divideScalar(dist), lista = solidosDa(cenaAtiva());
+  const livre = raioLivre(de, dir, dist + 0.6, lista);
+  if (livre < dist + 0.6) return mov.multiplyScalar(Math.max(0, livre - 0.6) / dist);
+  return mov;
 }
 
 /* ---------- dentro do site: peças, papel e cena de todos ---------- */
