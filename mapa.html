@@ -2871,15 +2871,30 @@ function raioLivre(de, dir, longe, lista) {
 /* um ponto está "dentro" de uma construção quando tem teto em cima e parede em quase toda volta */
 const _ddir = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)], _cima = new THREE.Vector3(0, 1, 0);
 function fechado(pt, lista) {
-  if (raioLivre(pt, _cima, 12, lista) >= 12) return false;
-  let n = 0; for (const d of _ddir) if (raioLivre(pt, d, 16, lista) < 16) n++;
-  return n >= 3;
+  const raiz = cenaAtiva(); duplaFace(raiz, true);
+  try {
+    if (raioLivre(pt, _cima, 12, lista) >= 12) return false;
+    let n = 0; for (const d of _ddir) if (raioLivre(pt, d, 16, lista) < 16) n++;
+    return n >= 3;
+  } finally { duplaFace(raiz, false); }
+}
+/* o que a câmera VÊ entre ela e o alvo: só as faces viradas para a câmera (como o desenho), do mesmo jeito que a tela.
+   Assim um teto de corte (o do ônibus, visto de cima) não bloqueia, e uma parede de verdade bloqueia.
+   Devolve a distância livre a partir do alvo. */
+const _cv = new THREE.Vector3(), _cd = new THREE.Vector3();
+function livreAteCamera(origAlvo, d, dist, lista) {
+  _cv.copy(origAlvo).addScaledVector(d, dist); _cd.copy(d).negate();
+  COL.ray.set(_cv, _cd); COL.ray.near = 0; COL.ray.far = Math.max(0, dist - 0.12);
+  const h = COL.ray.intersectObjects(lista, false);
+  let perto = dist; // menor distância do alvo até um oclusor
+  for (const x of h) { const doAlvo = dist - x.distance; if (doAlvo < perto && !(doAlvo < 3 && contemAlvo(x))) perto = doAlvo; }
+  return perto;
 }
 /* calcula onde a câmera pode ficar, sem mexer na desejada */
 function colideCamera(raiz) {
   if (!COL.ligada || !raiz) return;
-  solidosDa(raiz); duplaFace(raiz, true);
-  try { colideCamera0(raiz); } finally { duplaFace(raiz, false); }
+  solidosDa(raiz);
+  colideCamera0(raiz);
 }
 function colideCamera0(raiz) {
   const alvo = controls.target;
@@ -2904,14 +2919,15 @@ function colideCamera0(raiz) {
   }
   COL.lado.set(-d.z, 0, d.x); if (COL.lado.lengthSq() < 1e-6) COL.lado.set(1, 0, 0); COL.lado.normalize();
   COL.cima.crossVectors(COL.lado, d).normalize();
-  let livre = raioLivre(alvo, d, dist, lista);
+  let livre = livreAteCamera(alvo, d, dist, lista);
   const r = COL.raio;
   for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     // o raio de lado só vale se a borda da "esfera" não estiver dentro de algo (o alvo encostado no chão da praça, numa parede)
     COL.orig.copy(COL.lado).multiplyScalar(a).addScaledVector(COL.cima, b);
-    if (raioLivre(alvo, COL.orig, r, lista) < r) continue;
+    duplaFace(raiz, true); const dentro = raioLivre(alvo, COL.orig, r, lista) < r; duplaFace(raiz, false);
+    if (dentro) continue;
     COL.orig.multiplyScalar(r).add(alvo);
-    livre = Math.min(livre, raioLivre(COL.orig, d, dist, lista));
+    livre = Math.min(livre, livreAteCamera(COL.orig.clone(), d, dist, lista));
   }
   let quer = livre < dist ? Math.max(0.4, livre - r) : dist; COL.quer = quer;
   // amaciar: aproxima na hora (para não mostrar o que está atrás da parede) e volta devagar
