@@ -1563,7 +1563,7 @@ function ndc(e) { const r = canvas.getBoundingClientRect(); ptr.set(((e.clientX 
 function pegar(e) { ndc(e); ray.setFromCamera(ptr, camera); const h = ray.intersectObjects(standees.filter(s => (s.cena || 'vale') === cenaAqui()).map(s => s.card), false)[0]; return h?.object.userData.standee || null; }
 canvas.addEventListener('pointerdown', e => { if (e.button !== 0) return; const s = pegar(e); if (!s || (PM && !PM.podeMover(s.id))) return; arrasto = s; controls.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; });
 canvas.addEventListener('pointermove', e => {
-  if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const ch = modoCen ? CEN[modoCen].chao : modoMata ? chaoM : modoEstr ? chaoE : chao, h = ch && ray.intersectObject(ch, true)[0]; if (h && modoCen && CEN[modoCen].limita && !CEN[modoCen].limita(arrasto.g.position.x, arrasto.g.position.z, h.point.x, h.point.z)) return; if (h) { arrasto.g.position.set(h.point.x, altC(arrasto.cena, h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
+  if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const ch = modoCen ? CEN[modoCen].chao : modoMata ? chaoM : modoEstr ? chaoE : chao, h = ch && ray.intersectObject(ch, true)[0]; if (h && modoCen && CEN[modoCen].limita && !CEN[modoCen].limita(arrasto.g.position.x, arrasto.g.position.z, h.point.x, h.point.z)) return; if (h && modoCen) { const yF = CEN[modoCen].alt(h.point.x, h.point.z, h.point.y); arrasto.yAndar = yF; arrasto.g.position.set(h.point.x, yF + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z, false, undefined, yF); return; } if (h) { arrasto.g.position.set(h.point.x, altC(arrasto.cena, h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
   if (e.pointerType === 'mouse') { const s = pegar(e); canvas.style.cursor = s && (!PM || PM.podeMover(s.id)) ? 'grab' : ''; }
 });
 // rodinha do mouse em cima de uma figura: vira de frente / de costas (fora de uma figura, a rodinha continua dando zoom)
@@ -1576,7 +1576,7 @@ window.addEventListener('wheel', e => {
   const agora = performance.now(); if (agora - ultVirada < 280) return; ultVirada = agora;
   s.costas = !s.costas; if (aoVirar) aoVirar(s);
 }, { capture: true, passive: false });
-const soltar = () => { if (!arrasto) return; if (PM) PM.mover(arrasto.id, arrasto.g.position.x, arrasto.g.position.z, true, arrasto.face); arrasto = null; controls.enabled = true; canvas.style.cursor = ''; guardar(); };
+const soltar = () => { if (!arrasto) return; if (PM) PM.mover(arrasto.id, arrasto.g.position.x, arrasto.g.position.z, true, arrasto.face, modoCen && arrasto.yAndar != null ? arrasto.yAndar : undefined); arrasto.yAndar = null; arrasto = null; controls.enabled = true; canvas.style.cursor = ''; guardar(); };
 canvas.addEventListener('pointerup', soltar); canvas.addEventListener('pointercancel', soltar);
 
 /* ---------- Remanso, 1979: a cidade debaixo da represa (mapa à parte) ---------- */
@@ -1878,7 +1878,7 @@ const gMata = new THREE.Group(); mataCena.add(gMata);
 const fogMataNoite = new THREE.FogExp2(0x0c1513, 0.034), fogMataDia = new THREE.FogExp2(0x7a8580, 0.02);
 let modoMata = false, mataPronta = false, salvoMata = null, chaoM = null, mataHemi, mataLua, mataVaga, mataNoiteAt = null, mataNevoaAt = null, mataLuzAntena = null, mataBolaAntena = null;
 const marcadoresM = [], nevoasM = [];
-const altC = (cena, x, z) => ehCen(cena) ? CEN[cena].alt(x, z) : cena === 'mata' ? altM(x, z) : cena === 'estrada' ? altE(x, z) : alt(x, z);
+const altC = (cena, x, z, y) => ehCen(cena) ? CEN[cena].alt(x, z, y) : cena === 'mata' ? altM(x, z) : cena === 'estrada' ? altE(x, z) : alt(x, z);
 const zSanga = x => 30 + 14 * Math.sin(x / 28);
 function altM(x, z) {
   let y = 2.2 * Math.sin(x * 0.035) * Math.cos(z * 0.03) + 1.2 * Math.sin(x * 0.09 + z * 0.07) + 0.4 * Math.sin(x * 0.23) * Math.sin(z * 0.19);
@@ -2789,7 +2789,7 @@ const CX = {
     parede('s', w, x0, z0 + d, 0);        // z = z0 + d
     parede('o', d, x0, z0 + d, Math.PI / 2);   // x = x0, de z0 + d para z0 (pos medida a partir de z0 + d)
     parede('l', d, x0 + w, z0 + d, Math.PI / 2);
-    if (o.teto !== false) { const t = CX.caixa(g, w + 0.3, 0.12, d + 0.3, x0 + w / 2, y + H, z0 + d / 2, o.forro || CX.matTex('reboco', 2, 2, 0xd8d0c0), 0, true); (c.tetos ||= []).push(t); }
+    if (o.teto !== false) { const t = CX.caixa(g, w + 0.3, 0.12, d + 0.3, x0 + w / 2, y + H, z0 + d / 2, o.forro || CX.matTex('reboco', 2, 2, 0xd8d0c0), 0, true); t.userData.semColisao = true; (c.tetos ||= []).push(t); }
     if (o.rodape !== false) { const rd = CX.matTex('madeira', 4, 1, 0x4a3426); for (const [ww, dd, xx, zz] of [[w - 0.2, 0.04, x0 + w / 2, z0 + 0.11], [w - 0.2, 0.04, x0 + w / 2, z0 + d - 0.11], [0.04, d - 0.2, x0 + 0.11, z0 + d / 2], [0.04, d - 0.2, x0 + w - 0.11, z0 + d / 2]]) CX.caixa(g, ww, 0.12, dd, xx, y, zz, rd, 0, false); }
     if (o.luz) { const l = new THREE.PointLight(o.luzCor || 0xffd9a0, 0, Math.max(w, d) * 1.6, 1.6); l.position.set(x0 + w / 2, y + H - 0.4, z0 + d / 2); g.add(l); (c.luzes ||= []).push({ l, i: o.luz });
       const lp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 0.6 })); lp.position.copy(l.position); g.add(lp); }
@@ -2853,8 +2853,10 @@ async function montaInstCen(id) {
 }
 function aplicaLuzCen(c) {
   c.luzAt = noite + '|' + nevoaOn;
-  c.cena.fog = noite ? c.fogN : nevoaOn ? c.fogD : c.fogL;
-  c.cena.background = new THREE.Color(noite ? 0x05080a : (c.ceu ?? 0xa3adab));
+  if (c.raio) { // neblina total em volta: perto se vê, longe some na névoa
+    const cor = c.nevoaVerde ? (noite ? 0x0e1612 : 0x26352e) : corNevoa(); c.fogR ||= new THREE.Fog(cor, 1, 2); c.fogR.color.set(cor); const k = c.interno ? 1.6 : 1; c.fogR.near = c.raio * (nevoaOn ? 0.55 : 0.8) * k; c.fogR.far = c.raio * (nevoaOn ? 1.35 : 1.7) * k;
+    c.cena.fog = c.fogR; c.cena.background = new THREE.Color(cor); for (const p of c.paredesNevoa || []) p.material.color.set(cor);
+  } else { c.cena.fog = noite ? c.fogN : nevoaOn ? c.fogD : c.fogL; c.cena.background = new THREE.Color(noite ? 0x05080a : (c.ceu ?? 0xa3adab)); }
   if (c.interno) { c.hemi.intensity = noite ? 0.5 : 0.8; c.sol.intensity = noite ? 0.1 : 0.55; }
   else { c.hemi.color.set(noite ? 0x6f8592 : 0xd3dad6); c.hemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); c.hemi.intensity = noite ? 0.42 : 1.25; c.sol.color.set(noite ? 0xa9bccb : 0xf3eee2); c.sol.intensity = noite ? 0.32 : 1.15; }
   for (const x of c.luzes || []) x.l.intensity = (noite ? 1 : 0.35) * x.i;
@@ -2866,15 +2868,20 @@ function quadroCen(t, dt) {
   const alvo = controls.target; c.sol.position.set(alvo.x - 30, alvo.y + 60, alvo.z + 25); c.sol.target.position.copy(alvo);
   for (const s of standees) {
     if (s.cena !== modoCen) continue;
-    if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 10); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = c.alt(p.x, p.z) + 0.13; }
+    if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 10); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = c.alt(p.x, p.z, s.alvo.y ?? p.y - 0.13) + 0.13; }
     poseFigura(s, camera.position.x - s.g.position.x, camera.position.z - s.g.position.z);
   }
   if (c.tetos) for (const tt of c.tetos) { // olhando de cima para dentro do cômodo, o teto (e o telhado) some
     const b = tt.userData.bb ||= new THREE.Box3().setFromObject(tt).expandByScalar(0.8), a = controls.target;
     const mira = a.x > b.min.x && a.x < b.max.x && a.z > b.min.z && a.z < b.max.z;
-    tt.visible = !(mira && camera.position.y > tt.position.y - 0.05);
+    const cy = COL.tem ? COL.desejada.y : camera.position.y; tt.visible = !(mira && (cy > tt.position.y - 0.05 || (c.andares && a.y < tt.position.y - 2.2)));
   }
   for (const r of c.rotulosGM || []) r.visible = !SO_JOGADOR && !!c.verRotulos;
+  if (c.andares) { // prédio de vários andares: olhando para um andar, os de cima somem (corte), para dar para ver dentro
+    const a = controls.target, pg = c.pegada, dentro = pg && a.x > pg[0] - 0.5 && a.x < pg[2] + 0.5 && a.z > pg[1] - 0.5 && a.z < pg[3] + 0.5;
+    let mud = false; for (const A of c.andares) { const v = !dentro || A.y <= a.y + 1.2; if (A.g.visible !== v) { A.g.visible = v; mud = true; } }
+    if (mud) COL.lista.delete(c.cena);
+  }
   c.quadro?.(c, t, dt);
 }
 function camerasDoCen(c) {
@@ -2959,11 +2966,11 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
   cenario({
     id: 'c-cemiterio', nome: 'Cemitério municipal', para: 'o cemitério', curto: 'Cemitério', em: 'no cemitério', grupo: 'Cemitério', dica: 'covas abertas, capela, ossários',
     sub: 'Cemitério municipal de São Valentim · fechado pela obra', ceu: 0x9aa4a2, densD: 0.02, densN: 0.034,
-    nota: 'Fechado pela hidrelétrica: muro novo de 2,1 m e o portão de ferro. Os números 1 a 6 (botão no painel) são os esconderijos do Coro: 1 capela mortuária, 2 atrás do jazigo dos Basso, 3 a cova vazia e seca, 4 debaixo da lona das exumações, 5 entre os ossários, 6 a caçamba da caminhonete.',
+    nota: 'Fechado pela hidrelétrica: muro novo de 3,4 m e o portão de ferro. Os números 1 a 6 (botão no painel) são os esconderijos do Coro: 1 capela mortuária, 2 atrás do jazigo dos Basso, 3 a cova vazia e seca, 4 debaixo da lona das exumações, 5 entre os ossários, 6 a caçamba da caminhonete.',
     alt: altCem, longe: 110,
     limita: (x0, z0, x1, z1) => naGrade(x0, z0, x1, z1),
     cams: [
-      ['Vista geral', { pos: [6, 46, 62], alvo: [0, 0, 0] }],
+      ['Vista geral', { pos: [4, 30, 34], alvo: [0, 0, 0] }],
       ['O portão', { pos: [0, 2.3, 35], alvo: [0, 1.4, 22] }],
       ['A capela', { pos: [0, 2.4, -8], alvo: [0, 1.6, -19] }],
       ['Dentro da capela', { pos: [0, 1.7, -17.2], alvo: [0, 1.2, -23] }],
@@ -2982,7 +2989,7 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
       if (c.cadeado) c.cadeado.visible = (e.cemPortao || 'trancado') === 'trancado';
       if (c.vela) { c.vela.visible = !!e.cemVela; c.velaLuz.intensity = e.cemVela ? 2.2 : 0; }
     },
-    luz(c) { if (c.hz) c.hz.material.map = noite ? c.hz.userData.n : c.hz.userData.d; for (const l of c.postes || []) l.intensity = noite ? 9 : 0; },
+    luz(c) { for (const l of c.postes || []) l.intensity = noite ? 9 : 0; },
     quadro(c, t, dt) {
       const k = Math.min(1, dt * 1.6); c.portaoAng = (c.portaoAng ?? 0) + ((c.portaoAlvo ?? 0) - (c.portaoAng ?? 0)) * k;
       if (c.folhas) { c.folhas[0].rotation.y = c.portaoAng * 1.75; c.folhas[1].rotation.y = -c.portaoAng * 1.75; }
@@ -3001,29 +3008,29 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
       };
       const naQuadra = (x, z) => x > EXU.x0 + 0.3 && x < EXU.x1 - 0.3 && z > EXU.z0 + 0.3 && z < EXU.z1 - 0.3;
       c.chao = new THREE.Group(); g.add(c.chao);
-      c.chao.add(terreno(240, 240, 160, 160, mGrama, 0, 0, (x, z) => naQuadra(x, z) ? altCem(x, z) - 2.5 : altCem(x, z)));
+      c.chao.add(terreno(104, 104, 104, 104, mGrama, 0, 0, (x, z) => naQuadra(x, z) ? altCem(x, z) - 2.5 : altCem(x, z)));
       c.chao.add(terreno(EXU.x1 - EXU.x0 + 0.4, EXU.z1 - EXU.z0 + 0.4, 96, 96, CX.matTex('terra', 6, 6, 0xb39c80), (EXU.x0 + EXU.x1) / 2, (EXU.z0 + EXU.z1) / 2, (x, z) => altCem(x, z) + 0.01));
       /* caminhos: do portão até a capela (pedra) e a travessa (terra) */
       { const cam = new THREE.Mesh(new THREE.PlaneGeometry(3, 42, 3, 42), mCalc); cam.rotation.x = -Math.PI / 2; cam.position.set(0, 0.07, 4.5); const p = cam.geometry.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, altCem(p.getX(i), 4.5 - p.getY(i)) + 0.03 - 0.07); cam.geometry.computeVertexNormals(); cam.receiveShadow = true; g.add(cam);
         const tr = new THREE.Mesh(new THREE.PlaneGeometry(58, 2, 58, 2), mTerra); tr.rotation.x = -Math.PI / 2; tr.position.set(-1, 0.06, 1.5); const q = tr.geometry.attributes.position; for (let i = 0; i < q.count; i++) q.setZ(i, altCem(q.getX(i) - 1, 1.5 - q.getY(i)) + 0.03 - 0.06); tr.geometry.computeVertexNormals(); tr.receiveShadow = true; g.add(tr);
-        const rua = new THREE.Mesh(new THREE.PlaneGeometry(160, 6, 80, 3), mTerra); rua.rotation.x = -Math.PI / 2; rua.position.set(0, 0.06, 32); const r = rua.geometry.attributes.position; for (let i = 0; i < r.count; i++) r.setZ(i, altCem(r.getX(i), 32 - r.getY(i)) + 0.03 - 0.06); rua.geometry.computeVertexNormals(); rua.receiveShadow = true; g.add(rua); }
+        const rua = new THREE.Mesh(new THREE.PlaneGeometry(26, 6, 26, 3), mTerra); rua.rotation.x = -Math.PI / 2; rua.position.set(0, 0.06, 32); const r = rua.geometry.attributes.position; for (let i = 0; i < r.count; i++) r.setZ(i, altCem(r.getX(i), 32 - r.getY(i)) + 0.03 - 0.06); rua.geometry.computeVertexNormals(); rua.receiveShadow = true; g.add(rua); }
       /* o muro alto (novo, da obra) com pilares e o vão do portão */
-      const H = 2.1, E = 0.35;
+      const H = 3.4, E = 0.4;
       const muro = (x, z, w, d) => { CX.caixa(g, w, H + 0.4, d, x, -0.4, z, mMuro); CX.caixa(g, w + 0.16, 0.12, d + 0.16, x, H, z, mTopo); };
       muro(0, -MZ, 2 * MX + E, E); muro(-MX, 0, E, 2 * MZ); muro(MX, 0, E, 2 * MZ);
       const vao = 3.2, lado = MX - vao / 2; muro(-(vao / 2 + lado / 2), MZ, lado + E / 2, E); muro(vao / 2 + lado / 2, MZ, lado + E / 2, E);
       for (let x = -MX; x <= MX; x += 6.4) for (const z of [-MZ, MZ]) if (Math.abs(x) > 2) CX.caixa(g, 0.55, H + 0.3, 0.55, x, -0.2, z, mMuro);
       for (let z = -MZ + 6.5; z < MZ; z += 6.5) for (const x of [-MX, MX]) CX.caixa(g, 0.55, H + 0.3, 0.55, x, -0.2, z, mMuro);
       /* pilares do portão, arco com a placa e o portão de duas folhas (o mestre abre e fecha) */
-      for (const s of [-1, 1]) { CX.caixa(g, 0.7, 3.1, 0.7, s * 1.95, -0.2, MZ, mMuro); CX.caixa(g, 0.82, 0.14, 0.82, s * 1.95, 2.9, MZ, mTopo); }
-      { const arco = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.06, 6, 24, Math.PI), mFerro); arco.position.set(0, 2.85, MZ); g.add(arco);
-        const pl = CX.texto(['CEMITÉRIO MUNICIPAL'], 2.6, 0.38, { fundo: '#1d1f1e', cor: '#cfc7b3', brilho: 0.15, dupla: true }); pl.position.set(0, 3.55, MZ); g.add(pl); }
+      for (const s of [-1, 1]) { CX.caixa(g, 0.8, 4.3, 0.8, s * 1.95, -0.2, MZ, mMuro); CX.caixa(g, 0.92, 0.14, 0.92, s * 1.95, 4.1, MZ, mTopo); }
+      { const arco = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.06, 6, 24, Math.PI), mFerro); arco.position.set(0, 4.05, MZ); g.add(arco);
+        const pl = CX.texto(['CEMITÉRIO MUNICIPAL'], 2.6, 0.38, { fundo: '#1d1f1e', cor: '#cfc7b3', brilho: 0.15, dupla: true }); pl.position.set(0, 4.75, MZ); g.add(pl); }
       c.folhas = [];
       for (const s of [-1, 1]) {
         const piv = new THREE.Group(); piv.position.set(s * 1.6, 0, MZ); g.add(piv); c.folhas.push(piv);
         const fo = new THREE.Group(); fo.position.x = -s * 0.8; piv.add(fo);
-        for (let k = 0; k < 9; k++) { const b = CX.cil(fo, 0.022, 0.022, 2.25, (k - 4) * 0.18, 0.05, 0, mFerro, 6); b.userData.portao = true; const ponta = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 6), mFerro); ponta.position.set((k - 4) * 0.18, 2.36, 0); fo.add(ponta); }
-        for (const y of [0.2, 1.05, 2.0]) CX.caixa(fo, 1.62, 0.06, 0.05, 0, y, 0, mFerro);
+        for (let k = 0; k < 9; k++) { const b = CX.cil(fo, 0.022, 0.022, 3.35, (k - 4) * 0.18, 0.05, 0, mFerro, 6); b.userData.portao = true; const ponta = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 6), mFerro); ponta.position.set((k - 4) * 0.18, 3.46, 0); fo.add(ponta); }
+        for (const y of [0.2, 1.05, 2.0, 3.1]) CX.caixa(fo, 1.62, 0.06, 0.05, 0, y, 0, mFerro);
         const vol = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 6, 16), mFerro); vol.position.set(0, 1.5, 0); fo.add(vol);
       }
       { const cad = new THREE.Group(); cad.position.set(0, 1.12, MZ + 0.08); g.add(cad); c.cadeado = cad;
@@ -3033,7 +3040,7 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
       { const av = CX.texto(['PROIBIDA A ENTRADA', 'Área em obra · Hidrelétrica Vale Alto', 'Remoção de restos mortais'], 2.4, 1.0, { fundo: '#e9e0c4', cor: '#7a1e14', suja: true, fonte: 46 }); av.position.set(4.6, 1.3, MZ + 0.19); g.add(av); }
       /* a capela mortuária: paredes inteiras, porta para o sul, teto que some de cima, telhado */
       { const s = CX.sala(c, g, CAP.x0, CAP.z0, CAP.x1 - CAP.x0, CAP.z1 - CAP.z0, { y: CAP.y, h: 3.4, parede: CX.matTex('reboco', 3, 1, 0xd9d0bd), piso: CX.matTex('calcamento', 3, 3, 0xa8a090), portas: [{ lado: 's', pos: 3.6, l: 1.4, h: 2.5 }], janelas: [{ lado: 'o', pos: 4, l: 0.9, h0: 1.4, h: 1.2 }, { lado: 'l', pos: 4, l: 0.9, h0: 1.4, h: 1.2 }], luz: 2.4, luzCor: 0xffcf8a });
-        const tel = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 4.6, 2.2, 4, 1), matTelha); tel.rotation.y = Math.PI / 4; tel.scale.set(1, 1, (CAP.z1 - CAP.z0 + 0.8) / 6.5); tel.position.set(0, CAP.y + 3.4 + 1.1, (CAP.z0 + CAP.z1) / 2); tel.castShadow = true; g.add(tel); c.tetos.push(tel);
+        const tel = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 4.6, 2.2, 4, 1), matTelha); tel.rotation.y = Math.PI / 4; tel.scale.set(1, 1, (CAP.z1 - CAP.z0 + 0.8) / 6.5); tel.position.set(0, CAP.y + 3.4 + 1.1, (CAP.z0 + CAP.z1) / 2); tel.castShadow = true; tel.userData.semColisao = true; g.add(tel); c.tetos.push(tel);
         CX.modelo(g, 'g', 'cross', 0, CAP.y + 3.4 + 2.15, CAP.z1 - 0.2, 0, 0.6);
         const zc = CAP.z0 + 1.1; CX.caixa(g, 2.2, 0.95, 0.8, 0, CAP.y, zc, CX.matTex('madeira', 1, 1, 0x5a3a28)); // o altar
         CX.modelo(g, 'g', 'cross', 0, CAP.y + 0.95, zc - 0.1, 0, 0.45);
@@ -3100,13 +3107,10 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
       /* a caminhonete da obra (esconderijo 6: a caçamba) */
       CX.modelo(g, 'c', 'truck', 25.5, altCem(25.5, 8), 8, Math.PI, 1.25, m => tinta(m, 0.75, 0x6d6a5a, 0.35));
       /* árvores, postes e o lado de fora */
-      plantaArvores(g, [[-27, 24], [27, -24], [-30, -2], [30, 2], [-8, 23], [10, 24.5]].map(([x, z]) => [x, altCem(x, z) - 0.2, z, 0.35 + rnd() * 0.15, rnd() * TAU]), [[-20, -23], [5, -24], [-30, 13]].map(([x, z]) => [x, altCem(x, z) - 0.2, z, 0.4, rnd() * TAU]));
-      const fora = []; for (let i = 0; i < 70; i++) { const a = rnd() * TAU, r = 48 + rnd() * 60, x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(z - 32) < 6) continue; fora.push([x, altCem(x, z) - 0.2, z, 0.4 + rnd() * 0.25, rnd() * TAU]); }
-      plantaArvores(g, fora.filter((_, i) => i % 2), fora.filter((_, i) => !(i % 2)));
+      plantaArvores(g, [[-27, 22], [27, -22], [-29, -2], [29, 2], [-8, 22], [10, 22]].map(([x, z]) => [x, altCem(x, z) - 0.2, z, 0.35 + rnd() * 0.15, rnd() * TAU]), [[-20, -23], [5, -24], [-30, 13]].map(([x, z]) => [x, altCem(x, z) - 0.2, z, 0.4, rnd() * TAU]));
       c.postes = [];
       for (const z of [18, 8, -4]) { CX.modelo(g, 'g', 'lightpost-single', 2.3, altCem(2.3, z), z, 0, 1, m => tinta(m, 0.35, 0x1d2022, 0.7)); const l = new THREE.PointLight(0xbfe0d0, 0, 16, 1.6); l.position.set(2.3, altCem(2.3, z) + 3.3, z); g.add(l); c.postes.push(l); }
-      { CX.modelo(g, 'r', 'electricity-pole', -6, altCem(-6, 34), 34, 0, 1); const l = new THREE.PointLight(0xffd9a0, 0, 20, 1.5); l.position.set(-6, altCem(-6, 34) + 6, 34); g.add(l); c.postes.push(l); }
-      c.hz = horizonte(g, 'campo', 160, 110, -20);
+      CX.nevoaEmVolta(c, g, 46, { y: -8 });
       /* os 6 esconderijos do Coro, com número que só o mestre vê */
       [[0, 2.2, -22.4, '1'], [-11, 1.6, -10.6, '2'], [COVAS[COVA_SECA][0], 0.6, COVAS[COVA_SECA][1], '3'], [24.5, 2.4, 16.5, '4'], [-27.9, 3, -16, '5'], [25.5, 2.9, 9.6, '6']]
         .forEach(([x, y, z, n]) => CX.rotuloGM(c, g, n, x, altCem(x, z) + y, z));
@@ -3120,7 +3124,7 @@ Object.assign(CX, {
   telhado(c, g, cx, y, cz, w, d, h = 1.6, mat = matTelha, aoLongoDeX = true) {
     const s = new THREE.Shape(), L = aoLongoDeX ? d : w; s.moveTo(-L / 2 - 0.35, 0); s.lineTo(L / 2 + 0.35, 0); s.lineTo(0, h); s.lineTo(-L / 2 - 0.35, 0);
     const comp = (aoLongoDeX ? w : d) + 0.7, geo = new THREE.ExtrudeGeometry(s, { depth: comp, bevelEnabled: false }); geo.translate(0, 0, -comp / 2);
-    const m = new THREE.Mesh(geo, mat); m.position.set(cx, y, cz); m.rotation.y = aoLongoDeX ? Math.PI / 2 : 0; m.castShadow = true; m.receiveShadow = true; g.add(m); (c.tetos ||= []).push(m); return m;
+    const m = new THREE.Mesh(geo, mat); m.position.set(cx, y, cz); m.rotation.y = aoLongoDeX ? Math.PI / 2 : 0; m.castShadow = true; m.receiveShadow = true; m.userData.semColisao = true; g.add(m); (c.tetos ||= []).push(m); return m;
   },
   balcao(g, x, y, z, w = 2.4, ry = 0, cor = 0x6e4e36) { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = CX.matTex('madeira', 2, 1, cor); CX.caixa(gg, w, 1.0, 0.6, 0, 0, 0, m); CX.caixa(gg, w + 0.1, 0.05, 0.7, 0, 1.0, 0, CX.matTex('madeira', 2, 1, 0x4a3324)); return gg; },
   prateleira(g, x, y, z, w = 2, h = 2, ry = 0, coisas = 'caixas') {
@@ -3176,10 +3180,10 @@ const alt0 = y => () => y;
 /* ---------- Igreja Matriz de Remanso (A Tragédia, sessão 7): nave, bancos, altar com a pedra, a torre, a lista e o Lacre ---------- */
 cenario({
   id: 'c-igreja', nome: 'Igreja Matriz de Remanso', para: 'a igreja de Remanso', curto: 'Igreja Matriz', em: 'na igreja de Remanso', grupo: 'Chefes', dica: 'a Tragédia · sessão 7',
-  sub: 'Remanso, 1979 · a igreja afogada', interno: true, ceu: 0x2a3832, neblinaCor: 0x2f4038, densD: 0.03, densN: 0.04,
+  sub: 'Remanso, 1979 · a igreja afogada', interno: true, nevoaVerde: true, ceu: 0x2a3832, neblinaCor: 0x2f4038, densD: 0.03, densN: 0.04,
   nota: 'Nave com bancos, altar com a pedra e a porta da torre. A lista de nomes está na parede norte. No painel: a vela preta (mostra as marcas do Lacre: três círculos ligados por nomes e um quarto vazio), o nível da água e as posições iniciais das duas Carpideiras.',
-  alt: (x, z) => (z < -10 && Math.abs(x) < 4.5 ? 0.6 : 0), longe: 40, polar: 0.7,
-  cams: [['A nave', { pos: [0, 3.2, 12], alvo: [0, 1.5, -8] }], ['O altar', { pos: [0, 2.4, -5], alvo: [0, 1.2, -13] }], ['A lista', { pos: [-2, 2, -1], alvo: [-5.9, 2.4, -1] }], ['A porta da torre', { pos: [2, 2, 8], alvo: [5.9, 1.2, 11] }], ['De cima', { pos: [0, 16, 6], alvo: [0, 0, -2] }]],
+  alt: (x, z) => (z < -12.5 && Math.abs(x) < 6 ? 0.6 : 0), longe: 40, polar: 0.7,
+  cams: [['A nave', { pos: [0, 3.4, 15], alvo: [0, 1.5, -10] }], ['O altar', { pos: [0, 2.6, -6], alvo: [0, 1.2, -16] }], ['A lista', { pos: [-3, 2.2, -1], alvo: [-7.9, 2.6, -1] }], ['A porta da torre', { pos: [3, 2, 10], alvo: [7.9, 1.2, 13] }], ['De cima', { pos: [0, 20, 8], alvo: [0, 0, -2] }], ['Por fora', { pos: [12, 6, 26], alvo: [0, 3, 0] }]],
   painel(c) { const n = CEN_EST.igAgua || 0, b = (v, t) => `<button class="btn${n === v ? ' on' : ''}" type="button" data-ig-agua="${v}">${t}</button>`;
     return `<div class="pc-l"><button class="btn${CEN_EST.igVela ? ' on' : ''}" type="button" data-ig-vela>Vela preta acesa</button><button class="btn${c.verRotulos ? ' on' : ''}" type="button" data-cem-num>Carpideiras</button></div><div class="pc-l"><span>Água</span>${b(0, 'Seca')}${b(1, 'Tornozelo')}${b(2, 'Joelho')}${b(3, 'Cintura')}</div>`; },
   botao(c, b) { if (b.dataset.igVela != null) estCen('igVela', !CEN_EST.igVela); if (b.dataset.igAgua != null) estCen('igAgua', +b.dataset.igAgua); },
@@ -3187,20 +3191,25 @@ cenario({
   quadro(c, t, dt) { c.agua.position.y += ((c.aguaAlvo ?? -0.2) - c.agua.position.y) * Math.min(1, dt * 0.6); c.agua.visible = c.agua.position.y > -0.15; if (c.agua.material.normalMap) c.agua.material.normalMap.offset.set(t * 0.01, t * 0.008); if (c.velaG && c.velaG.visible) c.velaL.intensity = 2.7 + Math.sin(t * 11) * 0.3; },
   monta(c) {
     const g = c.g, pedra = CX.matTex('reboco_velho', 4, 2, 0x8f9a86), lodo = CX.matTex('lodo', 6, 12, 0x7d8a70);
-    const ch = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), lodo); ch.rotation.x = -Math.PI / 2; ch.receiveShadow = true; g.add(ch); c.chao = ch;
-    CX.sala(c, g, -6, -14, 12, 28, { h: 8, piso: CX.matTex('calcamento', 4, 10, 0x8a9480), parede: pedra, forro: CX.matTex('madeira', 3, 6, 0x4a4436), portas: [{ lado: 's', pos: 6, l: 2.4, h: 4 }, { lado: 'l', pos: 3, l: 1.2, h: 2.4 }], janelas: [3, 9, 15, 21].flatMap(p => [{ lado: 'o', pos: p, l: 1.1, h0: 3.2, h: 2.6 }, { lado: 'l', pos: p + 3, l: 1.1, h0: 3.2, h: 2.6 }]) });
-    CX.caixa(g, 9, 0.6, 4, 0, 0, -12, CX.matTex('calcamento', 3, 1, 0x7f8a74)); // o presbitério
-    for (const sx of [-1, 1]) CX.caixa(g, 0.4, 0.6, 1.2, sx * 1.2, 0, -9.6, pedra);
-    CX.caixa(g, 2.6, 1.0, 1.1, 0, 0.6, -12.6, CX.matTex('concreto', 1, 1, 0x9a9a8a)); // o altar de pedra
-    { const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 0), new THREE.MeshStandardMaterial({ color: 0x1c2024, roughness: 0.5, flatShading: true })); p.scale.set(1.4, 0.6, 1); p.position.set(0, 1.85, -12.6); p.castShadow = true; g.add(p); } // a pedra do altar
-    CX.modelo(g, 'g', 'cross-column', 0, 0.6, -13.6, 0, 1.2, m => tinta(m, 0.42, 0x2c3326, 0.45));
-    for (let z = -6; z <= 10; z += 1.5) for (const sx of [-1, 1]) { const b = CX.caixa(g, 3.6, 0.45, 0.45, sx * 2.6, 0, z, CX.matTex('madeira', 2, 1, 0x4a4030)); b.rotation.y = (rnd() - 0.5) * 0.15; b.rotation.z = rnd() < 0.2 ? (rnd() - 0.5) * 0.3 : 0; CX.caixa(g, 3.6, 0.55, 0.06, sx * 2.6, 0.45, z + 0.22, CX.matTex('madeira', 2, 1, 0x4a4030)); }
+    CX.nevoaEmVolta(c, g, 30, { mat: lodo });
+    CX.sala(c, g, -8, -17, 16, 34, { h: 10, piso: CX.matTex('calcamento', 5, 12, 0x8a9480), parede: pedra, forro: CX.matTex('madeira', 4, 8, 0x4a4436), portas: [{ lado: 's', pos: 8, l: 2.8, h: 4.4 }, { lado: 'l', pos: 4, l: 1.2, h: 2.4 }], janelas: [4, 10, 16, 22, 28].flatMap(p => [{ lado: 'o', pos: p, l: 1.2, h0: 3.6, h: 3.2 }, { lado: 'l', pos: p + 2, l: 1.2, h0: 3.6, h: 3.2 }]) });
+    CX.telhado(c, g, 0, 10.1, 0, 16, 34, 4.5, matTelha, false);
+    for (let z = -12; z <= 13; z += 4.2) for (const sx of [-1, 1]) { CX.cil(g, 0.38, 0.45, 9.8, sx * 5.2, 0, z, pedra, 12); } // as colunas: nave e corredores laterais
+    CX.caixa(g, 12, 0.6, 4.6, 0, 0, -14.7, CX.matTex('calcamento', 4, 1, 0x7f8a74)); // o presbitério
+    for (const sx of [-1, 1]) CX.caixa(g, 0.4, 0.6, 1.2, sx * 1.4, 0, -11.8, pedra);
+    CX.caixa(g, 3, 1.0, 1.2, 0, 0.6, -15.4, CX.matTex('concreto', 1, 1, 0x9a9a8a)); // o altar de pedra
+    { const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.6, 0), new THREE.MeshStandardMaterial({ color: 0x1c2024, roughness: 0.5, flatShading: true })); p.scale.set(1.4, 0.6, 1); p.position.set(0, 1.9, -15.4); p.castShadow = true; g.add(p); } // a pedra do altar
+    CX.modelo(g, 'g', 'cross-column', 0, 0.6, -16.4, 0, 1.4, m => tinta(m, 0.42, 0x2c3326, 0.45));
+    for (let z = -9; z <= 13; z += 1.5) for (const sx of [-1, 1]) { const b = CX.caixa(g, 4.2, 0.45, 0.45, sx * 2.6, 0, z, CX.matTex('madeira', 2, 1, 0x4a4030)); b.rotation.y = (rnd() - 0.5) * 0.15; b.rotation.z = rnd() < 0.2 ? (rnd() - 0.5) * 0.3 : 0; CX.caixa(g, 4.2, 0.55, 0.06, sx * 2.6, 0.45, z + 0.22, CX.matTex('madeira', 2, 1, 0x4a4030)); }
+    for (const sx of [-1, 1]) for (let z = -10; z <= 12; z += 5) CX.modelo(g, 'g', 'candle-multiple', sx * 7.4, 0, z, 0, 0.7, m => tinta(m, 0.42, 0x2c3326, 0.45));
     /* a porta da torre (lado leste, perto da entrada) */
-    CX.caixa(g, 0.1, 2.3, 1.1, 5.95, 0, 11, CX.matTex('madeira', 1, 2, 0x3a2a1e)); { const pl = CX.texto(['TORRE'], 0.8, 0.22, { fundo: '#3d4238', cor: '#cfd2c0', borda: false, fonte: 60 }); pl.position.set(5.85, 2.55, 11); pl.rotation.y = -Math.PI / 2; g.add(pl); }
+    CX.caixa(g, 0.1, 2.3, 1.1, 7.95, 0, 13, CX.matTex('madeira', 1, 2, 0x3a2a1e)); { const pl = CX.texto(['TORRE'], 0.8, 0.22, { fundo: '#3d4238', cor: '#cfd2c0', borda: false, fonte: 60 }); pl.position.set(7.85, 2.55, 13); pl.rotation.y = -Math.PI / 2; g.add(pl); }
+    /* a torre por fora, na frente, do lado leste */
+    { CX.caixa(g, 4, 18, 4, 10.3, 0, 13, pedra); const cp = new THREE.Mesh(new THREE.ConeGeometry(3.2, 5, 4), matTelha); cp.rotation.y = Math.PI / 4; cp.position.set(10.3, 20.5, 13); g.add(cp); }
     /* a lista riscada na parede oeste */
     { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512; const k = cv.getContext('2d'); k.fillStyle = '#6f705f'; k.fillRect(0, 0, 1024, 512); k.fillStyle = '#2a2a24'; k.font = 'italic 26px Georgia, serif'; k.fillText('14 · VI · 1979', 24, 40);
       LISTA_1979.forEach((n, i) => { const x = 24 + (i % 4) * 250, y = 84 + Math.floor(i / 4) * 40; k.font = '24px Georgia, serif'; k.fillText(n.replace(/ \(.*\)/, ''), x, y); if (i < 1 || n.startsWith('Regina')) { k.strokeStyle = '#1a1a16'; k.lineWidth = 3; k.beginPath(); k.moveTo(x - 4, y - 8); k.lineTo(x + 220, y - 14); k.moveTo(x - 4, y - 16); k.lineTo(x + 216, y - 4); k.stroke(); } });
-      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const m = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, transparent: true, opacity: 0.92 })); m.position.set(-5.88, 2.6, -1); m.rotation.y = Math.PI / 2; g.add(m); }
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const m = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, transparent: true, opacity: 0.92 })); m.position.set(-7.88, 2.6, -1); m.rotation.y = Math.PI / 2; g.add(m); }
     /* o Lacre: só aparece com a vela preta acesa (três círculos ligados por nomes e o quarto, vazio) */
     { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 1024; const k = cv.getContext('2d'); k.strokeStyle = 'rgba(255,214,150,0.95)'; k.lineWidth = 6; k.shadowColor = '#ffb050'; k.shadowBlur = 18;
       const C = [[512, 300], [300, 640], [724, 640]]; for (const [x, y] of C) { k.beginPath(); k.arc(x, y, 110, 0, TAU); k.stroke(); }
@@ -3208,14 +3217,14 @@ cenario({
       k.font = 'italic 22px Georgia'; k.fillStyle = 'rgba(255,214,150,0.9)'; for (let i = 0; i < 3; i++) { const [a, b] = [C[i], C[(i + 1) % 3]]; k.beginPath(); k.moveTo(a[0], a[1]); k.lineTo(b[0], b[1]); k.stroke(); k.save(); k.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); k.rotate(Math.atan2(b[1] - a[1], b[0] - a[0])); k.fillText(LISTA_1979.slice(1 + i * 4, 5 + i * 4).map(n => n.replace(/ \(.*\)/, '')).join(' · '), -200, -12); k.restore(); }
       k.setLineDash([12, 14]); k.beginPath(); k.arc(860, 200, 90, 0, TAU); k.stroke();
       const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.position.set(0, 4.6, -13.88); g.add(m); c.lacre = m; m.visible = false; }
-    { const v = new THREE.Group(); v.position.set(0.9, 1.6, -12.4); g.add(v); c.velaG = v; v.visible = false; CX.cil(v, 0.035, 0.04, 0.3, 0, 0, 0, new THREE.MeshStandardMaterial({ color: 0x0b0b0b, roughness: 0.9 }), 8); const ch = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffc46a })); ch.scale.y = 1.8; ch.position.y = 0.35; v.add(ch); c.velaL = new THREE.PointLight(0xffb060, 0, 14, 1.5); c.velaL.position.set(0.9, 2.1, -12.4); g.add(c.velaL); }
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.position.set(0, 5.4, -16.88); g.add(m); c.lacre = m; m.visible = false; }
+    { const v = new THREE.Group(); v.position.set(1.0, 1.6, -15.2); g.add(v); c.velaG = v; v.visible = false; CX.cil(v, 0.035, 0.04, 0.3, 0, 0, 0, new THREE.MeshStandardMaterial({ color: 0x0b0b0b, roughness: 0.9 }), 8); const ch = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffc46a })); ch.scale.y = 1.8; ch.position.y = 0.35; v.add(ch); c.velaL = new THREE.PointLight(0xffb060, 0, 14, 1.5); c.velaL.position.set(1.0, 2.1, -15.2); g.add(c.velaL); }
     /* a água que sobe durante o encontro */
-    c.agua = new THREE.Mesh(new THREE.PlaneGeometry(11.6, 27.6), new THREE.MeshStandardMaterial({ color: 0x2c3a30, roughness: 0.08, metalness: 0.3, transparent: true, opacity: 0.78, normalMap: TEX.lodo ? repetida(TEX.lodo, 3, 7) : null })); c.agua.rotation.x = -Math.PI / 2; c.agua.position.set(0, -0.2, 0); c.agua.userData.semColisao = true; g.add(c.agua);
-    for (let i = 0; i < 14; i++) inst('g', rnd() < 0.5 ? 'candle-multiple' : 'urn-round', -5 + rnd() * 10, 0, -4 + rnd() * 16, rnd() * TAU, 0.6, 'ruina', null, 'c-igreja');
-    const part = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 900 }, (_, i) => i % 3 === 1 ? rnd() * 7.5 : (i % 3 === 0 ? (rnd() - 0.5) * 11 : (rnd() - 0.5) * 27)), 3)), new THREE.PointsMaterial({ color: 0xbfe0d0, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false })); g.add(part);
-    c.luzes = [{ l: (() => { const l = new THREE.PointLight(0x9fd0c0, 0, 30, 1.4); l.position.set(0, 6.5, 0); g.add(l); return l; })(), i: 2.2 }];
-    for (const [x, z, n] of [[-3.5, 4, 'C1'], [3.8, -3, 'C2']]) CX.rotuloGM(c, g, n, x, 2.4, z);
+    c.agua = new THREE.Mesh(new THREE.PlaneGeometry(15.6, 33.6), new THREE.MeshStandardMaterial({ color: 0x2c3a30, roughness: 0.08, metalness: 0.3, transparent: true, opacity: 0.78, normalMap: TEX.lodo ? repetida(TEX.lodo, 3, 7) : null })); c.agua.rotation.x = -Math.PI / 2; c.agua.position.set(0, -0.2, 0); c.agua.userData.semColisao = true; g.add(c.agua);
+    for (let i = 0; i < 18; i++) inst('g', rnd() < 0.5 ? 'candle-multiple' : 'urn-round', -7 + rnd() * 14, 0, -8 + rnd() * 20, rnd() * TAU, 0.6, 'ruina', null, 'c-igreja');
+    const part = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 900 }, (_, i) => i % 3 === 1 ? rnd() * 9 : (i % 3 === 0 ? (rnd() - 0.5) * 15 : (rnd() - 0.5) * 33)), 3)), new THREE.PointsMaterial({ color: 0xbfe0d0, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false })); g.add(part);
+    c.luzes = [{ l: (() => { const l = new THREE.PointLight(0x9fd0c0, 0, 40, 1.3); l.position.set(0, 8, 0); g.add(l); return l; })(), i: 2.2 }];
+    for (const [x, z, n] of [[-6.5, 6, 'C1'], [6.5, -4, 'C2']]) CX.rotuloGM(c, g, n, x, 2.4, z);
     c.aguaAlvo = -0.2;
   },
 });
@@ -3231,10 +3240,10 @@ cenario({
     return `<div class="pc-l"><button class="btn${CEN_EST.prMasc ? ' on' : ''}" type="button" data-pr-masc>A máscara sobre a praça</button></div><div class="pc-l"><span>Rachaduras</span>${b(0)}${b(1)}${b(2)}${b(3)}</div>`; },
   botao(c, b) { if (b.dataset.prMasc != null) estCen('prMasc', !CEN_EST.prMasc); if (b.dataset.prRach != null) estCen('prRach', +b.dataset.prRach); },
   aoEstado(c, e) { if (c.masc) { c.masc.visible = !!e.prMasc; c.desenhaRach(e.prRach || 0); } },
-  luz(c) { luzHz(c); for (const l of c.postes || []) l.intensity = noite ? 10 : 0; },
+  luz(c) { for (const l of c.postes || []) l.intensity = noite ? 10 : 0; },
   quadro(c, t) { if (c.masc && c.masc.visible) { c.masc.position.y = 9 + Math.sin(t * 0.7) * 0.3; c.masc.lookAt(camera.position.x, c.masc.position.y, camera.position.z); } },
   monta(c) {
-    const g = c.g; CX.arredor(c, g, { rua: false, arvores: false, w: 140, d: 140, mat: CX.matTex('calcamento', 50, 50, 0xb0a898) });
+    const g = c.g; CX.nevoaEmVolta(c, g, 44, { mat: CX.matTex('calcamento', 30, 30, 0xb0a898) });
     const piso = new THREE.Mesh(new THREE.CircleGeometry(15, 48), CX.matTex('calcamento', 10, 10, 0xd8cfbe)); piso.rotation.x = -Math.PI / 2; piso.position.y = 0.01; piso.receiveShadow = true; g.add(piso);
     const grama = CX.matTex('grama', 3, 3, 0xc0caa8), muret = CX.matTex('concreto', 4, 1, 0xc2bcae);
     for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4, x = Math.cos(a) * 9, z = Math.sin(a) * 9; const cant = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.35, 28), muret); cant.position.set(x, 0.17, z); cant.castShadow = true; cant.receiveShadow = true; g.add(cant); const gr = new THREE.Mesh(new THREE.CircleGeometry(3.0, 28), grama); gr.rotation.x = -Math.PI / 2; gr.position.set(x, 0.36, z); g.add(gr);
@@ -3268,7 +3277,7 @@ cenario({
    a mão esquerda de criança em cera preta, água e lodo, de onde saem os três Rostos Lisos ---------- */
 cenario({
   id: 'c-altar', nome: 'Altar de Remanso', para: 'o altar de Remanso', curto: 'Altar de Remanso', em: 'no altar de Remanso', grupo: 'Chefes', dica: 'a Vazia · sessão 12',
-  sub: 'Remanso · o fundo do vale', interno: true, ceu: 0x1a2622, neblinaCor: 0x22302a, densD: 0.04, densN: 0.05,
+  sub: 'Remanso · o fundo do vale', interno: true, nevoaVerde: true, ceu: 0x1a2622, neblinaCor: 0x22302a, densD: 0.04, densN: 0.05,
   nota: 'O altar de pedra no círculo central; três círculos ligados por linhas de nomes e um quarto sem ligação; a mão esquerda de criança em cera preta. R1–R3 (painel) são de onde saem os Rostos Lisos. Há um tripé para o vídeo do Ícaro e um varal para as fotos do Kuuro. A escolha final não é automática.',
   alt: (x, z) => (Math.hypot(x, z) < 3.2 ? 0.4 : 0), longe: 45, polar: 0.7,
   cams: [['O altar', { pos: [0, 3.5, 11], alvo: [0, 1, 0] }], ['Os círculos', { pos: [0, 13, 4], alvo: [0, 0, 0] }], ['A mão de cera', { pos: [1.5, 1.6, 2], alvo: [0.4, 0.95, 0.3] }], ['As passagens', { pos: [-9, 2, 9], alvo: [-12, 1.5, -2] }]],
@@ -3278,7 +3287,7 @@ cenario({
   quadro(c, t) { if (c.masc && c.masc.visible) { c.masc.position.y = 2.6 + Math.sin(t * 0.5) * 0.08; c.masc.lookAt(camera.position.x, 2.6, camera.position.z); } if (c.agua.material.normalMap) c.agua.material.normalMap.offset.set(t * 0.006, t * 0.004); },
   monta(c) {
     const g = c.g, pedra = new THREE.MeshStandardMaterial({ color: 0x4d544a, roughness: 1, flatShading: true }), lodo = CX.matTex('lodo', 10, 10, 0x6a7a62);
-    const ch = new THREE.Mesh(new THREE.CircleGeometry(30, 48), lodo); ch.rotation.x = -Math.PI / 2; ch.receiveShadow = true; g.add(ch); c.chao = ch;
+    CX.nevoaEmVolta(c, g, 24, { mat: lodo });
     /* o círculo central de pedra e o altar */
     const base = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.4, 32), CX.matTex('calcamento', 3, 3, 0x7d8476)); base.position.y = 0.2; base.receiveShadow = true; base.castShadow = true; g.add(base);
     CX.caixa(g, 1.8, 0.9, 1.0, 0, 0.4, 0, CX.matTex('concreto', 1, 1, 0x858a7e));
@@ -3295,7 +3304,7 @@ cenario({
     /* paredes antigas, colunas quebradas e as passagens */
     for (let i = 0; i < 14; i++) { const a = i / 14 * TAU, r = 13 + rnd() * 2; if (i % 5 === 2) continue; const x = Math.cos(a) * r, z = Math.sin(a) * r; const p = CX.caixa(g, 3 + rnd() * 2, 2 + rnd() * 2.5, 0.7, x, -0.2, z, CX.matTex('reboco_velho', 2, 1, 0x6d7a68)); p.rotation.y = -a + Math.PI / 2; }
     for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + 0.2, x = Math.cos(a) * 8, z = Math.sin(a) * 8; inst('n', i % 3 ? 'statue_column' : 'statue_columnDamaged', x, 0, z, rnd() * TAU, 0.8, 'ruina', null, 'c-altar'); }
-    c.agua = new THREE.Mesh(new THREE.RingGeometry(9.5, 30, 48), new THREE.MeshStandardMaterial({ color: 0x24302a, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.85, normalMap: TEX.lodo ? repetida(TEX.lodo, 6, 6) : null })); c.agua.rotation.x = -Math.PI / 2; c.agua.position.y = 0.12; c.agua.userData.semColisao = true; g.add(c.agua);
+    c.agua = new THREE.Mesh(new THREE.RingGeometry(9.5, 26, 48), new THREE.MeshStandardMaterial({ color: 0x24302a, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.85, normalMap: TEX.lodo ? repetida(TEX.lodo, 6, 6) : null })); c.agua.rotation.x = -Math.PI / 2; c.agua.position.y = 0.12; c.agua.userData.semColisao = true; g.add(c.agua);
     /* a máscara dourada (o mestre mostra) */
     { const t = new THREE.TextureLoader().load('img/vazia.png'); t.colorSpace = THREE.SRGBColorSpace; c.masc = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), new THREE.MeshBasicMaterial({ map: t, transparent: true, fog: false })); c.masc.position.set(0, 2.6, 0); c.masc.visible = false; c.masc.userData.semColisao = true; g.add(c.masc); c.mascL = new THREE.PointLight(0xffd27a, 0, 16, 1.4); c.mascL.position.set(0, 2.8, 0.8); g.add(c.mascL); }
     /* tripé com a câmera do vídeo do Ícaro e o varal com as fotos do Kuuro */
@@ -3313,202 +3322,279 @@ CX.divisoria = (g, ax, az, bx, bz, o = {}) => {
   const ux = (bx - ax) / L, uz = (bz - az) / L, seg = (a, b, y0, y1) => { if (b - a < 0.02) return; const m = CX.caixa(g, b - a, y1 - y0, 0.12, 0, 0, 0, mat); const mid = (a + b) / 2; m.position.set(ax + ux * mid, (o.y ?? 0) + y0 + (y1 - y0) / 2, az + uz * mid); m.rotation.y = ang; };
   if (o.porta == null) seg(0, L, 0, H); else { const p = o.porta * L, l = (o.l ?? 0.95) / 2; seg(0, p - l, 0, H); seg(p + l, L, 0, H); seg(p - l, p + l, o.ph ?? 2.15, H); }
 };
-function casaInterior(c, o) {
-  const g = c.g, W = o.w, D = o.d, x0 = -W / 2, z0 = -D / 2;
-  CX.arredor(c, g, { ruaZ: D / 2 + 4, mat: o.chaoFora, matRua: o.rua });
-  const s = CX.sala(c, g, x0, z0, W, D, { buraco: o.buraco, h: o.h ?? 3, piso: o.piso, parede: o.parede, forro: o.forro, portas: o.portas || [{ lado: 's', pos: W / 2, l: 1.1 }], janelas: o.janelas || [], luz: o.luz ?? 1.4, luzCor: o.luzCor });
-  CX.telhado(c, g, 0, (o.h ?? 3) + 0.12, 0, W, D, o.telhadoH ?? 1.8, o.telha || matTelha, W >= D);
-  for (const d of o.div || []) CX.divisoria(g, d[0], d[1], d[2], d[3], Object.assign({ h: o.h ?? 3, mat: o.paredeDentro || o.parede }, d[4] || {}));
-  for (const [x, z, i] of o.luzes || []) { const l = new THREE.PointLight(o.luzCor || 0xffd9a0, 0, 9, 1.6); l.position.set(x, (o.h ?? 3) - 0.35, z); g.add(l); (c.luzes ||= []).push({ l, i: i ?? 1.3 }); const lp = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 0.6 })); lp.position.copy(l.position); g.add(lp); }
-  if (o.placa) { const p = CX.texto([].concat(o.placa), Math.min(W * 0.7, 4.2), 0.7, { fundo: o.placaFundo || '#1d2620', cor: '#e8e2cc', fonte: 54 }); p.position.set(0, (o.h ?? 3) - 0.3, D / 2 + 0.11); g.add(p); }
-  return s;
+
+/* ---------- neblina total em volta: um pouco de chão e depois só névoa (não há horizonte nem mato para montar) ---------- */
+CX.nevoaEmVolta = (c, g, R, o = {}) => {
+  c.raio = R;
+  let geoC = new THREE.CircleGeometry(R + 4, 64);
+  if (o.furo) { const sh = new THREE.Shape(); sh.absarc(0, 0, R + 4, 0, TAU, false); const [a0, b0, a1, b1] = o.furo, h = new THREE.Path(); h.moveTo(a0, -b0); h.lineTo(a1, -b0); h.lineTo(a1, -b1); h.lineTo(a0, -b1); h.lineTo(a0, -b0); sh.holes.push(h); geoC = new THREE.ShapeGeometry(sh, 48);
+    const uv = geoC.attributes.uv, ps = geoC.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, ps.getX(i) / (2 * R + 8) + 0.5, ps.getY(i) / (2 * R + 8) + 0.5); }
+  const chao = new THREE.Mesh(geoC, o.mat || CX.matTex('terra', R / 3, R / 3, 0xb8a890)); chao.rotation.x = -Math.PI / 2; chao.position.y = o.y ?? -0.02; chao.receiveShadow = true; g.add(chao);
+  if (!c.chao) c.chao = chao; else if (c.chao.isGroup) c.chao.add(chao);
+  const grad = (a0, a1) => { const cv = document.createElement('canvas'); cv.width = 4; cv.height = 256; const k = cv.getContext('2d'), gr = k.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, `rgba(255,255,255,${a1})`); gr.addColorStop(0.55, `rgba(255,255,255,${(a0 + a1) / 2})`); gr.addColorStop(1, `rgba(255,255,255,${a0})`); k.fillStyle = gr; k.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(cv); return t; };
+  c.paredesNevoa = [];
+  for (const [r, a0, a1, op] of [[R, 1, 1, 1], [R - 2, 0.9, 0.2, 0.55], [R - 4.5, 0.75, 0.05, 0.35], [R - 7, 0.55, 0, 0.22]]) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 60, 72, 1, true), new THREE.MeshBasicMaterial({ color: 0xffffff, alphaMap: a0 === 1 && a1 === 1 ? null : grad(a0, a1), transparent: op < 1, opacity: op, side: THREE.DoubleSide, depthWrite: op >= 1, fog: false }));
+    m.position.y = 30 - 4; m.userData.semColisao = true; m.renderOrder = op >= 1 ? 0 : 2; g.add(m); c.paredesNevoa.push(m);
+  }
+  const teto = new THREE.Mesh(new THREE.CircleGeometry(R + 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, fog: false })); teto.rotation.x = Math.PI / 2; teto.position.y = 34; teto.userData.semColisao = true; g.add(teto); c.paredesNevoa.push(teto);
+  c.longe = Math.min(c.longe ?? 999, R * 0.85);
+};
+const corNevoa = () => (noite ? 0x161c20 : 0xb4bcb9);
+
+/* ---------- prédio grande com andares (porão, térreo, superior), cômodos encostados uns nos outros,
+   portas entre cômodos vizinhos, escadas, janelas e mobília que se distribui pelo cômodo ---------- */
+CX.mobiliar = (g, r, y, tipo) => {
+  const [x0, z0, x1, z1] = r, w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, A = w * d;
+  const n = Math.max(1, Math.round(A / 14));
+  const parede = (lado, t, recuo = 0.35) => lado === 'n' ? [x0 + t * w, z0 + recuo, 0] : lado === 's' ? [x0 + t * w, z1 - recuo, Math.PI] : lado === 'o' ? [x0 + recuo, z0 + t * d, Math.PI / 2] : [x1 - recuo, z0 + t * d, -Math.PI / 2];
+  const ao = (lado, ts, f) => ts.forEach(t => { const [x, z, ry] = parede(lado, t); f(x, z, ry); });
+  const caixas = (k) => { for (let i = 0; i < k; i++) { const x = x0 + 0.6 + rnd() * (w - 1.2), z = z0 + 0.6 + rnd() * (d - 1.2); CX.modelo(g, 'm', 'cardboardBoxClosed', x, y, z, rnd() * TAU, 0.8 + rnd() * 0.3); if (rnd() < 0.4) CX.modelo(g, 'm', 'cardboardBoxClosed', x, y + 0.45, z, rnd() * TAU, 0.75); } };
+  const quadros = (k) => { const ls = ['n', 'o', 'l']; for (let i = 0; i < k; i++) { const l = ls[i % 3], [x, z, ry] = parede(l, 0.2 + rnd() * 0.6, 0.11); CX.quadro(g, x, y + 1.7 + rnd() * 0.3, z, ry, 0.35 + rnd() * 0.3, 0.3 + rnd() * 0.25); } };
+  const papeis = (x, z, k = 3) => { for (let i = 0; i < k; i++) CX.papel(g, x + (rnd() - 0.5) * 0.6, y + 0.8 + i * 0.002, z + (rnd() - 0.5) * 0.3, rnd() * TAU, 0.21, 0.29, rnd() < 0.3 ? 0xd8cfb4 : 0xf0ead8); };
+  switch (tipo) {
+    case 'escritorio': { const k = Math.min(4, Math.max(1, Math.floor(w / 2.6))); for (let i = 0; i < k; i++) { const x = x0 + (i + 0.5) * w / k, z = cz; CX.mesa(g, x, y, z, 1.3, 0.75); CX.cadeira(g, x, y, z + 0.7, Math.PI); papeis(x, z, 2 + Math.floor(rnd() * 3)); if (rnd() < 0.5) CX.modelo(g, 'm', 'lampRoundTable', x + 0.45, y + 0.78, z - 0.2, 0, 0.6); }
+      ao('n', [0.15, 0.85], (x, z, ry) => CX.arquivo(g, x, y, z, ry)); ao('n', [0.5], (x, z, ry) => CX.estante(g, x, y, z, Math.min(1.6, w * 0.3), 2.1, ry)); quadros(2); CX.modelo(g, 'm', 'trashcan', x1 - 0.4, y, z1 - 0.4, 0, 0.8); break; }
+    case 'arquivo': { const fileiras = Math.max(1, Math.floor((d - 1.2) / 1.5)); for (let i = 0; i < fileiras; i++) CX.prateleira(g, cx, y, z0 + 1.0 + i * 1.5, Math.max(1.5, w - 2.0), 2.2, 0, 'pastas'); ao('o', [0.3, 0.7], (x, z, ry) => CX.arquivo(g, x, y, z, ry)); caixas(Math.round(A / 10)); break; }
+    case 'recepcao': { CX.balcao(g, cx, y, z0 + d * 0.4, Math.min(3.2, w * 0.45)); CX.cadeira(g, cx, y, z0 + d * 0.4 - 0.6, 0); ao('o', [0.4, 0.55, 0.7], (x, z, ry) => CX.cadeira(g, x, y, z, ry)); ao('l', [0.4, 0.55, 0.7], (x, z, ry) => CX.cadeira(g, x, y, z, ry)); CX.modelo(g, 'm', 'pottedPlant', x0 + 0.5, y, z1 - 0.5, 0, 1); CX.modelo(g, 'm', 'coatRackStanding', x1 - 0.5, y, z1 - 0.5, 0, 1); quadros(2); break; }
+    case 'reunioes': { const L = Math.max(2, w - 2.4); CX.mesa(g, cx, y, cz, L, 1.2); for (let i = 0; i < Math.floor(L / 0.8); i++) for (const s of [-1, 1]) CX.cadeira(g, cx - L / 2 + 0.4 + i * 0.8, y, cz + s * 0.9, s > 0 ? Math.PI : 0); papeis(cx, cz, 5); quadros(3); break; }
+    case 'sala': { CX.modelo(g, 'm', 'rugRectangle', cx, y, cz, 0, Math.min(1.4, w / 3)); CX.modelo(g, 'm', 'loungeSofa', cx, y, z1 - 0.8, Math.PI, 0.9); CX.modelo(g, 'm', 'tableCoffee', cx, y, cz + 0.3, 0, 0.9); CX.modelo(g, 'm', 'televisionVintage', cx, y, z0 + 0.6, 0, 0.9);
+      ao('o', [0.5], (x, z, ry) => CX.estante(g, x, y, z, Math.min(1.6, d * 0.4), 2.0, ry)); ao('l', [0.3], (x, z, ry) => CX.cadeira(g, x, y, z, ry)); CX.modelo(g, 'm', 'lampRoundFloor', x1 - 0.5, y, z0 + 0.5, 0, 1); CX.modelo(g, 'm', 'pottedPlant', x0 + 0.5, y, z1 - 0.5, 0, 0.9); quadros(3); break; }
+    case 'quarto': { CX.cama(g, cx, y, z0 + 1.2, 0, w > 3.2); CX.modelo(g, 'm', 'sideTable', cx + 1.3, y, z0 + 0.4, 0, 0.9); CX.modelo(g, 'm', 'lampRoundTable', cx + 1.3, y + 0.5, z0 + 0.4, 0, 0.7);
+      ao('o', [0.65], (x, z, ry) => CX.modelo(g, 'm', 'bookcaseClosed', x, y, z, ry, 1)); ao('l', [0.7], (x, z, ry) => CX.cadeira(g, x, y, z, ry)); CX.modelo(g, 'm', 'rugRectangle', cx, y, cz + 0.6, 0, 0.8); quadros(2); if (A > 14) caixas(2); break; }
+    case 'cozinha': { ao('n', [0.2, 0.42], (x, z, ry) => CX.modelo(g, 'm', 'kitchenCabinet', x, y, z, ry, 1)); ao('n', [0.64], (x, z, ry) => CX.modelo(g, 'm', 'kitchenStove', x, y, z, ry, 1)); ao('n', [0.86], (x, z, ry) => CX.modelo(g, 'm', 'kitchenFridge', x, y, z, ry, 1));
+      CX.mesa(g, cx, y, cz + 0.4, 1.4, 0.9); for (const [dx, dz, ry] of [[-0.5, 0.75, Math.PI], [0.5, 0.75, Math.PI], [-0.5, -0.75, 0], [0.5, -0.75, 0]]) CX.cadeira(g, cx + dx, y, cz + 0.4 + dz, ry); ao('o', [0.6], (x, z, ry) => CX.prateleira(g, x, y, z, 1.4, 1.9, ry, 'potes')); CX.modelo(g, 'm', 'trashcan', x1 - 0.4, y, z1 - 0.4, 0, 0.8); break; }
+    case 'banheiro': { const b = new THREE.MeshStandardMaterial({ color: 0xe8e8e0, roughness: 0.3 }); CX.caixa(g, 0.45, 0.42, 0.6, x0 + 0.4, y, z0 + 0.5, b); CX.caixa(g, 0.55, 0.85, 0.42, x1 - 0.45, y, z0 + 0.35, b); CX.caixa(g, 0.6, 0.04, 0.02, x1 - 0.45, y + 1.6, z0 + 0.12, new THREE.MeshStandardMaterial({ color: 0xaab4b8, metalness: 0.6, roughness: 0.1 })); break; }
+    case 'deposito': { ao('n', [0.25, 0.75], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, w * 0.4), 2.2, ry, 'caixas')); ao('o', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, d * 0.4), 2.2, ry, 'caixas')); caixas(Math.round(A / 5));
+      for (let i = 0; i < Math.round(A / 18); i++) { const x = x0 + 1 + rnd() * (w - 2), z = z0 + 1 + rnd() * (d - 2), m = CX.caixa(g, 1 + rnd(), 0.8 + rnd() * 0.5, 0.7 + rnd() * 0.5, x, y, z, new THREE.MeshStandardMaterial({ color: 0xd8d4c8, roughness: 1 })); m.rotation.y = rnd(); } // móveis cobertos com lençol
+      if (A > 20) for (let i = 0; i < 3; i++) CX.cil(g, 0.28, 0.28, 0.85, x1 - 0.5 - i * 0.62, y, z1 - 0.5, CX.matTex('madeira', 1, 1, 0x6a4a30), 12); break; }
+    case 'corredor': { const ao2 = w > d ? 'n' : 'o'; ao(ao2, [0.25, 0.5, 0.75], (x, z, ry) => CX.quadro(g, x, y + 1.7, z + (ao2 === 'n' ? -0.24 : 0), ry, 0.4, 0.32)); CX.modelo(g, 'm', 'rugRectangle', cx, y, cz, w > d ? Math.PI / 2 : 0, 0.7); if (A > 10) CX.modelo(g, 'm', 'pottedPlant', x0 + 0.4, y, z0 + 0.4, 0, 0.8); break; }
+    case 'maquinas': { const m = new THREE.MeshStandardMaterial({ color: 0x5a5e5a, metalness: 0.5, roughness: 0.5 }); CX.cil(g, 0.5, 0.5, 1.8, cx, y, cz, m, 16); for (let i = 0; i < 3; i++) { const t = CX.cil(g, 0.06, 0.06, d - 0.6, x0 + 0.4 + i * 0.3, y + 2.1, cz, m, 8); t.rotation.x = Math.PI / 2; t.position.y = y + 2.2; } caixas(2); break; }
+    case 'loja': { ao('n', [0.2, 0.5, 0.8], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.4, w * 0.28), 2.3, ry, rnd() < 0.5 ? 'potes' : 'caixas')); ao('o', [0.35, 0.7], (x, z, ry) => CX.prateleira(g, x, y, z, 2.2, 2.3, ry, 'potes')); ao('l', [0.35, 0.7], (x, z, ry) => CX.prateleira(g, x, y, z, 2.2, 2.3, ry, 'caixas')); for (let i = 0; i < 2; i++) CX.prateleira(g, cx + (i - 0.5) * 2.6, y, cz - 0.4, 2.0, 1.6, Math.PI / 2, 'potes'); break; }
+    case 'vazio': break;
+    default: caixas(2);
+  }
+};
+function predio(c, o) {
+  const g = c.g, W = o.w, D = o.d, X0 = -W / 2, Z0 = -D / 2, AND = o.andares; c.andares = [];
+  const parFora = o.parede || CX.matTex('reboco', W / 3, 1, 0xe2d8c4), parDentro = o.paredeDentro || CX.matTex('reboco', 3, 1, 0xe8dfcc), piso = o.piso || CX.matTex('tabua', W / 2, D / 2, 0xb59a78), pisoPorao = CX.matTex('concreto', W / 3, D / 3, 0x9a958a), parPorao = CX.matTex('concreto', W / 3, 1, 0xa8a296);
+  const escadas = o.escadas || [];
+  AND.forEach((A, ia) => {
+    const gg = new THREE.Group(); g.add(gg); const porao = A.y < -0.5, H = A.h ?? (porao ? 2.7 : 3.2);
+    c.andares.push({ y: A.y, h: H, g: gg });
+    const furo = escadas.find(e => Math.abs(e.y1 - A.y) < 0.01); // a escada que chega neste andar abre um buraco no piso dele
+    const portasF = A.portas || (A.y === 0 ? [{ lado: 's', pos: W / 2, l: 1.4, h: 2.5 }] : []);
+    const jan = porao ? [] : (A.janelas || ['n', 's', 'o', 'l'].flatMap(l => { const comp = l === 'n' || l === 's' ? W : D, k = Math.floor(comp / 3.2); return Array.from({ length: k }, (_, i) => ({ lado: l, pos: (i + 0.5) * comp / k, l: 1.1 })).filter(j => !portasF.some(p => p.lado === j.lado && Math.abs(p.pos - j.pos) < 1.4)); }));
+    CX.sala(c, gg, X0, Z0, W, D, { y: A.y, h: H, piso: porao ? pisoPorao : (A.piso || piso), parede: porao ? parPorao : parFora, portas: portasF, janelas: jan, teto: false, buraco: furo ? [furo.x0, furo.z0, furo.x1, furo.z1] : null });
+    /* paredes entre cômodos vizinhos, com porta no meio da parede compartilhada (a não ser que diga "sem porta") */
+    const R = A.comodos, feitas = new Set();
+    R.forEach((a, i) => R.forEach((b, j) => {
+      if (j <= i) return; const k = i + '|' + j; if (feitas.has(k)) return;
+      const ov = (p0, p1, q0, q1) => [Math.max(p0, q0), Math.min(p1, q1)];
+      for (const [xa, xb] of [[a[2], b[0]], [a[0], b[2]]]) if (Math.abs(xa - xb) < 0.01) { const [z0, z1] = ov(a[1], a[3], b[1], b[3]); if (z1 - z0 > 0.4) { feitas.add(k); const aberto = a[5] === 'aberto' || b[5] === 'aberto'; if (!aberto) CX.divisoria(gg, xa, z0, xa, z1, { y: A.y, h: H, mat: porao ? parPorao : parDentro, porta: (a[5] === 'fechado' || b[5] === 'fechado') ? null : 0.5 }); } }
+      for (const [za, zb] of [[a[3], b[1]], [a[1], b[3]]]) if (Math.abs(za - zb) < 0.01) { const [x0, x1] = ov(a[0], a[2], b[0], b[2]); if (x1 - x0 > 0.4) { feitas.add(k); const aberto = a[5] === 'aberto' || b[5] === 'aberto'; if (!aberto) CX.divisoria(gg, x0, za, x1, za, { y: A.y, h: H, mat: porao ? parPorao : parDentro, porta: (a[5] === 'fechado' || b[5] === 'fechado') ? null : 0.5 }); } }
+    }));
+    /* mobília de cada cômodo e uma luz nos cômodos maiores */
+    let nl = 0;
+    for (const r of R) { CX.mobiliar(gg, r, A.y, r[4]); const area = (r[2] - r[0]) * (r[3] - r[1]);
+      if (area > 10 && nl < 5) { nl++; const l = new THREE.PointLight(porao ? 0xffc880 : 0xffd9a0, 0, Math.max(6, Math.sqrt(area) * 2.2), 1.6); l.position.set((r[0] + r[2]) / 2, A.y + H - 0.35, (r[1] + r[3]) / 2); gg.add(l); (c.luzes ||= []).push({ l, i: porao ? 1.1 : 1.3 });
+        const lp = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 0.6 })); lp.position.copy(l.position); gg.add(lp); } }
+    A.extra?.(gg, A.y, H);
+    if (ia === AND.length - 1) { // o forro do último andar e o telhado
+      const sl = CX.caixa(g, W + 0.3, 0.14, D + 0.3, 0, A.y + H, 0, CX.matTex('reboco', 3, 3, 0xd8d0c0)); sl.userData.semColisao = true; (c.tetos ||= []).push(sl);
+      CX.telhado(c, g, 0, A.y + H + 0.14, 0, W, D, o.telhadoH ?? Math.min(3, Math.min(W, D) * 0.28), o.telha || matTelha, W >= D);
+    }
+  });
+  c.pegada = [X0, Z0, X0 + W, Z0 + D];
+  /* escadas: degraus de um andar para o outro, ao longo de z (sobem na direção -z) */
+  for (const e of escadas) { const n = Math.max(6, Math.round((e.y1 - e.y0) / 0.18)), dz = (e.z1 - e.z0) / n, m = CX.matTex('madeira', 1, 1, 0x5e4330);
+    for (let i = 0; i < n; i++) CX.caixa(g, e.x1 - e.x0, (e.y1 - e.y0) / n * (i + 1), Math.abs(dz) + 0.01, (e.x0 + e.x1) / 2, e.y0, e.z1 - dz * (i + 0.5), m, 0, i % 4 === 0);
+    const cor = CX.matTex('madeira', 1, 1, 0x3e2a1e); const cc = CX.caixa(g, 0.05, 0.05, Math.hypot(e.z1 - e.z0, e.y1 - e.y0), e.x0 + 0.03, 0, (e.z0 + e.z1) / 2, cor); cc.rotation.x = Math.atan2(e.y1 - e.y0, e.z1 - e.z0); cc.position.y = (e.y0 + e.y1) / 2 + 0.95; }
+  if (o.placa) { const p = CX.texto([].concat(o.placa), Math.min(W * 0.5, 5), 0.8, { fundo: o.placaFundo || '#1d2620', cor: '#e8e2cc', fonte: 54 }); p.position.set(0, 2.85, D / 2 + 0.11); g.add(p); }
+  /* a altura do chão: o andar mais alto que fica abaixo da dica (a peça ou a câmera dizem em que altura estão) */
+  c.alt = (x, z, yh = 0) => {
+    if (x < X0 || x > X0 + W || z < Z0 || z > Z0 + D) return o.altFora ? o.altFora(x, z) : 0;
+    for (const e of escadas) if (x > e.x0 && x < e.x1 && z > Math.min(e.z0, e.z1) && z < Math.max(e.z0, e.z1)) { const t = (e.z1 - z) / (e.z1 - e.z0), ye = e.y0 + (e.y1 - e.y0) * t; if (yh > e.y0 - 0.6 && yh < e.y1 + 0.6) return ye; }
+    let best = AND[0].y; for (const A of AND) if (A.y <= yh + 0.9) best = Math.max(best, A.y);
+    return o.relevo ? o.relevo(x, z, best) : best;
+  };
+  return { W, D };
 }
-const camsCasa = (W, D, extras) => [['Por fora', { pos: [W * 0.4, 4, D / 2 + 11], alvo: [0, 1.2, 0] }], ['De cima', { pos: [0, 15, D * 0.5 + 4], alvo: [0, 0, 0] }]].concat(extras);
-const INT = (def) => cenario(Object.assign({ grupo: 'Investigação', interno: false, ceu: 0xa3adab, longe: 60, polar: 0.62, alt: () => 0, luz: luzHz }, def));
+/* câmeras padrão de um prédio: por fora e um corte em cada andar */
+const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.45, 5, D / 2 + 12], alvo: [0, 1.5, 0] }]].concat(AND.map(A => [A.nome, { pos: [0, A.y + 9, D * 0.55 + 3], alvo: [0, A.y, -0.5] }]), extras);
 
-/* Prefeitura e Cartório: recepção, sala administrativa, arquivo, cartório, sala de documentos e o depósito de arquivos */
-INT({
-  id: 'c-prefeitura', nome: 'Prefeitura e Cartório', para: 'a prefeitura', curto: 'Prefeitura', em: 'na prefeitura', dica: 'atas, livro-ponto, 1979',
-  nota: 'Recepção (frente), sala administrativa (oeste), cartório (leste), arquivo e sala de documentos (fundos), depósito de arquivos (canto nordeste). Os documentos do Caderno de Enigmas (índice das folhas arrancadas, carbono da ata 215, relação das 32 pessoas, livro-ponto, registro de Arlindo Busatto) estão como objetos nas mesas e estantes: marque cada pista com um ponto amarelo.',
-  cams: camsCasa(16, 12, [['Recepção', { pos: [0, 1.7, 5.4], alvo: [0, 1.2, 1.5] }], ['Sala administrativa', { pos: [-4, 1.7, 1], alvo: [-6.5, 1, -1.5] }], ['Cartório', { pos: [4, 1.7, 1], alvo: [6.5, 1, -1.5] }], ['Arquivo', { pos: [-2, 1.7, -2.4], alvo: [-4, 1, -5.5] }], ['Sala de documentos', { pos: [2.5, 1.7, -2.4], alvo: [3.5, 1, -5.3] }], ['Depósito', { pos: [5.5, 1.7, -3], alvo: [7, 1, -5.4] }]]),
-  monta(c) {
-    const W = 16, D = 12;
-    casaInterior(c, { w: W, d: D, h: 3.2, placa: ['PREFEITURA MUNICIPAL', 'e Cartório de Registro'], parede: CX.matTex('reboco_amarelo', 4, 1, 0xf0e6c8), paredeDentro: CX.matTex('reboco', 3, 1, 0xe6dcc6), piso: CX.matTex('tabua', 8, 6, 0xb59a78),
-      portas: [{ lado: 's', pos: 8, l: 1.5, h: 2.5 }], janelas: [{ lado: 's', pos: 3, l: 1.4 }, { lado: 's', pos: 13, l: 1.4 }, { lado: 'o', pos: 3, l: 1.2 }, { lado: 'o', pos: 9, l: 1.2 }, { lado: 'l', pos: 3, l: 1.2 }, { lado: 'l', pos: 9, l: 1.2 }],
-      div: [[-3, -6, -3, 3, { porta: 0.75 }], [3, -6, 3, 3, { porta: 0.75 }], [-8, -1.5, -3, -1.5, { porta: 0.5 }], [3, -1.5, 8, -1.5, { porta: 0.3 }], [-3, -1.5, 3, -1.5, { porta: 0.5 }], [5.2, -6, 5.2, -1.5, { porta: 0.5 }], [-3, 3, 3, 3, { porta: 0.5, l: 1.4 }]],
-      luzes: [[0, 4.4], [-5.5, 1], [5.5, 1], [-5.5, -4], [1, -4], [6.6, -4]] });
-    const g = c.g, mad = CX.matTex('madeira', 1, 1, 0x6e4e36);
-    CX.balcao(g, 0, 0, 3.8, 3.2, 0); CX.cadeira(g, 0.6, 0, 3.0, Math.PI); CX.modelo(g, 'm', 'coatRackStanding', 2.5, 0, 5.4, 0, 1); CX.modelo(g, 'm', 'pottedPlant', -2.5, 0, 5.4, 0, 1);
-    CX.quadro(g, 0, 2.4, 5.88, Math.PI, 0.6, 0.45);
-    for (const x of [-6.5, -4.5]) { CX.mesa(g, x, 0, 0.6, 1.3, 0.75); CX.cadeira(g, x, 0, 1.3, Math.PI); CX.papel(g, x - 0.2, 0.8, 0.6, 0.2); } CX.arquivo(g, -7.6, 0, 2.4, Math.PI / 2); CX.modelo(g, 'm', 'radio', -4.5, 0.8, 0.4, 0, 0.7);
-    for (const z of [-0.5, 1.6]) CX.estante(g, 7.7, 0, z, 1.3, 2.2, -Math.PI / 2); CX.mesa(g, 5, 0, 0.5, 1.6, 0.8); CX.papel(g, 5, 0.8, 0.5, 0.1, 0.42, 0.32, 0x3a4a5a); CX.cadeira(g, 5, 0, 1.25, Math.PI);
-    for (let i = 0; i < 4; i++) CX.arquivo(g, -7.6, 0, -2.4 - i * 0.65, Math.PI / 2); CX.prateleira(g, -5, 0, -5.7, 2.4, 2.2, 0, 'pastas'); CX.mesa(g, -4.5, 0, -3.6, 1.2, 0.7); CX.papel(g, -4.6, 0.8, -3.6, 0.3, 0.32, 0.44, 0xd8cfb4);
-    CX.estante(g, 1.5, 0, -5.7, 1.4, 2.2, 0); CX.mesa(g, 0.5, 0, -3.6, 1.6, 0.8); CX.papel(g, 0.2, 0.8, -3.6, -0.2); CX.papel(g, 0.8, 0.81, -3.5, 0.4, 0.28, 0.38, 0xf0ead8); CX.cadeira(g, 0.5, 0, -2.9, Math.PI);
-    CX.prateleira(g, 6.6, 0, -5.7, 2.4, 2.2, 0, 'caixas'); for (let i = 0; i < 5; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', 5.8 + (i % 3) * 0.6, i > 2 ? 0.5 : 0, -3.2 - (i % 2) * 0.4, rnd(), 0.9);
-  },
-});
+/* ---------- os lugares de investigação em escala grande: porão, térreo e andar de cima ---------- */
+const INT = def => cenario(Object.assign({ grupo: 'Investigação', interno: false, longe: 60, polar: 0.62, alt: () => 0, luz: () => {} }, def));
+function montaPredio(c, o) {
+  const r = predio(c, o), R = Math.max(r.W, r.D) / 2 + 9;
+  CX.nevoaEmVolta(c, c.g, R, { mat: o.chaoFora || CX.matTex('terra', R / 3, R / 3, 0xb8a890), furo: [-r.W / 2 + 0.05, -r.D / 2 + 0.05, r.W / 2 - 0.05, r.D / 2 - 0.05] });
+  if (o.rua !== false) { const rua = new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 5), o.matRua || CX.matTex('calcamento', R / 1.5, 2)); rua.rotation.x = -Math.PI / 2; rua.position.set(0, 0.0, r.D / 2 + 4.5); rua.receiveShadow = true; c.g.add(rua); }
+  { const cal = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2), CX.matTex('calcamento', 1, 1, 0xb0a898)); cal.rotation.x = -Math.PI / 2; cal.position.set(o.portaX ?? 0, 0.01, r.D / 2 + 1); c.g.add(cal); }
+  return r;
+}
 
-/* Rádio Vale Alto: recepção, estúdio, sala de gravação (vidro), mesa de transmissão, arquivo de fitas e depósito */
+/* Prefeitura e Cartório */
+{ const AND = [{ nome: 'Porão', y: -2.8, h: 2.7 }, { nome: 'Térreo', y: 0, h: 3.4 }, { nome: 'Andar de cima', y: 3.5, h: 3.2 }];
 INT({
-  id: 'c-radio', nome: 'Rádio Vale Alto', para: 'a rádio', curto: 'Rádio', em: 'na rádio', dica: 'o cartucho de 9/6/1979',
-  nota: 'Recepção (frente), estúdio com a mesa de transmissão (meio), sala de gravação atrás do vidro, arquivo de fitas e cartuchos (fundos, oeste), depósito de equipamentos (fundos, leste). O tocador de cartuchos fica no depósito. A pista principal (o cartucho de 9 de junho de 1979) está no arquivo de fitas: marque com um ponto amarelo.',
-  cams: camsCasa(12, 11, [['Recepção', { pos: [0, 1.7, 4.8], alvo: [0, 1.2, 2] }], ['Estúdio', { pos: [-2.5, 1.8, 0.4], alvo: [0, 1, -1.2] }], ['Sala de gravação', { pos: [3, 1.7, 0.5], alvo: [4.5, 1, -1.5] }], ['Arquivo de fitas', { pos: [-2, 1.7, -2.6], alvo: [-4.5, 1.2, -4.8] }], ['Depósito', { pos: [2, 1.7, -2.8], alvo: [4.5, 1, -4.8] }]]),
+  id: 'c-prefeitura', nome: 'Prefeitura e Cartório', para: 'a prefeitura', curto: 'Prefeitura', em: 'na prefeitura', dica: '3 andares · atas, livro-ponto, 1979',
+  nota: 'Térreo: recepção, sala administrativa (oeste), cartório (leste), arquivo e sala de documentos (fundos). Andar de cima: gabinete do prefeito, sala de reuniões, contabilidade, arquivo histórico e almoxarifado. Porão: arquivo morto, depósito e casa de máquinas. As pistas do Caderno de Enigmas (índice das folhas arrancadas, carbono da ata 215, relação das 32 pessoas, livro-ponto, registro de Arlindo Busatto) ficam nos arquivos: marque cada uma com um ponto amarelo.',
+  cams: camsPredio(24, 16, AND, [['Recepção', { pos: [0, 1.7, 7], alvo: [0, 1.2, 3] }], ['Arquivo morto', { pos: [-2, -1.1, 4], alvo: [-6, -2.4, -2] }], ['Gabinete', { pos: [-4.5, 5.2, 0], alvo: [-8, 4, 5] }]]),
   monta(c) {
-    const W = 12, D = 11;
-    casaInterior(c, { w: W, d: D, h: 3, placa: ['RÁDIO VALE ALTO', 'AM 1350'], placaFundo: '#3a1210', parede: CX.matTex('reboco', 3, 1, 0xe8e2d4), piso: CX.matTex('tabua', 6, 6, 0x8a7a68),
-      janelas: [{ lado: 's', pos: 2.5, l: 1.4 }, { lado: 's', pos: 9.5, l: 1.4 }, { lado: 'o', pos: 6, l: 1 }],
-      div: [[-6, 1.6, 6, 1.6, { porta: 0.5 }], [2, -5.5, 2, 1.6, { porta: 0.7 }], [-6, -2.6, 2, -2.6, { porta: 0.6 }], [2, -2.6, 6, -2.6, { porta: 0.4 }]],
-      luzes: [[0, 3.6], [-2, -0.5], [4, -0.5], [-2, -4], [4, -4]] });
-    const g = c.g;
-    { const v = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshStandardMaterial({ color: 0x9fb4bd, transparent: true, opacity: 0.3, roughness: 0.1, side: THREE.DoubleSide })); v.position.set(2.01, 1.6, -0.6); v.rotation.y = Math.PI / 2; g.add(v); }
-    CX.balcao(g, 0, 0, 3.0, 2.4); CX.cadeira(g, 0, 0, 2.3, Math.PI); CX.modelo(g, 'm', 'loungeSofa', -4.5, 0, 4.4, Math.PI, 0.9); CX.quadro(g, 4, 2.0, 5.38, Math.PI, 0.9, 0.5);
-    CX.console(g, -1.5, 0, -1.6, 0, 2.0); CX.cadeira(g, -1.5, 0, -0.7, Math.PI); CX.microfone(g, -2.1, 0.86, -1.3); CX.microfone(g, -0.9, 0.86, -1.3);
-    CX.estante(g, -5.7, 0, -0.5, 1.6, 2.0, Math.PI / 2, true);
-    CX.mesa(g, 4.3, 0, -1.3, 1.2, 0.7); CX.microfone(g, 4.1, 0.8, -1.3); CX.cadeira(g, 4.3, 0, -0.5, Math.PI); CX.cortina(g, 5.95, 0, -0.5, 3.5, 2.6, -Math.PI / 2, 0x3a3a40);
-    for (const x of [-5.3, -3.7]) CX.prateleira(g, x, 0, -5.1, 1.4, 2.2, 0, 'pastas'); CX.prateleira(g, -5.7, 0, -3.6, 1.4, 2.2, Math.PI / 2, 'caixas'); CX.mesa(g, -2.3, 0, -4.4, 1.2, 0.7); CX.papel(g, -2.3, 0.8, -4.4, 0.2, 0.18, 0.12, 0x2a2a2a);
-    CX.prateleira(g, 4.4, 0, -5.1, 2.6, 2.0, 0, 'caixas'); CX.mesa(g, 3.2, 0, -3.6, 1.2, 0.7); CX.caixa(g, 0.6, 0.25, 0.4, 3.2, 0.8, -3.6, new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 0.6, metalness: 0.3 })); // o tocador de cartuchos
-    CX.modelo(g, 'm', 'televisionVintage', 5.3, 0, -3.3, -Math.PI / 2, 0.8);
-    { CX.cil(g, 0.06, 0.12, 9, -4.5, 3.1, -3.5, matMetal, 6); for (let i = 0; i < 4; i++) { const b = CX.caixa(g, 1.2 - i * 0.25, 0.04, 0.04, -4.5, 5 + i * 1.6, -3.5, matMetal, 0, false); } } // a antena no telhado
+    montaPredio(c, { w: 24, d: 16, placa: ['PREFEITURA MUNICIPAL', 'e Cartório de Registro Civil'], parede: CX.matTex('reboco_amarelo', 8, 1, 0xf0e6c8),
+      escadas: [{ x0: 10, x1: 11.6, z0: -7.6, z1: -2.6, y0: 0, y1: 3.5 }, { x0: 7.6, x1: 9.2, z0: -7.6, z1: -2.6, y0: -2.8, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-12, -8, 2, 8, 'arquivo'], [2, -8, 7, 8, 'deposito'], [7, -8, 12, -2, 'corredor'], [7, -2, 12, 8, 'maquinas']] }, AND[0]),
+        Object.assign({ comodos: [[-12, 2, -4, 8, 'escritorio'], [-4, 2, 4, 8, 'recepcao'], [4, 2, 12, 8, 'escritorio'], [-12, -2, 12, 2, 'corredor'], [-12, -8, -4, -2, 'arquivo'], [-4, -8, 2, -2, 'escritorio'], [2, -8, 7, -2, 'banheiro'], [7, -8, 12, -2, 'vazio']],
+          extra(g, y) { CX.quadro(g, 0, y + 2.4, 7.88, Math.PI, 0.6, 0.45); for (const z of [3, 5]) CX.estante(g, 11.6, y, z, 1.6, 2.2, -Math.PI / 2); } }, AND[1]),
+        Object.assign({ comodos: [[-12, 2, -4, 8, 'escritorio'], [-4, 2, 4, 8, 'reunioes'], [4, 2, 12, 8, 'escritorio'], [-12, -2, 12, 2, 'corredor'], [-12, -8, -4, -2, 'arquivo'], [-4, -8, 2, -2, 'deposito'], [2, -8, 7, -2, 'banheiro'], [7, -8, 12, -2, 'vazio']],
+          extra(g, y) { CX.modelo(g, 'm', 'loungeSofa', -8, y, 7.2, Math.PI, 0.9); CX.quadro(g, -8, y + 1.9, 2.12, 0, 0.7, 0.55); } }, AND[2])] });
   },
-});
+}); }
 
-/* Armazém Pozzobon: balcão, prateleiras, estoque, depósito e os registros comerciais */
+/* Rádio Vale Alto */
+{ const AND = [{ nome: 'Porão', y: -2.6, h: 2.5 }, { nome: 'Térreo', y: 0, h: 3.3 }, { nome: 'Andar de cima', y: 3.4, h: 3.1 }];
 INT({
-  id: 'c-armazem', nome: 'Armazém Pozzobon', para: 'o armazém', curto: 'Armazém', em: 'no armazém', dica: 'livro-caixa, velas pretas',
-  nota: 'Balcão e prateleiras (frente), estoque (meio), depósito (fundos) e o escritório dos registros comerciais (canto oeste). O livro-caixa com o registro das velas pretas e a conta da paróquia estão no escritório: marque com um ponto amarelo.',
-  cams: camsCasa(13, 12, [['O balcão', { pos: [0, 1.8, 5.2], alvo: [0, 1.1, 0.6] }], ['Prateleiras', { pos: [3, 1.7, 3], alvo: [5.8, 1.2, 1] }], ['Estoque', { pos: [0, 1.8, -1], alvo: [0, 1, -3.5] }], ['Registros', { pos: [-3.5, 1.7, -1.5], alvo: [-5, 1, -4.5] }], ['Depósito', { pos: [3.5, 1.7, -2], alvo: [4.5, 1, -5] }]]),
+  id: 'c-radio', nome: 'Rádio Vale Alto', para: 'a rádio', curto: 'Rádio', em: 'na rádio', dica: '3 andares · o cartucho de 9/6/1979',
+  nota: 'Térreo: recepção, sala de espera, estúdio com a mesa de transmissão e a sala de gravação atrás do vidro. Andar de cima: direção, descanso do locutor e o arquivo de fitas e cartuchos. Porão: depósito de equipamentos (o tocador de cartuchos fica lá) e as fitas antigas. A pista principal é o cartucho de 9 de junho de 1979: marque com um ponto amarelo onde você quiser que ele esteja.',
+  cams: camsPredio(18, 14, AND, [['Estúdio', { pos: [-3, 1.8, 0.6], alvo: [-5.5, 1, -4] }], ['Arquivo de fitas', { pos: [-2, 5.2, 0], alvo: [-4, 4.4, -4] }], ['Porão', { pos: [0, -0.9, 3], alvo: [-3, -2.2, -3] }]]),
   monta(c) {
-    const W = 13, D = 12;
-    casaInterior(c, { w: W, d: D, h: 3.4, placa: ['ARMAZÉM POZZOBON', 'secos e molhados'], placaFundo: '#2a3a24', parede: CX.matTex('reboco_amarelo', 3, 1, 0xe8d8b0), piso: CX.matTex('tabua', 7, 6, 0x9a7e5e),
-      portas: [{ lado: 's', pos: 6.5, l: 2.2, h: 2.6 }], janelas: [{ lado: 's', pos: 2.2, l: 1.6 }, { lado: 's', pos: 10.8, l: 1.6 }],
-      div: [[-6.5, -1.8, 6.5, -1.8, { porta: 0.5, l: 1.4 }], [-2.5, -6, -2.5, -1.8, { porta: 0.6 }], [2.5, -6, 2.5, -1.8, { porta: 0.4 }]],
-      luzes: [[0, 2.5], [-4, 2.5], [4, 2.5], [-4.5, -4], [0, -4], [4.5, -4]] });
-    const g = c.g;
-    CX.balcao(g, 0, 0, 0.8, 4.2, 0, 0x5a3e2a); CX.caixa(g, 0.4, 0.25, 0.3, -1.2, 1.05, 0.8, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.5, roughness: 0.4 })); // a caixa registradora
-    CX.caixa(g, 0.35, 0.08, 0.3, 1.1, 1.05, 0.8, new THREE.MeshStandardMaterial({ color: 0xb8b8b0, metalness: 0.7, roughness: 0.3 })); // a balança
-    for (const x of [-4.5, -2.2, 2.2, 4.5]) CX.prateleira(g, x, 0, -1.2, 2.0, 2.4, 0, x < 0 ? 'potes' : 'caixas');
-    CX.prateleira(g, -6.2, 0, 2.5, 3.0, 2.4, Math.PI / 2, 'potes'); CX.prateleira(g, 6.2, 0, 2.5, 3.0, 2.4, -Math.PI / 2, 'caixas');
-    for (let i = 0; i < 6; i++) { const s = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.35, 4, 8), new THREE.MeshStandardMaterial({ color: 0xc8b890, roughness: 1 })); s.position.set(-3.8 + i * 0.5, 0.35, 4.6); s.rotation.z = (rnd() - 0.5) * 0.4; s.castShadow = true; g.add(s); } // sacos
-    for (let i = 0; i < 9; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', -1.5 + (i % 3) * 0.7, Math.floor(i / 3) * 0.5, -4 - (i % 2) * 0.3, rnd() * 0.3, 0.95);
-    CX.mesa(g, -4.5, 0, -4.2, 1.4, 0.7); CX.cadeira(g, -4.5, 0, -3.4, Math.PI); CX.papel(g, -4.6, 0.8, -4.2, 0.2, 0.34, 0.46, 0x3a2a1e); CX.estante(g, -6.2, 0, -4.2, 1.6, 2.2, Math.PI / 2, true); CX.arquivo(g, -3.2, 0, -5.5, 0);
-    CX.prateleira(g, 4.5, 0, -5.4, 3.0, 2.4, 0, 'caixas'); for (let i = 0; i < 4; i++) { const b = CX.cil(g, 0.28, 0.28, 0.85, 3.5 + i * 0.7, 0, -3.3, CX.matTex('madeira', 1, 1, 0x6a4a30), 12); } // barris
+    montaPredio(c, { w: 18, d: 14, placa: ['RÁDIO VALE ALTO', 'AM 1350'], placaFundo: '#3a1210', parede: CX.matTex('reboco', 6, 1, 0xe8e2d4),
+      escadas: [{ x0: 7, x1: 8.6, z0: -6.6, z1: -1.6, y0: 0, y1: 3.4 }, { x0: 5, x1: 6.6, z0: -6.6, z1: -1.6, y0: -2.6, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-9, -7, 4.5, 7, 'deposito'], [4.5, -7, 9, -1, 'corredor'], [4.5, -1, 9, 7, 'arquivo']], extra(g, y) { CX.mesa(g, -2, y, -4, 1.4, 0.8); CX.caixa(g, 0.6, 0.25, 0.4, -2, y + 0.8, -4, new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 0.6, metalness: 0.3 })); CX.modelo(g, 'm', 'televisionVintage', -4, y, -6, 0, 0.8); } }, AND[0]),
+        Object.assign({ comodos: [[-9, 2, -1, 7, 'recepcao'], [-1, 2, 9, 7, 'sala'], [-9, -1, 9, 2, 'corredor'], [-9, -7, -2, -1, 'vazio'], [-2, -7, 4.5, -1, 'vazio'], [4.5, -7, 9, -1, 'vazio']],
+          extra(g, y) { CX.console(g, -5.5, y, -4.2, 0, 2.2); CX.cadeira(g, -5.5, y, -3.3, Math.PI); CX.microfone(g, -6.2, y + 0.86, -3.9); CX.microfone(g, -4.8, y + 0.86, -3.9); CX.estante(g, -8.6, y, -4, 1.8, 2.1, Math.PI / 2);
+            const v = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.0), new THREE.MeshStandardMaterial({ color: 0x9fb4bd, transparent: true, opacity: 0.3, roughness: 0.1, side: THREE.DoubleSide })); v.position.set(-2, y + 1.6, -4); v.rotation.y = Math.PI / 2; g.add(v);
+            CX.mesa(g, 1, y, -4, 1.4, 0.8); CX.microfone(g, 0.8, y + 0.8, -4); CX.microfone(g, 1.3, y + 0.8, -4); CX.cadeira(g, 1, y, -3.2, Math.PI); CX.cortina(g, 4.4, y, -4, 5.5, 3.0, -Math.PI / 2, 0x3a3a40); } }, AND[1]),
+        Object.assign({ comodos: [[-9, 2, 0, 7, 'escritorio'], [0, 2, 9, 7, 'quarto'], [-9, -1, 9, 2, 'corredor'], [-9, -7, 4.5, -1, 'arquivo'], [4.5, -7, 9, -1, 'vazio']] }, AND[2])] });
+    const g = c.g; CX.cil(g, 0.08, 0.16, 12, -6, 6.6, -4, matMetal, 6); for (let i = 0; i < 4; i++) CX.caixa(g, 1.6 - i * 0.3, 0.05, 0.05, -6, 9 + i * 2, -4, matMetal, 0, false); // a antena
   },
-});
+}); }
 
-/* Casa da Iracema: cozinha, sala, quarto, corredor e um depósito pequeno; o calendário na cozinha */
+/* Armazém Pozzobon */
+{ const AND = [{ nome: 'Porão', y: -2.7, h: 2.6 }, { nome: 'Térreo', y: 0, h: 3.6 }, { nome: 'Andar de cima', y: 3.7, h: 3.0 }];
 INT({
-  id: 'c-iracema', nome: 'Casa da Iracema', para: 'a casa da Iracema', curto: 'Casa da Iracema', em: 'na casa da Iracema', dica: 'o calendário com as cruzes',
-  nota: 'Sala (frente), corredor, cozinha (fundos, leste) com o calendário na parede, quarto (fundos, oeste) e o depósito pequeno. O calendário com datas e cruzes é a pista principal: marque com um ponto amarelo.',
-  cams: camsCasa(11, 10, [['Sala', { pos: [-1, 1.7, 3.8], alvo: [-2.5, 1, 1.5] }], ['Corredor', { pos: [1, 1.6, 2.5], alvo: [1, 1.3, -3] }], ['Cozinha', { pos: [1.8, 1.7, -0.8], alvo: [4.2, 1.4, -4.6] }], ['Quarto', { pos: [-1.2, 1.7, -1], alvo: [-3.5, 0.8, -3.5] }], ['Depósito', { pos: [4.5, 1.7, 1.5], alvo: [4.6, 1, 3.5] }]]),
+  id: 'c-armazem', nome: 'Armazém Pozzobon', para: 'o armazém', curto: 'Armazém', em: 'no armazém', dica: '3 andares · livro-caixa, velas pretas',
+  nota: 'Térreo: a loja (balcão, prateleiras), o escritório dos registros comerciais e o depósito. Andar de cima: a casa da família Pozzobon. Porão: o estoque e a adega. O livro-caixa com o registro das velas pretas e a conta da paróquia ficam no escritório: marque com um ponto amarelo.',
+  cams: camsPredio(22, 16, AND, [['O balcão', { pos: [0, 2, 7.2], alvo: [0, 1.1, 2] }], ['Registros', { pos: [-5, 1.8, -1], alvo: [-8, 1, -5] }], ['Estoque', { pos: [-2, -1, 4], alvo: [-5, -2.4, -3] }]]),
   monta(c) {
-    const W = 11, D = 10;
-    casaInterior(c, { w: W, d: D, h: 2.8, parede: CX.matTex('reboco', 3, 1, 0xd8e0d0), paredeDentro: CX.matTex('reboco', 3, 1, 0xeadfc8), piso: CX.matTex('tabua', 6, 5, 0xa88a68), rua: CX.matTex('terra', 30, 2),
-      portas: [{ lado: 's', pos: 4.5, l: 1 }], janelas: [{ lado: 's', pos: 2, l: 1.1 }, { lado: 'o', pos: 2.5, l: 1 }, { lado: 'o', pos: 7.5, l: 1 }, { lado: 'l', pos: 2.5, l: 1 }],
-      div: [[-5.5, -1, 0.3, -1, { porta: 0.5 }], [1.8, -1, 5.5, -1, { porta: 0.25 }], [0.3, -5, 0.3, -1], [1.8, -5, 1.8, 5, { porta: 0.55 }], [1.8, 2, 5.5, 2, { porta: 0.5 }]],
-      luzes: [[-2, 2], [1, 1], [3.7, -3], [-2.5, -3], [3.6, 3.5]] });
-    const g = c.g;
-    CX.modelo(g, 'm', 'loungeSofa', -3, 0, 3.8, Math.PI, 0.9); CX.modelo(g, 'm', 'tableCoffee', -3, 0, 2.6, 0, 0.9); CX.modelo(g, 'm', 'televisionVintage', -3, 0, 0.0, 0, 0.9); CX.modelo(g, 'm', 'rugRectangle', -3, 0, 2.2, 0, 1); CX.quadro(g, -5.38, 1.8, 2, Math.PI / 2, 0.5, 0.4);
-    CX.modelo(g, 'm', 'kitchenCabinet', 3, 0, -4.7, 0, 1); CX.modelo(g, 'm', 'kitchenStove', 4.1, 0, -4.7, 0, 1); CX.modelo(g, 'm', 'kitchenFridge', 5.0, 0, -2.0, -Math.PI / 2, 1);
-    CX.mesa(g, 3.5, 0, -2.6, 1.2, 0.8); CX.cadeira(g, 3.0, 0, -2.0, Math.PI); CX.cadeira(g, 4.0, 0, -3.2, 0); CX.calendario(g, 2.6, 2.0, -4.88, 0);
-    CX.cama(g, -2.6, 0, -3.4, 0, false); CX.modelo(g, 'm', 'sideTable', -4.6, 0, -4.4, 0, 1); CX.modelo(g, 'm', 'lampRoundTable', -4.6, 0.55, -4.4, 0, 0.8); CX.quadro(g, -2.6, 1.9, -4.88, 0, 0.4, 0.5);
-    for (let i = 0; i < 4; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', 3 + (i % 2) * 0.6, Math.floor(i / 2) * 0.5, 4.3, rnd() * 0.4, 0.9); CX.prateleira(g, 5.1, 0, 3.4, 1.6, 2, -Math.PI / 2, 'potes');
+    montaPredio(c, { w: 22, d: 16, placa: ['ARMAZÉM POZZOBON', 'secos e molhados'], placaFundo: '#2a3a24', parede: CX.matTex('reboco_amarelo', 7, 1, 0xe8d8b0),
+      escadas: [{ x0: 9, x1: 10.6, z0: -7.6, z1: -2.6, y0: 0, y1: 3.7 }, { x0: 6.8, x1: 8.4, z0: -7.6, z1: -2.6, y0: -2.7, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-11, -8, 6.4, 8, 'deposito'], [6.4, -8, 11, -2, 'corredor'], [6.4, -2, 11, 8, 'deposito']], extra(g, y) { for (let i = 0; i < 8; i++) CX.cil(g, 0.3, 0.3, 0.9, 7.2 + (i % 4) * 0.7, y, 3 + Math.floor(i / 4) * 2.5, CX.matTex('madeira', 1, 1, 0x6a4a30), 12); } }, AND[0]),
+        Object.assign({ comodos: [[-11, -2, 11, 8, 'loja'], [-11, -8, -4, -2, 'escritorio'], [-4, -8, 6.4, -2, 'deposito'], [6.4, -8, 11, -2, 'vazio']], portas: [{ lado: 's', pos: 11, l: 2.6, h: 2.8 }],
+          extra(g, y) { CX.balcao(g, 0, y, 4.8, 5); CX.caixa(g, 0.4, 0.25, 0.3, -1.6, y + 1.05, 4.8, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.5, roughness: 0.4 })); CX.caixa(g, 0.35, 0.08, 0.3, 1.6, y + 1.05, 4.8, new THREE.MeshStandardMaterial({ color: 0xb8b8b0, metalness: 0.7, roughness: 0.3 }));
+            for (let i = 0; i < 8; i++) { const s = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.35, 4, 8), new THREE.MeshStandardMaterial({ color: 0xc8b890, roughness: 1 })); s.position.set(-9 + i * 0.5, y + 0.35, 7.2); s.rotation.z = (rnd() - 0.5) * 0.4; s.castShadow = true; g.add(s); } } }, AND[1]),
+        Object.assign({ comodos: [[-11, 1, 0, 8, 'sala'], [0, 1, 11, 8, 'cozinha'], [-11, -2, 11, 1, 'corredor'], [-11, -8, -3, -2, 'quarto'], [-3, -8, 3, -2, 'quarto'], [3, -8, 6.4, -2, 'banheiro'], [6.4, -8, 11, -2, 'vazio']] }, AND[2])] });
   },
-});
+}); }
 
-/* Casa da Nonna Gema: sala, cozinha, quarto, o espaço de costura e a parede das fotos e lembranças */
+/* Casa da Iracema */
+{ const AND = [{ nome: 'Porão', y: -2.5, h: 2.4 }, { nome: 'Térreo', y: 0, h: 3.0 }, { nome: 'Andar de cima', y: 3.1, h: 2.8 }];
 INT({
-  id: 'c-nonna', nome: 'Casa da Nonna Gema', para: 'a casa da Nonna Gema', curto: 'Casa da Nonna', em: 'na casa da Nonna Gema', dica: 'a aliança O. 1949, a Filodrammatica',
-  nota: 'Sala com a parede das fotografias e lembranças da Filodrammatica (frente), espaço de costura (canto leste), cozinha e quarto (fundos). A aliança com "O. 1949" fica na caixinha da cômoda do quarto. Não revele as respostas dos enigmas antes da hora: marque as pistas com pontos amarelos.',
-  cams: camsCasa(12, 10, [['Sala e fotos', { pos: [0, 1.7, 3.6], alvo: [-3.5, 1.6, 0.2] }], ['Costura', { pos: [2, 1.6, 3], alvo: [4.6, 1, 3.2] }], ['Cozinha', { pos: [1.5, 1.7, -1], alvo: [4, 1.2, -4] }], ['Quarto', { pos: [-1.5, 1.7, -1], alvo: [-4, 0.9, -4] }]]),
+  id: 'c-iracema', nome: 'Casa da Iracema', para: 'a casa da Iracema', curto: 'Casa da Iracema', em: 'na casa da Iracema', dica: '3 andares · o calendário com as cruzes',
+  nota: 'Térreo: sala, cozinha (o calendário com as datas e cruzes fica na parede dela), quarto de baixo e um depósito. Andar de cima: dois quartos, banheiro e um escritório. Porão: guardados da família. Marque o calendário e o que mais for pista com pontos amarelos.',
+  cams: camsPredio(14, 12, AND, [['Cozinha', { pos: [1, 1.7, 1.2], alvo: [4, 1.5, 5.6] }], ['Porão', { pos: [0, -0.9, 3], alvo: [-3, -2.1, -2] }]]),
   monta(c) {
-    const W = 12, D = 10;
-    casaInterior(c, { w: W, d: D, h: 2.9, parede: CX.matTex('tabua', 4, 1, 0xd8c8a8), paredeDentro: CX.matTex('reboco', 3, 1, 0xe8dcc0), piso: CX.matTex('tabua', 6, 5, 0x9a7a58), telha: matTelha,
-      portas: [{ lado: 's', pos: 6, l: 1 }], janelas: [{ lado: 's', pos: 3, l: 1.1 }, { lado: 's', pos: 9.5, l: 1.1 }, { lado: 'o', pos: 2.5, l: 1 }, { lado: 'l', pos: 2.5, l: 1 }, { lado: 'l', pos: 7.5, l: 1 }],
-      div: [[-6, -0.8, 6, -0.8, { porta: 0.5 }], [0, -5, 0, -0.8, { porta: 0.6 }]],
-      luzes: [[-2.5, 2], [3.5, 2.5], [3, -3], [-3, -3]] });
-    const g = c.g;
-    CX.modelo(g, 'm', 'loungeSofa', -2.5, 0, 3.9, Math.PI, 0.85); CX.modelo(g, 'm', 'rugRectangle', -2.5, 0, 2.5, 0, 1); CX.modelo(g, 'm', 'sideTable', -4.6, 0, 3.9, 0, 0.9);
-    for (let i = 0; i < 9; i++) CX.quadro(g, -5.88, 1.3 + (i % 3) * 0.55, -0.1 + Math.floor(i / 3) * 0.75 + (i % 2) * 0.1, Math.PI / 2, 0.36 + (i % 2) * 0.1, 0.3 + (i % 3) * 0.06);
-    { const cartaz = CX.texto(['FILODRAMMATICA', 'San Valentino'], 0.7, 0.9, { fundo: '#d8c8a0', cor: '#5a1e14', suja: true, fonte: 46 }); cartaz.position.set(-5.88, 1.9, 2.9); cartaz.rotation.y = Math.PI / 2; g.add(cartaz); }
-    /* a máquina de costura e o manequim de costura */
-    CX.mesa(g, 4.6, 0, 3.2, 1.1, 0.6); { const mq = new THREE.Group(); mq.position.set(4.6, 0.8, 3.2); g.add(mq); const pt = new THREE.MeshStandardMaterial({ color: 0x15130f, roughness: 0.4, metalness: 0.3 }); CX.caixa(mq, 0.45, 0.06, 0.2, 0, 0, 0, pt); CX.caixa(mq, 0.08, 0.26, 0.12, 0.17, 0.06, 0, pt); CX.caixa(mq, 0.4, 0.07, 0.11, 0, 0.3, 0, pt); CX.cil(mq, 0.012, 0.012, 0.12, -0.15, 0.2, 0, pt, 6); }
-    CX.cadeira(g, 4.6, 0, 2.5, Math.PI); CX.manequim(g, 5.4, 0, 1.6, -Math.PI / 2); CX.modelo(g, 'm', 'cardboardBoxClosed', 3.6, 0, 4.4, 0.2, 0.7);
-    CX.modelo(g, 'm', 'kitchenCabinet', 2.6, 0, -4.7, 0, 1); CX.modelo(g, 'm', 'kitchenStove', 3.7, 0, -4.7, 0, 1); CX.mesa(g, 3.5, 0, -2.4, 1.2, 0.8); CX.cadeira(g, 3.0, 0, -1.7, Math.PI); CX.cadeira(g, 4.0, 0, -3.1, 0);
-    CX.cama(g, -3, 0, -3.3, 0, true); CX.modelo(g, 'm', 'bookcaseClosed', -5.5, 0, -2, Math.PI / 2, 0.9); { const cx = -5.5, cz = -2; CX.caixa(g, 0.12, 0.07, 0.09, cx + 0.05, 0.92, cz - 0.05, new THREE.MeshStandardMaterial({ color: 0x5a1e22, roughness: 0.5 })); } // a caixinha da aliança
-    CX.quadro(g, -3, 2.0, -4.88, 0, 0.5, 0.4);
+    montaPredio(c, { w: 14, d: 12, parede: CX.matTex('reboco', 5, 1, 0xd8e0d0), matRua: CX.matTex('terra', 10, 2),
+      escadas: [{ x0: 5, x1: 6.5, z0: -5.6, z1: -1.4, y0: 0, y1: 3.1 }, { x0: 3.3, x1: 4.8, z0: -5.6, z1: -1.4, y0: -2.5, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-7, -6, 3, 6, 'deposito'], [3, -6, 7, -1, 'corredor'], [3, -1, 7, 6, 'deposito']] }, AND[0]),
+        Object.assign({ comodos: [[-7, 1.5, 0, 6, 'sala'], [0, 1.5, 7, 6, 'cozinha'], [-7, -1, 7, 1.5, 'corredor'], [-7, -6, -2, -1, 'quarto'], [-2, -6, 3, -1, 'deposito'], [3, -6, 7, -1, 'vazio']],
+          extra(g, y) { CX.calendario(g, 6.85, y + 1.9, 4, -Math.PI / 2); } }, AND[1]),
+        Object.assign({ comodos: [[-7, 1.5, 0, 6, 'quarto'], [0, 1.5, 7, 6, 'quarto'], [-7, -1, 7, 1.5, 'corredor'], [-7, -6, -2, -1, 'escritorio'], [-2, -6, 3, -1, 'banheiro'], [3, -6, 7, -1, 'vazio']] }, AND[2])] });
   },
-});
+}); }
 
-/* Salão Paroquial: o salão, o palco, os bastidores, a escada e o depósito embaixo com o camarim da Filodrammatica */
+/* Casa da Nonna Gema */
+{ const AND = [{ nome: 'Porão', y: -2.5, h: 2.4 }, { nome: 'Térreo', y: 0, h: 3.0 }, { nome: 'Andar de cima', y: 3.1, h: 2.8 }];
 INT({
-  id: 'c-salao', nome: 'Salão Paroquial', para: 'o salão paroquial', curto: 'Salão Paroquial', em: 'no salão paroquial', dica: 'o camarim: manequins e o baú',
-  alt: (x, z) => (x > 4.5 && z < -1 ? -2.6 : z < -3.2 && x < 4.5 ? 0.9 : 0),
-  nota: 'Salão com cadeiras e o palco (fundos), bastidores atrás das cortinas, escada (canto leste) para o depósito embaixo: quatro manequins (três com o contorno das máscaras no rosto, um com coroa de flores), quatro molduras de latão, o baú de ferro, cartões de elenco, a faca de cena e a tigela de barro. O baú não abre com um clique: o enigma é dos jogadores.',
-  cams: camsCasa(14, 14, [['O salão', { pos: [0, 2.2, 5.8], alvo: [0, 1.2, -3] }], ['O palco', { pos: [-1, 2.4, -0.5], alvo: [-1, 1.5, -5] }], ['Bastidores', { pos: [-4, 1.8, -4.4], alvo: [-1, 1.4, -6.5] }], ['O depósito embaixo', { pos: [5.8, -0.7, -1.6], alvo: [5.5, -1.7, -5] }], ['Manequins', { pos: [5, -0.9, -2.5], alvo: [6.4, -1.4, -5.8] }]]),
+  id: 'c-nonna', nome: 'Casa da Nonna Gema', para: 'a casa da Nonna Gema', curto: 'Casa da Nonna', em: 'na casa da Nonna Gema', dica: '3 andares · a aliança O. 1949, a Filodrammatica',
+  nota: 'Térreo: sala com a parede de fotografias e lembranças da Filodrammatica, cozinha, o canto de costura e um depósito. Andar de cima: o quarto da Nonna (a aliança com "O. 1949" fica na caixinha da cômoda), o quarto de hóspedes, banheiro e o quarto das lembranças. Porão: adega e baús. Não revele as respostas antes da hora: marque as pistas com pontos amarelos.',
+  cams: camsPredio(15, 12, AND, [['Parede das fotos', { pos: [-2, 1.7, 3.2], alvo: [-7.3, 1.6, 3.6] }], ['Quarto da Nonna', { pos: [-3, 4.9, 1.8], alvo: [-5.5, 3.9, 4.5] }]]),
   monta(c) {
-    const W = 14, D = 14;
-    casaInterior(c, { w: W, d: D, h: 4.2, buraco: [4.55, -7, 6.95, -1], placa: ['SALÃO PAROQUIAL'], placaFundo: '#3a2a1a', parede: CX.matTex('reboco_velho', 4, 1, 0xe8e0cc), paredeDentro: CX.matTex('reboco', 4, 1, 0xe6dccb), piso: CX.matTex('tabua', 7, 7, 0x9c7c5a),
-      portas: [{ lado: 's', pos: 7, l: 1.8, h: 2.8 }], janelas: [{ lado: 'o', pos: 4, l: 1.2, h0: 1.4 }, { lado: 'o', pos: 9, l: 1.2, h0: 1.4 }, { lado: 's', pos: 3, l: 1.2 }, { lado: 's', pos: 11, l: 1.2 }],
-      div: [[4.5, -7, 4.5, -1, { porta: 0.85 }], [4.5, -1, 7, -1, { porta: 0.5 }]],
-      luzes: [[-1, 3], [-1, -1], [-1, -5], [5.8, -4]] });
-    const g = c.g, mad = CX.matTex('tabua', 4, 1, 0x7a5a3c);
-    CX.caixa(g, 11.2, 0.9, 3.6, -1.1, 0, -5.2, mad); for (let i = 0; i < 3; i++) CX.caixa(g, 1.4, 0.3 * (i + 1), 0.35, 2.4, 0, -3.2 + i * -0.35 + 0.35, mad); // o palco e os degraus
-    CX.cortina(g, -4.5, 0.9, -3.45, 4.8, 3.2, 0); CX.cortina(g, 2.4, 0.9, -3.45, 3.5, 3.2, 0); CX.caixa(g, 11.2, 0.5, 0.2, -1.1, 3.7, -3.45, new THREE.MeshStandardMaterial({ color: 0x4a0e12, roughness: 0.9 }));
-    CX.cortina(g, -1, 0.9, -6.8, 10, 3.2, 0, 0x2a1a14);
-    for (let r = 0; r < 5; r++) for (let k = 0; k < 7; k++) if (!(k === 3)) CX.cadeira(g, -5 + k * 1.3, 0, -0.8 + r * 1.2, Math.PI);
-    /* a escada e o depósito embaixo (o chão do depósito fica 2,6 m abaixo) */
-    CX.escada(g, 5.8, 0, -1.3, 1.0, 13, -1);
-    { const fundo = -2.6, ch2 = CX.caixa(g, 2.4, 0.08, 6, 5.75, fundo - 0.08, -4, CX.matTex('concreto', 2, 4, 0x8a8478)); ch2.userData.piso = true;
-      for (const [w, d, x, z] of [[0.15, 6, 4.55, -4], [0.15, 6, 6.95, -4], [2.4, 0.15, 5.75, -7]]) CX.caixa(g, w, 2.6, d, x, fundo, z, CX.matTex('reboco_velho', 2, 1, 0xa8a090));
-      const l = new THREE.PointLight(0xffc880, 0, 7, 1.6); l.position.set(5.8, -0.5, -4.5); g.add(l); (c.luzes ||= []).push({ l, i: 1.4 });
-      CX.manequim(g, 5.1, fundo, -5.2, 0.4, 'mascara'); CX.manequim(g, 5.1, fundo, -6.3, 0.2, 'mascara'); CX.manequim(g, 6.4, fundo, -6.3, -0.3, 'mascara'); CX.manequim(g, 6.4, fundo, -5.0, -0.6, 'flores');
-      for (let i = 0; i < 4; i++) { const mol = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 6, 4), new THREE.MeshStandardMaterial({ color: 0xb08a3a, metalness: 0.8, roughness: 0.35 })); mol.rotation.z = Math.PI / 4; mol.position.set(6.88, fundo + 1.4, -6.4 + i * 0.6); mol.rotation.y = Math.PI / 2; g.add(mol); }
-      CX.bau(g, 5.6, fundo, -3.4, Math.PI / 2);
-      CX.mesa(g, 6.3, fundo, -2.5, 0.9, 0.5); for (let i = 0; i < 5; i++) CX.papel(g, 6.05 + i * 0.12, fundo + 0.8 + i * 0.002, -2.5, (rnd() - 0.5) * 0.5, 0.09, 0.13, 0xf2ead2);
-      { const faca = CX.caixa(g, 0.25, 0.01, 0.03, 6.55, fundo + 0.8, -2.62, new THREE.MeshStandardMaterial({ color: 0xa8a8a0, metalness: 0.7, roughness: 0.3 }), 0.3); faca.rotation.y = 0.3; }
-      const tg = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 8, 0, TAU, Math.PI / 2, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9a5a3a, roughness: 0.9, side: THREE.DoubleSide })); tg.position.set(6.0, fundo + 0.93, -2.4); g.add(tg); }
+    montaPredio(c, { w: 15, d: 12, parede: CX.matTex('tabua', 5, 1, 0xd8c8a8), paredeDentro: CX.matTex('reboco', 3, 1, 0xe8dcc0), matRua: CX.matTex('terra', 10, 2),
+      escadas: [{ x0: 5.5, x1: 7, z0: -5.6, z1: -1.4, y0: 0, y1: 3.1 }, { x0: 3.8, x1: 5.3, z0: -5.6, z1: -1.4, y0: -2.5, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-7.5, -6, 3.5, 6, 'deposito'], [3.5, -6, 7.5, -1, 'corredor'], [3.5, -1, 7.5, 6, 'deposito']], extra(g, y) { CX.bau(g, -5, y, -4, 0.2); CX.bau(g, -2, y, -4.5, -0.1); for (let i = 0; i < 6; i++) CX.cil(g, 0.26, 0.26, 0.8, 4 + (i % 3) * 0.6, y, 3 + Math.floor(i / 3) * 1.8, CX.matTex('madeira', 1, 1, 0x5a3a24), 12); } }, AND[0]),
+        Object.assign({ comodos: [[-7.5, 1.5, 0, 6, 'sala'], [0, 1.5, 7.5, 6, 'cozinha'], [-7.5, -1, 7.5, 1.5, 'corredor'], [-7.5, -6, -2, -1, 'vazio'], [-2, -6, 3.5, -1, 'deposito'], [3.5, -6, 7.5, -1, 'vazio']],
+          extra(g, y) { for (let i = 0; i < 12; i++) CX.quadro(g, -7.38, y + 1.2 + (i % 3) * 0.55, 2.2 + Math.floor(i / 3) * 0.85 + (i % 2) * 0.1, Math.PI / 2, 0.34 + (i % 2) * 0.12, 0.3 + (i % 3) * 0.06);
+            const cartaz = CX.texto(['FILODRAMMATICA', 'San Valentino'], 0.7, 0.9, { fundo: '#d8c8a0', cor: '#5a1e14', suja: true, fonte: 46 }); cartaz.position.set(-7.38, y + 1.9, 5.4); cartaz.rotation.y = Math.PI / 2; g.add(cartaz);
+            CX.mesa(g, -4.8, y, -3.5, 1.1, 0.6); const mq = new THREE.Group(); mq.position.set(-4.8, y + 0.8, -3.5); g.add(mq); const pt = new THREE.MeshStandardMaterial({ color: 0x15130f, roughness: 0.4, metalness: 0.3 }); CX.caixa(mq, 0.45, 0.06, 0.2, 0, 0, 0, pt); CX.caixa(mq, 0.08, 0.26, 0.12, 0.17, 0.06, 0, pt); CX.caixa(mq, 0.4, 0.07, 0.11, 0, 0.3, 0, pt);
+            CX.cadeira(g, -4.8, y, -2.8, Math.PI); CX.manequim(g, -6.8, y, -2, Math.PI / 2); CX.prateleira(g, -2.6, y, -5.6, 1.2, 1.8, 0, 'caixas'); } }, AND[1]),
+        Object.assign({ comodos: [[-7.5, 1.5, 0, 6, 'quarto'], [0, 1.5, 7.5, 6, 'quarto'], [-7.5, -1, 7.5, 1.5, 'corredor'], [-7.5, -6, -2, -1, 'deposito'], [-2, -6, 3.5, -1, 'banheiro'], [3.5, -6, 7.5, -1, 'vazio']],
+          extra(g, y) { CX.modelo(g, 'm', 'cabinetTelevision', -5.5, y, 5.6, Math.PI, 1); CX.caixa(g, 0.12, 0.07, 0.09, -5.3, y + 0.62, 5.5, new THREE.MeshStandardMaterial({ color: 0x5a1e22, roughness: 0.5 })); for (let i = 0; i < 4; i++) CX.quadro(g, -7.38, y + 1.5, -4.5 + i * 0.9, Math.PI / 2, 0.4, 0.5); } }, AND[2])] });
   },
-});
+}); }
 
-/* Casa Paroquial de Remanso: escritório, quarto, sala, arquivo e armazenamento (debaixo d'água: lodo e luz verde) */
+/* Salão Paroquial (com o depósito embaixo: o camarim da Filodrammatica) */
+{ const AND = [{ nome: 'Embaixo (camarim)', y: -2.8, h: 2.7 }, { nome: 'Salão', y: 0, h: 4.0 }, { nome: 'Andar de cima', y: 4.1, h: 3.0 }];
 INT({
-  id: 'c-paroquial', nome: 'Casa Paroquial de Remanso', para: 'a casa paroquial', curto: 'Casa Paroquial', em: 'na casa paroquial', dica: 'cartas do Pe. Anselmo, carta ao bispo',
-  interno: true, ceu: 0x22302a, neblinaCor: 0x2a3a32, densD: 0.05, densN: 0.06,
-  nota: 'Remanso, 1979. Escritório do Padre Anselmo (frente, oeste) com a escrivaninha, sala (frente, leste), quarto e o pequeno arquivo (fundos), armazenamento. As cartas do Padre Anselmo, o rascunho da carta ao bispo e as referências ao Lacre ficam no escritório e no arquivo: marque com pontos amarelos.',
-  cams: camsCasa(11, 10, [['Escritório', { pos: [-0.5, 1.7, 3.5], alvo: [-3.5, 1, 1.4] }], ['Sala', { pos: [0.8, 1.7, 3.6], alvo: [3.5, 1, 1.5] }], ['Quarto', { pos: [-1, 1.7, -1.2], alvo: [-3.6, 0.8, -3.6] }], ['Arquivo', { pos: [1.4, 1.7, -1.2], alvo: [3.8, 1.2, -4] }]]),
-  luz(c) { if (c.hz) c.hz.visible = false; },
+  id: 'c-salao', nome: 'Salão Paroquial', para: 'o salão paroquial', curto: 'Salão Paroquial', em: 'no salão paroquial', dica: '3 andares · o camarim: manequins e o baú',
+  nota: 'Salão com cadeiras e o palco ao fundo, bastidores e escada. Andar de cima: sala de reuniões, secretaria paroquial e o guarda-figurinos. Embaixo: o depósito subterrâneo com os quatro manequins (três com o contorno das máscaras no rosto, um com coroa de flores), as quatro molduras de latão, o baú de ferro, os cartões de elenco, a faca de cena e a tigela de barro. O baú não abre com um clique: o enigma é dos jogadores.',
+  cams: camsPredio(24, 18, AND, [['O palco', { pos: [-3, 2.5, 3], alvo: [-3, 1.5, -6] }], ['Os manequins', { pos: [-1, -1, 2], alvo: [-6, -2.2, -4.5] }]]),
   monta(c) {
-    const W = 11, D = 10;
-    casaInterior(c, { w: W, d: D, h: 3, chaoFora: CX.matTex('lodo', 20, 20, 0x6a7a62), rua: CX.matTex('lodo', 30, 2, 0x5a6a52), parede: CX.matTex('reboco_velho', 3, 1, 0x7d8a70), paredeDentro: CX.matTex('reboco_velho', 3, 1, 0x8a957c), piso: CX.matTex('lodo', 5, 5, 0x7a8670), luzCor: 0x9fd0c0,
-      portas: [{ lado: 's', pos: 5.5, l: 1 }], janelas: [{ lado: 's', pos: 2.4, l: 1.1 }, { lado: 's', pos: 8.6, l: 1.1 }, { lado: 'o', pos: 5, l: 1 }],
-      div: [[-5.5, -0.5, 5.5, -0.5, { porta: 0.5 }], [0, -5, 0, -0.5, { porta: 0.5 }], [0, -0.5, 0, 5, { porta: 0.3 }]], luzes: [[-2.8, 2.2, 0.9], [2.8, 2.2, 0.9], [-2.8, -2.8, 0.9], [2.8, -2.8, 0.9]] });
-    const g = c.g, rui = m => tinta(m, 0.42, 0x2c3326, 0.45);
-    CX.mesa(g, -3.6, 0, 1.4, 1.5, 0.8, 0, CX.matTex('madeira', 1, 1, 0x3e3a2a)); CX.cadeira(g, -3.6, 0, 2.2, Math.PI); for (let i = 0; i < 4; i++) CX.papel(g, -4 + i * 0.25, 0.8 + i * 0.002, 1.3, (rnd() - 0.5) * 0.6, 0.21, 0.29, 0xc8c4a8);
-    CX.estante(g, -5.3, 0, 2.6, 1.5, 2.2, Math.PI / 2, true); CX.modelo(g, 'g', 'cross', -3.6, 1.8, -0.33, 0, 0.35, rui);
-    CX.modelo(g, 'm', 'loungeSofa', 3.2, 0, 3.8, Math.PI, 0.85, rui); CX.modelo(g, 'm', 'sideTable', 4.8, 0, 1.2, 0, 0.9, rui); CX.quadro(g, 3, 1.8, -0.38, Math.PI, 0.5, 0.6);
-    CX.cama(g, -3, 0, -3.2, 0, false); CX.modelo(g, 'm', 'coatRackStanding', -0.6, 0, -4.4, 0, 1, rui);
-    for (let i = 0; i < 3; i++) CX.arquivo(g, 1.0 + i * 0.6, 0, -4.6, 0); CX.prateleira(g, 4.5, 0, -3.6, 1.8, 2.0, -Math.PI / 2, 'pastas'); for (let i = 0; i < 3; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', 3 + i * 0.6, 0, -1.4, rnd(), 0.8, rui);
-    const part = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 600 }, (_, i) => i % 3 === 1 ? rnd() * 3 : (rnd() - 0.5) * 11), 3)), new THREE.PointsMaterial({ color: 0xbfe0d0, size: 0.04, transparent: true, opacity: 0.5, depthWrite: false })); g.add(part);
+    montaPredio(c, { w: 24, d: 18, placa: ['SALÃO PAROQUIAL'], placaFundo: '#3a2a1a', parede: CX.matTex('reboco_velho', 8, 1, 0xe8e0cc),
+      escadas: [{ x0: 9.6, x1: 11.2, z0: -8.6, z1: -3.6, y0: 0, y1: 4.1 }, { x0: 7.2, x1: 8.8, z0: -8.6, z1: -3.6, y0: -2.8, y1: 0 }],
+      relevo: (x, z, y) => (y === 0 && x > -12 && x < 6 && z > -9 && z < -3.4 ? 0.9 : y),
+      andares: [
+        Object.assign({ comodos: [[-12, -9, 6, 9, 'vazio'], [6, -9, 12, -3, 'corredor'], [6, -3, 12, 9, 'deposito']],
+          extra(g, y) { CX.manequim(g, -7, y, -6.5, 0.4, 'mascara'); CX.manequim(g, -5.5, y, -7.2, 0.2, 'mascara'); CX.manequim(g, -4, y, -6.5, -0.2, 'mascara'); CX.manequim(g, -2.5, y, -7.2, -0.5, 'flores');
+            for (let i = 0; i < 4; i++) { const mol = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.035, 6, 4), new THREE.MeshStandardMaterial({ color: 0xb08a3a, metalness: 0.8, roughness: 0.35 })); mol.rotation.z = Math.PI / 4; mol.position.set(-7 + i * 1.5, y + 1.6, -8.86); g.add(mol); }
+            CX.bau(g, -4.8, y, -2.5, 0); CX.mesa(g, -1, y, -2.6, 1.2, 0.6); for (let i = 0; i < 5; i++) CX.papel(g, -1.4 + i * 0.16, y + 0.8 + i * 0.002, -2.6, (rnd() - 0.5) * 0.5, 0.09, 0.13, 0xf2ead2);
+            const faca = CX.caixa(g, 0.25, 0.01, 0.03, -0.6, y + 0.8, -2.75, new THREE.MeshStandardMaterial({ color: 0xa8a8a0, metalness: 0.7, roughness: 0.3 })); faca.rotation.y = 0.3;
+            const tg = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 8, 0, TAU, Math.PI / 2, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9a5a3a, roughness: 0.9, side: THREE.DoubleSide })); tg.position.set(-1.6, y + 0.94, -2.4); g.add(tg);
+            for (let i = 0; i < 3; i++) CX.prateleira(g, -10.5, y, -4 + i * 3, 2.4, 2.2, Math.PI / 2, 'caixas'); for (let i = 0; i < 4; i++) CX.manequim(g, 2 + i * 0.9, y, 6 + (i % 2) * 0.6, Math.PI); CX.cortina(g, 3, y, 8.6, 5, 2.4, Math.PI, 0x5a2a3a); } }, AND[0]),
+        Object.assign({ comodos: [[-12, -3, 12, 9, 'vazio'], [-12, -9, 6, -3, 'vazio', 'aberto'], [6, -9, 12, -3, 'corredor']],
+          extra(g, y) { const mad = CX.matTex('tabua', 6, 2, 0x7a5a3c); CX.caixa(g, 18, 0.9, 5.6, -3, y, -6.2, mad); for (let i = 0; i < 3; i++) CX.caixa(g, 1.6, 0.3 * (i + 1), 0.35, 4.2, y, -3.05 + 0.35 - i * 0.35, mad);
+            CX.cortina(g, -9, y + 0.9, -3.45, 6, 3.0, 0); CX.cortina(g, 3, y + 0.9, -3.45, 6, 3.0, 0); CX.caixa(g, 18, 0.4, 0.2, -3, y + 3.6, -3.45, new THREE.MeshStandardMaterial({ color: 0x4a0e12, roughness: 0.9 })); CX.cortina(g, -3, y + 0.9, -8.8, 17, 3.0, 0, 0x2a1a14);
+            for (let r = 0; r < 7; r++) for (let k = 0; k < 12; k++) if (k !== 5 && k !== 6) CX.cadeira(g, -10 + k * 1.6, y, 0 + r * 1.2, Math.PI);
+            CX.modelo(g, 'g', 'cross', 0, y + 2.6, 8.85, Math.PI, 0.5); CX.quadro(g, -11.85, y + 2, 4, Math.PI / 2, 0.8, 1.0); CX.quadro(g, 11.85, y + 2, 4, -Math.PI / 2, 0.8, 1.0); } }, AND[1]),
+        Object.assign({ comodos: [[-12, 2, 0, 9, 'reunioes'], [0, 2, 12, 9, 'escritorio'], [-12, -3, 12, 2, 'corredor'], [-12, -9, 6, -3, 'deposito'], [6, -9, 12, -3, 'vazio']],
+          extra(g, y) { for (let i = 0; i < 6; i++) CX.manequim(g, -10 + i * 1.6, y, -5, 0); CX.cortina(g, -3, y, -8.8, 16, 2.6, 0, 0x6a4a2a); } }, AND[2])] });
   },
-});
+}); }
 
-/* Garagem da Delegacia: os arquivos do inquérito, a viatura velha, prateleiras de caixas */
+/* Casa Paroquial de Remanso (debaixo d'água: lodo e luz verde) */
+{ const AND = [{ nome: 'Porão', y: -2.6, h: 2.5 }, { nome: 'Térreo', y: 0, h: 3.2 }, { nome: 'Andar de cima', y: 3.3, h: 2.9 }];
 INT({
-  id: 'c-delegacia', nome: 'Garagem da Delegacia', para: 'a garagem da delegacia', curto: 'Garagem da Delegacia', em: 'na garagem da delegacia', dica: 'os arquivos do inquérito',
-  nota: 'Garagem nos fundos da delegacia: a viatura, prateleiras de caixas de processos, arquivos de aço e a mesa com os volumes do inquérito. Marque as pistas com pontos amarelos.',
-  cams: camsCasa(12, 10, [['A garagem', { pos: [0, 2.4, 4.5], alvo: [0, 1, -1] }], ['Os arquivos', { pos: [-2, 1.7, 0], alvo: [-4.8, 1.2, -3.5] }], ['A mesa', { pos: [2.5, 1.7, -1], alvo: [4, 0.9, -3.4] }]]),
+  id: 'c-paroquial', nome: 'Casa Paroquial de Remanso', para: 'a casa paroquial', curto: 'Casa Paroquial', em: 'na casa paroquial', dica: '3 andares · cartas do Pe. Anselmo',
+  interno: true, nevoaVerde: true,
+  nota: 'Remanso, 1979, debaixo da represa. Térreo: o escritório do Padre Anselmo, a sala, a cozinha e o arquivo. Andar de cima: o quarto do padre, o oratório e o quarto de hóspedes. Porão: guardados da paróquia. As cartas do Padre Anselmo, o rascunho da carta ao bispo e as referências ao Lacre: marque com pontos amarelos.',
+  cams: camsPredio(16, 12, AND, [['Escritório do padre', { pos: [-3, 1.7, 1], alvo: [-6, 1, 4] }], ['Oratório', { pos: [-3, 4.9, -2], alvo: [-6, 4.2, -4.5] }]]),
   monta(c) {
-    const W = 12, D = 10;
-    casaInterior(c, { w: W, d: D, h: 3.4, placa: ['DELEGACIA DE POLÍCIA'], placaFundo: '#1a2a3a', parede: CX.matTex('concreto', 3, 1, 0xc8c4b8), piso: CX.matTex('concreto', 5, 4, 0x9a968c), rua: CX.matTex('calcamento', 30, 2),
-      portas: [{ lado: 's', pos: 6, l: 4.2, h: 2.9 }], janelas: [{ lado: 'o', pos: 5, l: 1.2, h0: 1.6, h: 0.8 }], luzes: [[0, 1], [-3.5, -3], [3.5, -3]] });
-    const g = c.g;
-    CX.modelo(g, 'c', 'police', 0, 0, 1.2, Math.PI, 1.1, m => tinta(m, 0.75, 0x5a5a50, 0.25));
-    CX.prateleira(g, -5.3, 0, 0.5, 3.6, 2.4, Math.PI / 2, 'caixas'); for (let i = 0; i < 4; i++) CX.arquivo(g, -4.6 + i * 0.6, 0, -4.6, 0);
-    CX.prateleira(g, 5.3, 0, 2.0, 3.0, 2.4, -Math.PI / 2, 'pastas');
-    CX.mesa(g, 3.6, 0, -3.6, 1.8, 0.8); CX.cadeira(g, 3.6, 0, -2.8, Math.PI); for (let i = 0; i < 3; i++) CX.caixa(g, 0.3, 0.06 + i * 0.01, 0.4, 3.0 + i * 0.4, 0.8 + i * 0.065, -3.6, new THREE.MeshStandardMaterial({ color: [0x6a3a2a, 0x2a4a6a, 0x5a5a3a][i], roughness: 1 }), 0, false);
-    CX.modelo(g, 'm', 'lampRoundFloor', 5.2, 0, -4.4, 0, 1); CX.modelo(g, 'u', 'pallet', -1.5, 0, -4.2, 0.2, 0.9);
+    const rui = CX.matTex('reboco_velho', 5, 1, 0x7d8a70);
+    montaPredio(c, { w: 16, d: 12, parede: rui, paredeDentro: CX.matTex('reboco_velho', 3, 1, 0x8a957c), piso: CX.matTex('lodo', 6, 5, 0x7a8670), chaoFora: CX.matTex('lodo', 10, 10, 0x6a7a62), matRua: CX.matTex('lodo', 12, 2, 0x5a6a52),
+      escadas: [{ x0: 6, x1: 7.5, z0: -5.6, z1: -1.4, y0: 0, y1: 3.3 }, { x0: 4.3, x1: 5.8, z0: -5.6, z1: -1.4, y0: -2.6, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-8, -6, 4, 6, 'deposito'], [4, -6, 8, -1, 'corredor'], [4, -1, 8, 6, 'deposito']] }, AND[0]),
+        Object.assign({ comodos: [[-8, 1.5, 0, 6, 'escritorio'], [0, 1.5, 8, 6, 'sala'], [-8, -1, 8, 1.5, 'corredor'], [-8, -6, -1, -1, 'cozinha'], [-1, -6, 4, -1, 'arquivo'], [4, -6, 8, -1, 'vazio']], extra(g, y) { CX.modelo(g, 'g', 'cross', -4, y + 1.6, 1.62, 0, 0.35, m => tinta(m, 0.42, 0x2c3326, 0.45)); } }, AND[1]),
+        Object.assign({ comodos: [[-8, 1.5, 0, 6, 'quarto'], [0, 1.5, 8, 6, 'quarto'], [-8, -1, 8, 1.5, 'corredor'], [-8, -6, -1, -1, 'vazio'], [-1, -6, 4, -1, 'banheiro'], [4, -6, 8, -1, 'vazio']],
+          extra(g, y) { CX.caixa(g, 1.6, 0.9, 0.6, -4.5, y, -5.5, CX.matTex('madeira', 1, 1, 0x3e2a1e)); CX.modelo(g, 'g', 'cross', -4.5, y + 0.9, -5.6, 0, 0.4); CX.modelo(g, 'g', 'candle-multiple', -5.1, y + 0.9, -5.4, 0, 0.45); for (let i = 0; i < 3; i++) CX.caixa(g, 1.4, 0.4, 0.4, -4.5, y, -3.5 + i * 0.8, CX.matTex('madeira', 1, 1, 0x4e3a28)); } }, AND[2])] });
+    c.cena.userData.agua = true;
+    const part = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 1500 }, (_, i) => i % 3 === 1 ? -2 + rnd() * 9 : (rnd() - 0.5) * 22), 3)), new THREE.PointsMaterial({ color: 0xbfe0d0, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false })); c.g.add(part);
   },
-});
+  luz(c) { c.hemi.color.set(0x7fb0a0); },
+}); }
+
+/* Delegacia, com a garagem e os arquivos do inquérito */
+{ const AND = [{ nome: 'Porão', y: -2.7, h: 2.6 }, { nome: 'Térreo', y: 0, h: 3.4 }, { nome: 'Andar de cima', y: 3.5, h: 3.0 }];
+INT({
+  id: 'c-delegacia', nome: 'Delegacia e garagem', para: 'a delegacia', curto: 'Delegacia', em: 'na delegacia', dica: '3 andares · os arquivos do inquérito',
+  nota: 'Térreo: recepção, sala do escrivão, sala do delegado, as celas e a garagem com a viatura. Andar de cima: alojamento e o arquivo. Porão: o arquivo morto, onde ficam as caixas do inquérito antigo. Marque as pistas com pontos amarelos.',
+  cams: camsPredio(22, 16, AND, [['A garagem', { pos: [7, 2.4, 9], alvo: [7, 1, 0] }], ['As celas', { pos: [-2, 1.8, 0.3], alvo: [-3, 1, -5] }], ['Arquivo morto', { pos: [-4, -0.9, 3], alvo: [-7, -2.2, -3] }]]),
+  monta(c) {
+    montaPredio(c, { w: 22, d: 16, placa: ['DELEGACIA DE POLÍCIA'], placaFundo: '#1a2a3a', parede: CX.matTex('concreto', 7, 1, 0xd0ccc0), piso: CX.matTex('concreto', 7, 5, 0xa8a49a), portaX: -7,
+      escadas: [{ x0: -0.6, x1: 1, z0: -7.6, z1: -2.6, y0: 0, y1: 3.5 }, { x0: 1.3, x1: 2.9, z0: -7.6, z1: -2.6, y0: -2.7, y1: 0 }],
+      andares: [
+        Object.assign({ comodos: [[-11, -8, -1, 8, 'arquivo'], [-1, -8, 3, -1, 'corredor'], [-1, -1, 3, 8, 'deposito'], [3, -8, 11, 8, 'deposito']] }, AND[0]),
+        Object.assign({ comodos: [[-11, 2, -3, 8, 'recepcao'], [-3, 2, 3, 8, 'escritorio'], [-11, -1, 3, 2, 'corredor'], [-11, -8, -5, -1, 'escritorio'], [-5, -8, -1, -1, 'vazio'], [-1, -8, 3, -1, 'vazio'], [3, -8, 11, 8, 'vazio']],
+          portas: [{ lado: 's', pos: 4, l: 1.4, h: 2.5 }, { lado: 's', pos: 18, l: 4.4, h: 3.0 }],
+          extra(g, y) { const fe = new THREE.MeshStandardMaterial({ color: 0x2a2c2e, metalness: 0.6, roughness: 0.4 }); for (let k = 0; k < 14; k++) CX.cil(g, 0.025, 0.025, 3.3, -5 + k * 0.29, y, -3.2, fe, 6); CX.caixa(g, 4, 0.06, 0.06, -3, y + 2.1, -3.2, fe); CX.divisoria(g, -3, -8, -3, -3.2, { y, h: 3.4, mat: CX.matTex('concreto', 2, 1, 0xb8b4a8) }); CX.modelo(g, 'm', 'bedDouble', -4, y, -6.8, 0, 0.6); CX.modelo(g, 'm', 'bedDouble', -2, y, -6.8, 0, 0.6);
+            CX.modelo(g, 'c', 'police', 7, y, 1, Math.PI, 1.2, m => tinta(m, 0.75, 0x5a5a50, 0.25)); CX.prateleira(g, 10.5, y, -3, 4, 2.4, -Math.PI / 2, 'caixas'); CX.prateleira(g, 6, y, -7.6, 3, 2.4, 0, 'pastas'); CX.mesa(g, 9, y, -6.5, 1.8, 0.8); for (let i = 0; i < 3; i++) CX.caixa(g, 0.3, 0.07, 0.4, 8.4 + i * 0.45, y + 0.8, -6.5, new THREE.MeshStandardMaterial({ color: [0x6a3a2a, 0x2a4a6a, 0x5a5a3a][i], roughness: 1 }), 0, false); CX.modelo(g, 'u', 'pallet', 4.5, y, -5.5, 0.2, 0.9); } }, AND[1]),
+        Object.assign({ comodos: [[-11, 2, 3, 8, 'quarto'], [-11, -1, 3, 2, 'corredor'], [-11, -8, -1, -1, 'arquivo'], [-1, -8, 3, -1, 'vazio'], [3, -8, 11, 8, 'arquivo']] }, AND[2])] });
+  },
+}); }
 
 /* ---------- câmeras e notas do mestre ---------- */
 /* textos do mestre: no código ficam só chaves '§id'; o texto vem do banco (mestre/textos), que só o mestre lê */
@@ -3692,8 +3778,8 @@ const COL = { ray: new THREE.Raycaster(), lista: new Map(), dir: new THREE.Vecto
   desejada: new THREE.Vector3(), tem: false, distMostrada: null, raio: 0.35, ligada: true, caixa: new THREE.Box3(), tam: new THREE.Vector3() };
 if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => cenaAtiva(), chao: (x, z) => chaoAqui(x, z), THREE, pistasCodigo: () => [...marcadores.map(m => ['remanso', m]), ...marcadoresM.map(m => ['mata', m])].map(([c, m]) => ({ cena: c, x: +m.position.x.toFixed(2), y: +(m.userData.y0 ?? m.position.y).toFixed(2), z: +m.position.z.toFixed(2), titulo: m.userData.titulo, texto: m.userData.texto })) }; // só no modo de teste local
 const cenaAtiva = () => (modoCen ? CEN[modoCen].cena : modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
-function chaoAqui(x, z) {
-  if (modoCen) return CEN[modoCen].alt(x, z);
+function chaoAqui(x, z, yh) {
+  if (modoCen) return CEN[modoCen].alt(x, z, yh ?? camera.position.y - 1.0);
   if (modoEstr) return altE(x, z);
   if (modoMata) return altM(x, z);
   if (modoRem) return altR(x, z);
@@ -3793,7 +3879,7 @@ function colideCamera(raiz) {
 function colideCamera0(raiz) {
   const alvo = controls.target;
   // o alvo nunca fica embaixo do chão
-  const ga = chaoAqui(alvo.x, alvo.z); if (alvo.y < ga + 0.15) alvo.y = ga + 0.15;
+  const ga = chaoAqui(alvo.x, alvo.z, alvo.y); if (alvo.y < ga + 0.15) alvo.y = ga + 0.15;
   // a desejada também não (os controles podem levar a câmera para baixo do terreno em morros)
   const gd = chaoAqui(camera.position.x, camera.position.z); if (camera.position.y < gd + 0.5) camera.position.y = gd + 0.5;
   COL.desejada.copy(camera.position); COL.tem = true;
@@ -3863,9 +3949,9 @@ function travaCamJogador(c) {
 }
 const porId = new Map();
 let focoPend = null;
-function mudaCena(s, cn, x, z) {
+function mudaCena(s, cn, x, z, y) {
   if (s.g.parent) s.g.parent.remove(s.g); s.cena = cn; grupoCena(cn).add(s.g);
-  s.g.position.set(x, altC(cn, x, z) + 0.13, z); s.alvo = { x, z }; s.ult = null;
+  s.g.position.set(x, altC(cn, x, z, y) + 0.13, z); s.alvo = { x, z, y }; s.ult = null;
 }
 const ondeEsta = s => (s.cena || 'vale') === cenaAqui();
 function trazer(s) { const aqui = cenaAqui(), [x, z] = pontoNovo(4); PM.editar(s.id, { cena: aqui === 'vale' ? null : aqui, x: Math.round(x * 100) / 100, z: Math.round(z * 100) / 100 }); }
@@ -3884,11 +3970,12 @@ function sincPecas(ps) {
     const cor = p.cor || CORES[0], nome = String(p.nome || 'Figura').slice(0, 22);
     let s = porId.get(id);
     const cn = ((p.cena === 'mata' || p.cena === 'estrada') && cenaPronta(p.cena)) || ehCen(p.cena) ? p.cena : 'vale';
-    if (s && s.cena !== cn) mudaCena(s, cn, +p.x, +p.z);
-    if (!s) { s = figura(nome, cor, +p.x, +p.z, cn); s.id = id; porId.set(id, s); if (p.r != null) { s.face = +p.r; s.rIn = +p.r; } }
+    const py = p.y == null ? undefined : +p.y;
+    if (s && s.cena !== cn) mudaCena(s, cn, +p.x, +p.z, py);
+    if (!s) { s = figura(nome, cor, +p.x, +p.z, cn); s.id = id; porId.set(id, s); if (py != null) { s.alvo = { x: +p.x, z: +p.z, y: py }; s.g.position.y = altC(cn, +p.x, +p.z, py) + 0.13; } if (p.r != null) { s.face = +p.r; s.rIn = +p.r; } }
     else {
       if (s.nome !== nome || s.cor !== cor) { s.cor = cor; renomear(s, nome); s.g.children[1].material.color.set(cor); }
-      if (s !== arrasto) s.alvo = { x: +p.x, z: +p.z };
+      if (s !== arrasto) s.alvo = { x: +p.x, z: +p.z, y: py };
       if (p.r != null && +p.r !== s.rIn && s !== arrasto) { s.rIn = +p.r; if (Math.hypot(s.g.position.x - p.x, s.g.position.z - p.z) < 0.05) s.face = +p.r; }
     }
     const asig = assinaArte(p.arte, p.alt);

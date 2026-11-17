@@ -411,7 +411,7 @@
       if (SV.isGM) return true;
       return p.dono === SV.me.uid && D.travas[id] !== true;
     },
-    mover(id, x, z, final, r) {
+    mover(id, x, z, final, r, y) {
       if (!M.podeMover(id)) return;
       x = Math.round(x * 100) / 100; z = Math.round(z * 100) / 100;
       const alvo = D.pecas[id] || D.pecasGM[id];
@@ -420,6 +420,7 @@
       const agora = Date.now();
       clearTimeout(ultimoEnvio[id + 't']);
       const o = { x, z }; if (final && Number.isFinite(r)) o.r = alvo.r = Math.round(r * 100) / 100;
+      if (Number.isFinite(y)) o.y = alvo.y = Math.round(y * 100) / 100;
       const envia = () => { if (!(D.pecas[id] || D.pecasGM[id])) return; /* a peça saiu do mapa: não recria um fantasma só com x e z */ ultimoEnvio[id] = Date.now(); SV.db.update(M.caminho(id), o).catch(e => SV.toast('Não deu para mover a peça (' + (e.code || e.message) + ').', 'err')); };
       if (final || agora - (ultimoEnvio[id] || 0) > 90) envia();
       else ultimoEnvio[id + 't'] = setTimeout(envia, 100);
