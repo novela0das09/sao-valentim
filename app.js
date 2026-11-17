@@ -42,7 +42,7 @@
   };
 
   /* ---------- o que vem do banco ---------- */
-  const D = { users: {}, online: {}, fichas: {}, npcs: {}, pecas: {}, pecasGM: {}, travas: {}, cena3d: null, mural: {}, pedidos: {}, rolagens: {}, regras: null, modo: '', banidos: {}, arteLib: {}, posicoes: {} };
+  const D = { users: {}, online: {}, fichas: {}, npcs: {}, pecas: {}, pecasGM: {}, travas: {}, cena3d: null, mural: {}, pedidos: {}, rolagens: {}, regras: null, modo: '', banidos: {}, arteLib: {}, posicoes: {}, objetos: {}, objPriv: {}, pistas3d: {} };
   const ouvintes = {};
   const ouve = (k, f) => { (ouvintes[k] ||= new Set()).add(f); return () => ouvintes[k].delete(f); };
   const avisa = k => { for (const f of [...(ouvintes[k] || [])]) { try { f(D[k]); } catch (e) { ouvintes[k].delete(f); console.warn(e); } } };
@@ -91,6 +91,11 @@
     (db.onFilhos ? db.onFilhos.bind(db) : db.on)('pecas', v => { D.pecas = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); SV.voz.mix && SV.voz.mix(); render.voz(); });
     if (SV.isGM) (db.onFilhos ? db.onFilhos.bind(db) : db.on)('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
+    /* objetos coletáveis (marcador azul): o público só tem o que já pode ser achado; a ficha completa fica em mestre/objetos */
+    db.on('objetos', v => { D.objetos = v && typeof v === 'object' ? v : {}; avisa('objetos'); if (SV.isGM) SV.M && SV.M.sincObjetos && SV.M.sincObjetos(); });
+    if (SV.isGM) db.on('mestre/objetos', v => { D.objPriv = v && typeof v === 'object' ? v : {}; avisa('objetos'); SV.M && SV.M.sincObjetos && SV.M.sincObjetos(); });
+    /* pistas do mapa (marcador amarelo): posição, texto e estado só no banco do mestre; o jogador nunca recebe */
+    if (SV.isGM) db.on('mestre/pistas3d', v => { D.pistas3d = v && typeof v === 'object' ? v : {}; avisa('pistas3d'); });
     /* a arte das peças fica guardada no caderno de cada um (só a pessoa lê), para voltar quando a peça sai e entra no mapa */
     if (SV.isGM) db.on('notas/' + me + '/posicoes', v => { D.posicoes = v && typeof v === 'object' ? v : {}; avisa('posicoes'); });
     db.on('notas/' + me + '/arte', v => { D.arteLib = v && typeof v === 'object' ? v : {}; avisa('arteLib'); SV.M && SV.M.sincArte && SV.M.sincArte(); });
@@ -451,6 +456,64 @@
       else await SV.db.remove('notas/' + SV.me.uid + '/arte/' + chave);
     },
     editar(id, o) { if (!(D.pecas[id] || D.pecasGM[id])) return; if (M.podeMover(id) || SV.isGM) SV.db.update(M.caminho(id), o).catch(() => {}); },
+    /* ---------- pistas (amarelo, só o mestre) ---------- */
+    pistas3d: () => (SV.isGM ? Object.assign({}, D.pistas3d) : {}),
+    onPistas3d(cb) { return ouve('pistas3d', () => cb()); },
+    salvarPista3d(id, o) { if (!SV.isGM) return null; id = id || SV.db.key(); SV.db.set('mestre/pistas3d/' + id, Object.assign({}, o, { t: Date.now() })).catch(e => SV.toast('Não deu para salvar a pista (' + (e.code || e.message) + ').')); return id; },
+    removerPista3d(id) { if (SV.isGM) SV.db.remove('mestre/pistas3d/' + id).catch(() => {}); },
+    /* o mestre mostra o conteúdo de uma pista para todos: vai para o mural */
+    revelarPista3d(id) { const p = SV.isGM && D.pistas3d[id]; if (!p) return; const txt = (s => (s && s[0] === '§' ? ((D.segredos || {})[s.slice(1)] || '') : s))(p.texto || ''), tit = (s => (s && s[0] === '§' ? ((D.segredos || {})[s.slice(1)] || '') : s))(p.titulo || ''); SV.db.push('mesa/mural', { texto: (tit ? tit + '\n\n' : '') + txt, t: Date.now() }).then(() => SV.toast('Pista revelada no mural.')); SV.db.update('mestre/pistas3d/' + id, { estado: 'descoberta', revelada: Date.now() }).catch(() => {}); },
+    /* fichas de jogador que esta pessoa pode usar para recolher (o mestre: todas) */
+    minhasFichas() { return Object.values(D.fichas).map(x => x && x.f).filter(f => f && (f.papel || 'pj') === 'pj' && (SV.isGM || f.dono === SV.me.uid)).map(f => ({ id: f.id, nome: String(f.nome || 'Sem nome') })); },
+    itensCatalogo: () => ['Kit de primeiros socorros', 'Kit médico', 'Energético', 'Calmante natural', 'Chocolate e café', 'Analgésico', 'Lanterna', 'Isqueiro', 'Celular', 'Câmera fotográfica', 'Gravador de voz', 'Rádio de pilha', 'Corda', 'Pé de cabra', 'Sinalizador', 'Cuia de chimarrão', 'Cigarro de palha', 'Mochila impermeável', 'Munição .38', 'Munição .32', 'Munição .380', 'Munição .40', 'Munição 9 mm', 'Cartucho calibre 12', 'Munição de rifle', 'Pedras para estilingue', 'Cartucho de sinalizador'],
+    onSegredos(cb) { return ouve('segredos', () => cb()); },
+    /* ---------- objetos coletáveis (azul) ---------- */
+    objetos() { const out = {}; for (const [id, o] of Object.entries(D.objetos || {})) if (o && o.cena) out[id] = Object.assign({}, o, { id }); if (SV.isGM) for (const [id, o] of Object.entries(D.objPriv || {})) if (o && o.cena) out[id] = Object.assign({}, out[id] || {}, o, { id, publico: out[id] || null }); return out; },
+    onObjetos(cb) { return ouve('objetos', () => cb()); },
+    salvarObjeto(id, o) {
+      if (!SV.isGM) return null; id = id || SV.db.key();
+      const priv = Object.assign({}, D.objPriv[id] || {}, o, { t: Date.now() }); delete priv.publico; delete priv.id;
+      priv.estado ||= 'escondido';
+      SV.db.set('mestre/objetos/' + id, priv).then(() => M.sincObjetos()).catch(e => SV.toast('Não deu para salvar o objeto (' + (e.code || e.message) + ').'));
+      D.objPriv[id] = priv; return id;
+    },
+    removerObjeto(id) { if (!SV.isGM) return; SV.db.remove('mestre/objetos/' + id).catch(() => {}); SV.db.remove('objetos/' + id).catch(() => {}); },
+    /* o público só tem o objeto que está "disponível" (ou acabou de ser recolhido, para sumir para todos) */
+    sincObjetos() {
+      if (!SV.isGM) return;
+      for (const [id, o] of Object.entries(D.objPriv || {})) {
+        if (!o) continue; const pub = D.objetos[id];
+        if (pub && pub.estado === 'recolhido' && o.estado !== 'recolhido') { SV.db.update('mestre/objetos/' + id, { estado: 'recolhido', recolhidoPor: pub.recolhidoPor || null }).catch(() => {}); continue; }
+        const quer = o.estado === 'disponivel' ? { cena: o.cena, x: +o.x, y: +o.y, z: +o.z, nome: String(o.nome || 'Objeto'), desc: String(o.desc || ''), cat: String(o.cat || 'utilidades'), modelo: String(o.modelo || 'caixa'), estado: 'disponivel', liberado: o.dificuldade === 'facil' && !o.teste ? true : !!o.liberado, item: o.item && o.item.nome ? { nome: String(o.item.nome), qtd: Math.max(1, +o.item.qtd || 1) } : null } : null;
+        if (!quer) { if (pub && pub.estado !== 'recolhido') SV.db.remove('objetos/' + id).catch(() => {}); continue; }
+        const igual = pub && ['cena', 'x', 'y', 'z', 'nome', 'desc', 'cat', 'modelo', 'estado', 'liberado'].every(k => pub[k] === quer[k]) && JSON.stringify(pub.item || null) === JSON.stringify(quer.item);
+        if (!igual) SV.db.set('objetos/' + id, quer).catch(() => {});
+      }
+      for (const id of Object.keys(D.objetos || {})) if (!D.objPriv[id]) SV.db.remove('objetos/' + id).catch(() => {});
+    },
+    /* o mestre libera depois de um teste bem-sucedido (o jogador não vê a dificuldade) */
+    liberarObjeto(id, on = true) { if (SV.isGM) SV.db.update('mestre/objetos/' + id, { liberado: !!on }).catch(() => {}); },
+    devolverObjeto(id) { if (!SV.isGM) return; SV.db.update('mestre/objetos/' + id, { estado: 'disponivel', recolhidoPor: null }).catch(() => {}); SV.db.remove('objetos/' + id).catch(() => {}); },
+    /* recolher: troca atômica no banco; só depois entra na mochila da ficha */
+    async recolher(id, fid) {
+      const f = fid && D.fichas[fid] && D.fichas[fid].f;
+      if (!f) { SV.toast('Escolha a ficha que recolhe o objeto.'); return false; }
+      if (!SV.isGM && f.dono !== SV.me.uid) { SV.toast('Só a sua ficha pode recolher.'); return false; }
+      const quem = { uid: SV.me.uid, fid, nome: String(f.nome || ''), t: Date.now() };
+      let r;
+      try { r = await SV.db.transacao('objetos/' + id, cur => { if (!cur || cur.estado !== 'disponivel' || cur.liberado !== true) return; return Object.assign({}, cur, { estado: 'recolhido', recolhidoPor: quem }); }); }
+      catch (e) { SV.toast('Não deu para recolher (' + (e.code || e.message) + ').'); return false; }
+      if (!r.ok) { SV.toast('Esse objeto não está mais disponível.'); return false; }
+      const it = r.val && r.val.item; if (it && it.nome) M.darItem(fid, it.nome, it.qtd || 1);
+      SV.toast(quem.nome + ' recolheu ' + (r.val.nome || 'o objeto') + '.'); return true;
+    },
+    /* põe um item na mochila da ficha (o mesmo inventário de sempre; soma se já tiver) */
+    darItem(fid, nome, qtd = 1) {
+      const x = D.fichas[fid]; if (!x || !x.f) return;
+      const f = x.f; f.itens ||= [];
+      const ex = f.itens.find(i => i && i.nome === nome); if (ex) ex.qtd = (ex.qtd ?? 1) + qtd; else f.itens.push({ nome, qtd });
+      grava(f); avisa('fichas');
+    },
     remover(id) {
       const p = D.pecas[id] || D.pecasGM[id];
       if (!p || !(SV.isGM || p.dono === SV.me.uid)) return;

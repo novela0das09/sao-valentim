@@ -82,5 +82,12 @@ R = {"rules": {
   },
   "notas": {"$uid": {".read": "auth != null && auth.uid === $uid", ".write": f"{DENTRO} && auth.uid === $uid"}},
 }}
+# ---------- objetos coletáveis (marcador azul): o mestre publica; o jogador só pode passar de "disponível e liberado" para "recolhido", por ele mesmo e para uma ficha dele ----------
+mesmo_o = lambda c: f"newData.child('{c}').val() === data.child('{c}').val()"
+recolher = (f"{DENTRO} && data.exists() && newData.exists() && data.child('estado').val() === 'disponivel' && data.child('liberado').val() === true"
+  " && newData.child('estado').val() === 'recolhido' && newData.child('recolhidoPor/uid').val() === auth.uid"
+  f" && {mesmo_o('nome')} && {mesmo_o('cena')} && {mesmo_o('x')} && {mesmo_o('z')} && {mesmo_o('item/nome')} && {mesmo_o('item/qtd')}"
+  " && root.child('fichas/' + newData.child('recolhidoPor/fid').val() + '/dono').val() === auth.uid")
+R["rules"]["objetos"] = {".read": DENTRO, "$id": {".write": f"auth != null && ({GM} || ({recolher}))"}}
 json.dump(R, open(sys.argv[1], 'w', encoding='utf-8', newline=''), ensure_ascii=False, indent=2)
 print('ok')

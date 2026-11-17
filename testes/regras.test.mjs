@@ -156,6 +156,24 @@ await t('8.6 Banido lê usuários', false, () => get(r(ban, 'users')));
 await t('8.7 Estranho logado (não convidado) lê usuários', true, () => get(r(zed, 'users')));
 await t('8.8 Estranho logado cria ficha de jogador para si', true, () => set(r(zed, 'fichas/zed1'), { dono: 'zed', papel: 'pj', json: '{}', nivel: 1, nex: 0, t: 1 }));
 await t('8.9 Ana grava na raiz', false, () => update(r(ana, '/'), { mesa: null }));
+// 10. objetos coletáveis (azul) e pistas do mapa (amarelo)
+await semeia();
+await env.withSecurityRulesDisabled(async c => { const db = c.database();
+  await set(ref(db, 'objetos/o1'), { cena: 'vale', x: 1, y: 0, z: 2, nome: 'Caixa', estado: 'disponivel', liberado: true, item: { nome: 'Lanterna', qtd: 1 } });
+  await set(ref(db, 'objetos/o2'), { cena: 'vale', x: 1, y: 0, z: 2, nome: 'Gaveta', estado: 'disponivel', liberado: false, item: { nome: 'Munição .38', qtd: 6 } });
+  await set(ref(db, 'mestre/pistas3d/p1'), { cena: 'vale', x: 0, y: 0, z: 0, titulo: 'segredo' }); });
+const rec = (uid, fid) => ({ cena: 'vale', x: 1, y: 0, z: 2, nome: 'Caixa', estado: 'recolhido', liberado: true, item: { nome: 'Lanterna', qtd: 1 }, recolhidoPor: { uid, fid, nome: 'x', t: 1 } });
+await t('10.1 Ana lê os objetos', true, () => get(r(ana, 'objetos')));
+await t('10.2 Ana lê as pistas do mapa', false, () => get(r(ana, 'mestre/pistas3d')));
+await t('10.3 Ana recolhe para a ficha de Beto', false, () => set(r(ana, 'objetos/o1'), rec('ana', 'beto1')));
+await t('10.4 Ana recolhe em nome de Beto', false, () => set(r(ana, 'objetos/o1'), rec('beto', 'ana1')));
+await t('10.5 Ana recolhe mudando o item', false, () => set(r(ana, 'objetos/o1'), Object.assign(rec('ana', 'ana1'), { item: { nome: 'Lanterna', qtd: 9 } })));
+await t('10.6 Ana recolhe o objeto liberado para a ficha dela', true, () => set(r(ana, 'objetos/o1'), rec('ana', 'ana1')));
+await t('10.7 Beto recolhe o mesmo objeto depois', false, () => set(r(beto, 'objetos/o1'), rec('beto', 'beto1')));
+await t('10.8 Ana recolhe objeto ainda não liberado', false, () => update(r(ana, 'objetos/o2'), { estado: 'recolhido', recolhidoPor: { uid: 'ana', fid: 'ana1' } }));
+await t('10.9 Ana cria um objeto novo', false, () => set(r(ana, 'objetos/o3'), { cena: 'vale', nome: 'x', estado: 'disponivel', liberado: true }));
+await t('10.10 Ana apaga um objeto', false, () => remove(r(ana, 'objetos/o2')));
+await t('10.11 Mestre cria e apaga objetos', true, () => set(r(gm, 'objetos/o4'), { cena: 'vale', nome: 'y', estado: 'disponivel' }));
 // 9. primeiro mestre de uma mesa vazia
 await env.clearDatabase();
 await t('9.1 Mesa vazia: primeira pessoa vira mestre', true, () => set(r(zed, 'mesa/mestres/zed'), true));

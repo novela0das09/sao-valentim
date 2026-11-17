@@ -51,6 +51,7 @@
       local: true,
       on(path, cb) { const s = { path: norm(path), cb }; subs.add(s); dispara(s); return () => subs.delete(s); },
       onFilhos(path, cb) { return this.on(path, cb); },
+      async transacao(path, fn) { const atual = await this.get(path); const novo = fn(atual); if (novo === undefined) return { ok: false, val: atual }; await this.set(path, novo); return { ok: true, val: novo }; },
       query(path, child, eq, cb) { const s = { path: norm(path), cb, q: { child, eq } }; subs.add(s); dispara(s); return () => subs.delete(s); },
       async get(path) { return clone(pega(norm(path))); },
       async set(path, v) { poe(norm(path), v); mudou(norm(path)); },
@@ -84,6 +85,8 @@
       remove: p => rt.ref(p).remove(),
       async push(p, v) { const r = rt.ref(p).push(); await r.set(v); return r.key; },
       onDisconnectRemove(p) { try { rt.ref(p).onDisconnect().remove(); } catch {} },
+      /* troca atômica: só um jogador consegue recolher o mesmo objeto, mesmo clicando ao mesmo tempo */
+      async transacao(p, fn) { const r = await rt.ref(p).transaction(fn); return { ok: !!r.committed, val: r.snapshot.val() }; },
       key: () => rt.ref().push().key
     };
   }
