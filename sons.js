@@ -296,7 +296,7 @@
        Sons ligados à mão pelo mestre nunca são desligados pelo automático. */
     cenaAtual() {
       const c = this.cena || {};
-      return { mapa: c.sonho ? 'sonho' : c.rem ? 'remanso' : c.mata ? 'mata' : c.estr ? 'estrada' : 'cidade', periodo: c.noite ? 'noite' : 'dia', clima: c.nevoa ? 'neblina' : 'limpo', agua: c.nivel || 'normal' };
+      return { mapa: c.cen ? c.cen : c.sonho ? 'sonho' : c.rem ? 'remanso' : c.mata ? 'mata' : c.estr ? 'estrada' : 'cidade', periodo: c.noite ? 'noite' : 'dia', clima: c.nevoa ? 'neblina' : 'limpo', agua: c.nivel || 'normal' };
     },
     regraVale(r, a) { return (!r.mapa || r.mapa === a.mapa) && (!r.periodo || r.periodo === a.periodo) && (!r.clima || r.clima === a.clima) && (!r.agua || r.agua === a.agua); },
     autoAplica() {

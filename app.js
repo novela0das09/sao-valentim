@@ -432,7 +432,7 @@
       if (p.x == null) { delete p.x; delete p.z; }
       if (dados.arte && typeof dados.arte === 'object') { p.arte = dados.arte; p.alt = +dados.alt || 1.75; }
       if (dados.estado && dados.estado !== 'normal') p.estado = dados.estado;
-      if (dados.cena === 'mata' || dados.cena === 'estrada') p.cena = dados.cena;
+      if (dados.cena === 'mata' || dados.cena === 'estrada' || /^c-[a-z0-9-]+$/.test(String(dados.cena || ''))) p.cena = dados.cena;
       (publica ? D.pecas : D.pecasGM)[id] = p;
       SV.db.set((publica ? 'pecas/' : 'pecas_gm/') + id, p).catch(e => SV.toast('Não deu para pôr a peça (' + (e.code || e.message) + ').', 'err'));
       avisa('pecas');
@@ -786,7 +786,7 @@
         <p class="vazio">Você também ouve, para acompanhar a cena.</p>` : '<p class="vazio">Nenhum jogador entrou na mesa ainda.</p>'}</div>`;
   }
   /* sons automáticos: o mestre liga ambientes conforme o mapa, o período, o clima e a água */
-  const OPC = { mapa: [['', 'qualquer mapa'], ['cidade', 'Cidade'], ['remanso', 'Remanso'], ['mata', 'Mata'], ['estrada', 'Estrada'], ['sonho', 'O Sonho']],
+  const OPC = { mapa: [['', 'qualquer mapa'], ['cidade', 'Cidade'], ['remanso', 'Remanso'], ['mata', 'Mata'], ['estrada', 'Estrada'], ['sonho', 'O Sonho'], ['c-cemiterio', 'Cemitério'], ['c-igreja', 'Igreja Matriz de Remanso'], ['c-praca', 'Praça'], ['c-altar', 'Altar de Remanso'], ['c-prefeitura', 'Prefeitura e Cartório'], ['c-radio', 'Rádio Vale Alto'], ['c-armazem', 'Armazém Pozzobon'], ['c-iracema', 'Casa da Iracema'], ['c-nonna', 'Casa da Nonna Gema'], ['c-salao', 'Salão Paroquial'], ['c-paroquial', 'Casa Paroquial'], ['c-delegacia', 'Garagem da Delegacia']],
     periodo: [['', 'dia ou noite'], ['dia', 'Dia'], ['noite', 'Noite']], clima: [['', 'com ou sem neblina'], ['neblina', 'Neblina'], ['limpo', 'Sem neblina']],
     agua: [['', 'qualquer água'], ['seca', 'Seca'], ['normal', 'Normal'], ['cheia', 'Cheia']] };
   function cartaoAuto() {

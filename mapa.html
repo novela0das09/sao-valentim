@@ -48,6 +48,19 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .bottom { bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); display: flex; gap: 10px; align-items: flex-end; }
 .cams { display: flex; gap: 4px; overflow-x: auto; padding: 6px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(8px); scrollbar-width: none; min-width: 0; }
 .cams::-webkit-scrollbar { display: none; }
+.menu-cen { position: fixed; z-index: 30; top: calc(env(safe-area-inset-top, 0px) + 62px); right: max(16px, env(safe-area-inset-right, 0px)); width: min(320px, calc(100% - 32px)); max-height: calc(100% - 150px); overflow: auto; padding: 10px; border-radius: 12px; background: rgba(12, 14, 16, .94); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.menu-cen[hidden] { display: none; }
+.menu-cen .mc-g { display: flex; flex-direction: column; gap: 4px; }
+.menu-cen .mc-g > b { font: 600 10.5px var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--mist-2); padding: 2px 4px; }
+.menu-cen .btn { justify-content: flex-start; flex-direction: column; align-items: flex-start; height: auto; padding: 7px 10px; gap: 1px; text-align: left; }
+.menu-cen .btn small { font-size: 11px; color: var(--mist-2); font-weight: 400; }
+.painel-cen { position: fixed; z-index: 3; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(env(safe-area-inset-bottom, 0px) + 66px); padding: 10px; border-radius: 12px; background: rgba(12, 14, 16, .9); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; max-width: min(360px, calc(100% - 32px)); }
+.painel-cen[hidden] { display: none; }
+.painel-cen > b { font: 600 10.5px var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--mist-2); }
+.painel-cen .pc-l { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.painel-cen .pc-l > span { font-size: 12px; color: var(--mist-2); margin-right: 4px; }
+.painel-cen .btn { height: 30px; padding: 0 9px; font-size: 12.5px; }
+.painel-cen .btn.on, .menu-cen .btn.on { border-color: #e0b45e; color: #ffd98a; }
 .cams .lbl { align-self: center; padding: 0 6px 0 4px; font: 600 10.5px var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--mist-2); white-space: nowrap; }
 .cams .btn { background: transparent; border-color: transparent; height: 32px; padding: 0 10px; }
 .cams .btn:hover { background: rgba(255, 255, 255, .05); }
@@ -158,6 +171,7 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
     <button class="btn" id="b-rem" type="button" aria-pressed="false" title="A cidade afogada debaixo da represa (mapa à parte)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M7 21v-7l3-2 3 2v7M15 21v-4h3v4M4 21h17"/><path d="M10 12V9"/></svg><span class="t">Remanso</span></button>
     <button class="btn" id="b-mata" type="button" aria-pressed="false" title="A mata acima da cidade: trilhas, a sanga e lugares para investigar (mapa à parte)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 21v-4M17 21v-5"/><path d="M7 17l-4 0 4-6-3 0 3-5 3 5-3 0 4 6z"/><path d="M17 16h-4l4-6h-3l3-5 3 5h-3l4 6z"/></svg><span class="t">Mata</span></button>
     <button class="btn" id="b-estr" type="button" aria-pressed="false" title="A estrada até o vale: campo aberto e o ônibus da introdução (mapa à parte)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M3 11h18M8 5v6M16 5v6"/><circle cx="7.5" cy="18.5" r="1.5"/><circle cx="16.5" cy="18.5" r="1.5"/></svg><span class="t">Estrada</span></button>
+    <button class="btn" id="b-cen" type="button" aria-pressed="false" aria-haspopup="true" title="Mapas à parte: cemitério, chefes e lugares de investigação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg><span class="t">Cenários</span></button>
     <button class="btn" id="b-pistas" type="button" aria-pressed="true" hidden title="Mostrar ou esconder as pistas (só para o mestre)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3 6-3 6-3-6z"/><path d="M5 21h14"/></svg><span class="t">Pistas</span></button>
     <button class="btn" id="b-sonho" type="button" aria-pressed="false" title="O lugar onde eles acordam no prólogo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 20V10l4-3 4 3v10M15 20v-7h4v7"/><path d="M8.5 14h1"/></svg><span class="t">O Sonho</span></button>
     <button class="btn" id="b-fundo" type="button" aria-pressed="false" title="Deixa a água transparente para o mestre ver Remanso lá embaixo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg><span class="t">Ver o fundo</span></button>
@@ -168,6 +182,8 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
     <button class="btn" id="b-pers" type="button" aria-pressed="true" title="Mostrar ou esconder a lista de personagens"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg><span class="t">Personagens</span></button>
   </div>
 </div>
+<div class="menu-cen" id="menu-cen" hidden role="menu" aria-label="Cenários"></div>
+<div class="painel-cen" id="painel-cen" hidden></div>
 <div class="lugar" id="lugar" hidden></div>
 <div class="nota" id="nota" hidden><b id="nota-t"></b><span id="nota-x"></span></div>
 
@@ -200,6 +216,7 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
   <nav class="cams" id="cams" aria-label="Lugares de São Valentim"><span class="lbl">Lugares</span></nav>
   <nav class="cams" id="cams-rem" aria-label="Lugares de Remanso" hidden><span class="lbl">Remanso</span></nav>
   <nav class="cams" id="cams-mata" aria-label="Lugares da mata" hidden><span class="lbl">Mata</span></nav>
+  <nav class="cams" id="cams-cen" aria-label="Vistas do cenário" hidden><span class="lbl">Cenário</span></nav>
   <nav class="cams" id="cams-estr" aria-label="Vistas da estrada" hidden><span class="lbl">Estrada</span><button class="btn on" id="b-anda" type="button" aria-pressed="true" title="O ônibus anda ou para">Ônibus andando</button></nav>
 </div>
 <div class="hint" id="hint">Arraste para girar · <kbd>botão direito</kbd> ou dois dedos para mover · roda para aproximar · <kbd>W A S D</kbd> para andar</div>
@@ -1284,6 +1301,7 @@ function quadroSonho(t) {
   if (camera.position.y < 0.9) { const d = 0.9 - camera.position.y; camera.position.y += d; controls.target.y += d; }
 }
 function entrarSonho(on) {
+  if (on && modoCen) entrarCen(null);
   if (on && modoMata) entrarMata(false);
   if (on && modoEstr) entrarEstrada(false);
   modoSonho = on; voo = null;
@@ -1545,7 +1563,7 @@ function ndc(e) { const r = canvas.getBoundingClientRect(); ptr.set(((e.clientX 
 function pegar(e) { ndc(e); ray.setFromCamera(ptr, camera); const h = ray.intersectObjects(standees.filter(s => (s.cena || 'vale') === cenaAqui()).map(s => s.card), false)[0]; return h?.object.userData.standee || null; }
 canvas.addEventListener('pointerdown', e => { if (e.button !== 0) return; const s = pegar(e); if (!s || (PM && !PM.podeMover(s.id))) return; arrasto = s; controls.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; });
 canvas.addEventListener('pointermove', e => {
-  if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const ch = modoMata ? chaoM : modoEstr ? chaoE : chao, h = ch && ray.intersectObject(ch, true)[0]; if (h) { arrasto.g.position.set(h.point.x, altC(arrasto.cena, h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
+  if (arrasto) { ndc(e); ray.setFromCamera(ptr, camera); const ch = modoCen ? CEN[modoCen].chao : modoMata ? chaoM : modoEstr ? chaoE : chao, h = ch && ray.intersectObject(ch, true)[0]; if (h && modoCen && CEN[modoCen].limita && !CEN[modoCen].limita(arrasto.g.position.x, arrasto.g.position.z, h.point.x, h.point.z)) return; if (h) { arrasto.g.position.set(h.point.x, altC(arrasto.cena, h.point.x, h.point.z) + 0.13, h.point.z); if (PM) PM.mover(arrasto.id, h.point.x, h.point.z); } return; }
   if (e.pointerType === 'mouse') { const s = pegar(e); canvas.style.cursor = s && (!PM || PM.podeMover(s.id)) ? 'grab' : ''; }
 });
 // rodinha do mouse em cima de uma figura: vira de frente / de costas (fora de uma figura, a rodinha continua dando zoom)
@@ -1818,6 +1836,7 @@ function aplicaRemSeca() {
 }
 let pistasOn = !SO_JOGADOR;
 function entrarRemanso(on) {
+  if (on && modoCen) entrarCen(null);
   if (on && modoSonho) entrarSonho(false);
   if (on && modoMata) entrarMata(false);
   if (on && modoEstr) entrarEstrada(false);
@@ -1859,7 +1878,7 @@ const gMata = new THREE.Group(); mataCena.add(gMata);
 const fogMataNoite = new THREE.FogExp2(0x0c1513, 0.034), fogMataDia = new THREE.FogExp2(0x7a8580, 0.02);
 let modoMata = false, mataPronta = false, salvoMata = null, chaoM = null, mataHemi, mataLua, mataVaga, mataNoiteAt = null, mataNevoaAt = null, mataLuzAntena = null, mataBolaAntena = null;
 const marcadoresM = [], nevoasM = [];
-const altC = (cena, x, z) => cena === 'mata' ? altM(x, z) : cena === 'estrada' ? altE(x, z) : alt(x, z);
+const altC = (cena, x, z) => ehCen(cena) ? CEN[cena].alt(x, z) : cena === 'mata' ? altM(x, z) : cena === 'estrada' ? altE(x, z) : alt(x, z);
 const zSanga = x => 30 + 14 * Math.sin(x / 28);
 function altM(x, z) {
   let y = 2.2 * Math.sin(x * 0.035) * Math.cos(z * 0.03) + 1.2 * Math.sin(x * 0.09 + z * 0.07) + 0.4 * Math.sin(x * 0.23) * Math.sin(z * 0.19);
@@ -2434,6 +2453,7 @@ function quadroMata(t, dt) {
 }
 const podePistasM = () => typeof SO_JOGADOR === 'undefined' ? true : !SO_JOGADOR;
 function entrarMata(on) {
+  if (on && modoCen) entrarCen(null);
   if (on && !mataPronta) return;
   if (on && modoSonho) entrarSonho(false);
   if (on && modoRem) entrarRemanso(false);
@@ -2478,10 +2498,10 @@ const E_ = { esteira: [], rodas: [], teto: null, onibus: null, carro: null, faro
 const dentroOnibus = (x, z) => x > ESTR.x0 + 0.3 && x < ESTR.x1 - 0.3 && z > ESTR.z0 + 0.15 && z < ESTR.z1 - 0.15;
 const ondaE = (x, z) => { const d = Math.max(0, Math.abs(z) - 10); return d ? Math.min(d, 70) ** 2 * 0.0028 + (2.2 * Math.sin(x * 0.018 + z * 0.031) + 1.2 * Math.sin(x * 0.041 - z * 0.023)) * Math.min(1, d / 40) : 0; }; // coxilhas suaves, sem paredão no fim do campo
 const altE = (x, z) => dentroOnibus(x, z) ? ESTR.piso : ondaE(x, z);
-const cenaAqui = () => modoMata ? 'mata' : modoEstr ? 'estrada' : 'vale';
-const grupoCena = cn => cn === 'mata' ? gMata : cn === 'estrada' ? gEstr : scene;
-const cenaPronta = cn => cn === 'mata' ? mataPronta : cn === 'estrada' ? estrPronta : true;
-function irCena(cn) { if (cn === 'mata') entrarMata(true); else if (cn === 'estrada') entrarEstrada(true); else { if (modoMata) entrarMata(false); if (modoEstr) entrarEstrada(false); } }
+const cenaAqui = () => modoCen ? modoCen : modoMata ? 'mata' : modoEstr ? 'estrada' : 'vale';
+const grupoCena = cn => ehCen(cn) ? constroiCen(cn).g : cn === 'mata' ? gMata : cn === 'estrada' ? gEstr : scene;
+const cenaPronta = cn => ehCen(cn) ? true : cn === 'mata' ? mataPronta : cn === 'estrada' ? estrPronta : true;
+function irCena(cn) { if (ehCen(cn)) entrarCen(cn); else if (cn === 'mata') entrarMata(true); else if (cn === 'estrada') entrarEstrada(true); else { if (modoCen) entrarCen(null); if (modoMata) entrarMata(false); if (modoEstr) entrarEstrada(false); } }
 function pontoNovo(esp = 3) { const t = controls.target; if (modoEstr) return [Math.max(ESTR.x0 + 0.7, Math.min(ESTR.x1 - 1.7, t.x + (Math.random() - 0.5) * esp)), ESTR.zb + (Math.random() - 0.5) * 0.3]; return [t.x + (Math.random() - 0.5) * esp, t.z + (Math.random() - 0.5) * esp]; }
 const NOME_CENA = { vale: 'o vale', mata: 'a mata', estrada: 'a estrada' }, EM_CENA = { vale: 'no vale', mata: 'na mata', estrada: 'na estrada' };
 function texRuido(base, pintas, w = 256, h = 256, rep = [1, 1], extra) {
@@ -2675,6 +2695,7 @@ function quadroEstrada(t, dt) {
   if (camera.position.y < chaoAqui) { const d = chaoAqui - camera.position.y; camera.position.y += d; controls.target.y += d; }
 }
 function entrarEstrada(on) {
+  if (on && modoCen) entrarCen(null);
   if (on && !estrPronta) return;
   if (on && modoSonho) entrarSonho(false);
   if (on && modoRem) entrarRemanso(false);
@@ -2699,6 +2720,795 @@ function entrarEstrada(on) {
   }
   if (typeof renderLista === 'function') renderLista();
 }
+
+
+/* ===================== CENÁRIOS À PARTE =====================
+   Mapas independentes, como a Mata e a Estrada: cada um tem a própria cena 3D, terreno, luz, câmeras e peças.
+   Só são montados na primeira vez que alguém entra (não pesam no carregamento do vale).
+   Um cenário é registrado com cenario({ id, nome, em, sub, nota, alt, monta, cams, quadro, luz, painel, limita }).
+   As peças usam cena = id (ex.: 'c-cemiterio'); a cena aberta pelo mestre vai para todos em mesa/cena3d.cen. */
+const CEN = {};
+let modoCen = null, salvoCen = null;
+function cenario(def) { CEN[def.id] = Object.assign({ pronto: false }, def); NOME_CENA[def.id] = def.para || def.nome; EM_CENA[def.id] = def.em || ('em ' + def.nome); }
+const ehCen = cn => !!(cn && CEN[cn]);
+/* ferramentas de montagem dos cenários */
+const CX = {
+  matTex(nome, rx = 1, ry = rx, cor = 0xffffff, rough = 0.95) {
+    const m = new THREE.MeshStandardMaterial({ color: cor, roughness: rough });
+    if (TEX[nome]) { m.map = repetida(TEX[nome], rx, ry); m.color.set(cor); } else m.color.set(cor === 0xffffff ? 0x9a948a : cor);
+    return m;
+  },
+  caixa(g, w, h, d, x, y, z, mat, ry = 0, sombra = true) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); m.position.set(x, y + h / 2, z); m.rotation.y = ry;
+    m.castShadow = sombra; m.receiveShadow = true; g.add(m); return m;
+  },
+  cil(g, rt, rb, h, x, y, z, mat, seg = 12) { const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat); m.position.set(x, y + h / 2, z); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; },
+  /* texto pintado numa tábua, placa ou parede */
+  texto(linhas, w, h, o = {}) {
+    const c = document.createElement('canvas'); c.width = 512; c.height = Math.max(64, Math.round(512 * h / w)); const x = c.getContext('2d');
+    x.fillStyle = o.fundo || '#d9d2c0'; x.fillRect(0, 0, c.width, c.height);
+    if (o.borda !== false) { x.strokeStyle = o.bordaCor || 'rgba(0,0,0,0.35)'; x.lineWidth = 6; x.strokeRect(5, 5, c.width - 10, c.height - 10); }
+    x.fillStyle = o.cor || '#2a241c'; x.textAlign = o.alinha || 'center'; x.textBaseline = 'middle';
+    const ls = [].concat(linhas), fs = o.fonte || Math.min(70, c.height / (ls.length + 0.6));
+    x.font = (o.peso || '600') + ' ' + fs + 'px ' + (o.familia || '"Cormorant Garamond", Georgia, serif');
+    ls.forEach((l, i) => x.fillText(l, o.alinha === 'left' ? 24 : c.width / 2, c.height / 2 + (i - (ls.length - 1) / 2) * fs * 1.12, c.width - 40));
+    if (o.suja) { for (let i = 0; i < 160; i++) { x.fillStyle = 'rgba(40,30,20,' + (Math.random() * 0.12) + ')'; x.beginPath(); x.arc(Math.random() * c.width, Math.random() * c.height, Math.random() * 14, 0, TAU); x.fill(); } }
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: t, roughness: 0.9, side: o.dupla ? THREE.DoubleSide : THREE.FrontSide, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: o.brilho ?? 0.05 }));
+  },
+  /* um modelo do kit (cópia simples; para muitas cópias use inst(..., cena) e CX.instancias) */
+  modelo(g, kit, nome, x, y, z, ry = 0, s = 1, tintaF) {
+    const w = new THREE.Group(); w.position.set(x, y, z); w.rotation.y = ry; if (s !== 1) w.scale.setScalar(s); g.add(w);
+    load(kit, nome).then(p => { const o = p.clone(true); if (tintaF) o.traverse(m => { if (m.isMesh) m.material = tintaF(m.material); }); w.add(o); }).catch(e => console.warn(e));
+    return w;
+  },
+  /* sala: piso, paredes com vãos de porta (lado + posição) e janelas, e um teto que some quando a câmera olha de cima */
+  sala(c, g, x0, z0, w, d, o = {}) {
+    const H = o.h ?? 2.9, e = 0.18, pis = o.piso || CX.matTex('tabua', w / 2, d / 2, 0xb59a78), par = o.parede || CX.matTex('reboco', w / 3, H / 3, 0xe7dfcf), y = o.y ?? 0;
+    if (o.buraco) { const [hx0, hz0, hx1, hz1] = o.buraco; for (const [ax, az, bx, bz] of [[x0, z0, hx0, z0 + d], [hx1, z0, x0 + w, z0 + d], [hx0, hz1, hx1, z0 + d], [hx0, z0, hx1, hz0]]) if (bx - ax > 0.01 && bz - az > 0.01) CX.caixa(g, bx - ax, 0.08, bz - az, (ax + bx) / 2, y - 0.08, (az + bz) / 2, pis, 0, false).userData.piso = true; }
+    else { const piso = CX.caixa(g, w, 0.08, d, x0 + w / 2, y - 0.08, z0 + d / 2, pis, 0, false); piso.userData.piso = true; }
+    const portas = o.portas || [], janelas = o.janelas || [];
+    const parede = (lado, comp, px, pz, rot) => {
+      const vaos = portas.filter(p => p.lado === lado).map(p => ({ a: p.pos - (p.l ?? 1.1) / 2, b: p.pos + (p.l ?? 1.1) / 2, h: p.h ?? 2.2 }))
+        .concat(janelas.filter(j => j.lado === lado).map(j => ({ a: j.pos - (j.l ?? 1.1) / 2, b: j.pos + (j.l ?? 1.1) / 2, jan: true, h0: j.h0 ?? 0.95, h: j.h ?? 1.2 }))).sort((p, q) => p.a - q.a);
+      const seg = (a, b, ya, yb) => { if (b - a < 0.02 || yb - ya < 0.02) return; const L = b - a, mid = (a + b) / 2;
+        const m = CX.caixa(g, L, yb - ya, e, 0, 0, 0, par, 0, true); m.position.set(px + Math.cos(rot) * mid, y + ya + (yb - ya) / 2, pz - Math.sin(rot) * mid); m.rotation.y = rot; m.userData.parede = true; };
+      let cur = 0;
+      for (const v of vaos) {
+        seg(cur, v.a, 0, H);
+        if (v.jan) { seg(v.a, v.b, 0, v.h0); seg(v.a, v.b, v.h0 + v.h, H);
+          const vid = new THREE.Mesh(new THREE.PlaneGeometry(v.b - v.a, v.h), new THREE.MeshStandardMaterial({ color: 0x9fb4bd, roughness: 0.15, metalness: 0.2, transparent: true, opacity: 0.32, side: THREE.DoubleSide, depthWrite: false }));
+          const mid = (v.a + v.b) / 2; vid.position.set(px + Math.cos(rot) * mid, y + v.h0 + v.h / 2, pz - Math.sin(rot) * mid); vid.rotation.y = rot; g.add(vid);
+          const mol = CX.matTex('madeira', 1, 1, 0x6b4c34); for (const yy of [v.h0, v.h0 + v.h]) { const t = CX.caixa(g, v.b - v.a + 0.1, 0.07, e + 0.06, 0, 0, 0, mol, 0, false); t.position.set(px + Math.cos(rot) * mid, y + yy, pz - Math.sin(rot) * mid); t.rotation.y = rot; }
+        } else seg(v.a, v.b, v.h, H);
+        cur = v.b;
+      }
+      seg(cur, comp, 0, H);
+    };
+    parede('n', w, x0, z0, 0);            // z = z0, de x0 para x0 + w
+    parede('s', w, x0, z0 + d, 0);        // z = z0 + d
+    parede('o', d, x0, z0 + d, Math.PI / 2);   // x = x0, de z0 + d para z0 (pos medida a partir de z0 + d)
+    parede('l', d, x0 + w, z0 + d, Math.PI / 2);
+    if (o.teto !== false) { const t = CX.caixa(g, w + 0.3, 0.12, d + 0.3, x0 + w / 2, y + H, z0 + d / 2, o.forro || CX.matTex('reboco', 2, 2, 0xd8d0c0), 0, true); (c.tetos ||= []).push(t); }
+    if (o.rodape !== false) { const rd = CX.matTex('madeira', 4, 1, 0x4a3426); for (const [ww, dd, xx, zz] of [[w - 0.2, 0.04, x0 + w / 2, z0 + 0.11], [w - 0.2, 0.04, x0 + w / 2, z0 + d - 0.11], [0.04, d - 0.2, x0 + 0.11, z0 + d / 2], [0.04, d - 0.2, x0 + w - 0.11, z0 + d / 2]]) CX.caixa(g, ww, 0.12, dd, xx, y, zz, rd, 0, false); }
+    if (o.luz) { const l = new THREE.PointLight(o.luzCor || 0xffd9a0, 0, Math.max(w, d) * 1.6, 1.6); l.position.set(x0 + w / 2, y + H - 0.4, z0 + d / 2); g.add(l); (c.luzes ||= []).push({ l, i: o.luz });
+      const lp = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 0.6 })); lp.position.copy(l.position); g.add(lp); }
+    return { x0, z0, w, d, H, y };
+  },
+  /* papel, pasta ou documento físico em cima de um móvel */
+  papel(g, x, y, z, ry = 0, w = 0.3, d = 0.4, cor = 0xe9e2cc) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.012, d), new THREE.MeshStandardMaterial({ color: cor, roughness: 1 })); m.position.set(x, y + 0.006, z); m.rotation.y = ry; m.receiveShadow = true; g.add(m); return m; },
+  mesa(g, x, y, z, w = 1.4, d = 0.8, ry = 0, mat) { const m = mat || CX.matTex('madeira', 1, 1, 0x7a5638); const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); CX.caixa(gg, w, 0.06, d, 0, 0.74, 0, m); for (const sx of [-1, 1]) for (const sz of [-1, 1]) CX.caixa(gg, 0.06, 0.74, 0.06, sx * (w / 2 - 0.06), 0, sz * (d / 2 - 0.06), m); return gg; },
+  estante(g, x, y, z, w = 1.2, h = 2, ry = 0, cheia = true) { const m = CX.matTex('madeira', 1, 1, 0x5e4330); const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg);
+    CX.caixa(gg, w, h, 0.04, 0, 0, -0.17, m); for (const sx of [-1, 1]) CX.caixa(gg, 0.04, h, 0.38, sx * w / 2, 0, 0, m);
+    for (let i = 0; i <= 4; i++) { const yy = i * (h - 0.05) / 4; CX.caixa(gg, w, 0.04, 0.38, 0, yy, 0, m, 0, false);
+      if (cheia && i < 4) { let xx = -w / 2 + 0.06; while (xx < w / 2 - 0.1) { const lw = 0.04 + rnd() * 0.07, lh = 0.2 + rnd() * 0.14; const c = new THREE.Color().setHSL(rnd(), 0.25 + rnd() * 0.2, 0.18 + rnd() * 0.18); CX.caixa(gg, lw, lh, 0.26, xx + lw / 2, yy + 0.04, 0.02, new THREE.MeshStandardMaterial({ color: c, roughness: 1 }), 0, false); xx += lw + 0.005; if (rnd() < 0.06) xx += 0.12; } } }
+    return gg; },
+  arquivo(g, x, y, z, ry = 0) { const m = new THREE.MeshStandardMaterial({ color: 0x5f6b62, roughness: 0.6, metalness: 0.4 }); const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); CX.caixa(gg, 0.5, 1.35, 0.62, 0, 0, 0, m); for (let i = 0; i < 4; i++) CX.caixa(gg, 0.14, 0.03, 0.02, 0, 0.2 + i * 0.32, 0.32, new THREE.MeshStandardMaterial({ color: 0xb8b8b0, metalness: 0.7, roughness: 0.3 }), 0, false); return gg; },
+  cadeira(g, x, y, z, ry = 0) { return CX.modelo(g, 'm', 'chair', x, y, z, ry, 0.9); },
+  /* números dos esconderijos e marcas que só o mestre vê */
+  rotuloGM(c, g, txt, x, y, z) {
+    const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; const k = cv.getContext('2d');
+    k.fillStyle = 'rgba(20,16,12,0.85)'; k.beginPath(); k.arc(64, 64, 58, 0, TAU); k.fill(); k.strokeStyle = '#e0b45e'; k.lineWidth = 8; k.stroke();
+    k.fillStyle = '#ffd98a'; k.font = '700 64px Barlow, sans-serif'; k.textAlign = 'center'; k.textBaseline = 'middle'; k.fillText(txt, 64, 68);
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true, fog: false })); s.scale.setScalar(0.9); s.position.set(x, y, z); s.renderOrder = 10; s.userData.semColisao = true;
+    s.visible = false; g.add(s); (c.rotulosGM ||= []).push(s); return s;
+  }
+};
+function constroiCen(id) {
+  const c = CEN[id]; if (!c) return null; if (c.pronto) return c;
+  c.cena = new THREE.Scene(); c.g = new THREE.Group(); c.cena.add(c.g);
+  c.hemi = new THREE.HemisphereLight(0xbac6c4, 0x2a2620, 1.1); c.cena.add(c.hemi);
+  c.sol = new THREE.DirectionalLight(0xf1ead8, 1.0); c.sol.castShadow = !fraco; c.sol.shadow.mapSize.set(2048, 2048);
+  Object.assign(c.sol.shadow.camera, { left: -45, right: 45, top: 45, bottom: -45, near: 1, far: 220 }); c.sol.shadow.bias = -0.0005; c.cena.add(c.sol, c.sol.target);
+  c.fogD = new THREE.FogExp2(c.neblinaCor || 0x9aa3a0, c.densD ?? 0.016); c.fogN = new THREE.FogExp2(0x0b0f12, c.densN ?? 0.03); c.fogL = new THREE.FogExp2(c.neblinaCor || 0x9aa3a0, (c.densD ?? 0.016) * 0.3);
+  try { c.monta(c); } catch (e) { console.error('[cenário ' + id + ']', e); }
+  if (!c.chao) { const p = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({ visible: false })); p.rotation.x = -Math.PI / 2; c.g.add(p); c.chao = p; }
+  c.pronto = true;
+  montaInstCen(id);
+  c.luzAt = null;
+  return c;
+}
+/* cópias instanciadas (inst(..., cena = id)) do cenário */
+async function montaInstCen(id) {
+  const c = CEN[id];
+  for (const e of INST.values()) {
+    if (e.cena !== id || e.feito) continue; e.feito = true;
+    let proto; try { proto = await load(e.kit, e.name); } catch (er) { console.warn(er); continue; }
+    proto.updateMatrixWorld(true);
+    proto.traverse(mesh => {
+      if (!mesh.isMesh) return;
+      let mat = trocaTextura(mesh.material);
+      if (e.variante === 'velha') mat = tinta(mat, 0.55, 0x3b3a33, 0.35);
+      if (e.variante === 'escura') mat = tinta(mat, 0.38, 0x172b1d, 0.5);
+      if (e.variante === 'mato') mat = tinta(mat, 0.55, 0x3a4520, 0.72);
+      if (e.variante === 'ruina') mat = tinta(mat, 0.42, 0x2c3326, 0.45);
+      if (e.variante === 'terra') mat = tinta(mat, 0.6, 0x4d3f2e, 0.55);
+      const im = new THREE.InstancedMesh(mesh.geometry, mat, e.m.length), local = mesh.matrixWorld.clone(), m4 = new THREE.Matrix4();
+      e.m.forEach((m, i) => im.setMatrixAt(i, m4.multiplyMatrices(m, local)));
+      im.castShadow = true; im.receiveShadow = true; im.computeBoundingSphere(); c.g.add(im);
+    });
+  }
+  COL.lista.delete(c.cena);
+}
+function aplicaLuzCen(c) {
+  c.luzAt = noite + '|' + nevoaOn;
+  c.cena.fog = noite ? c.fogN : nevoaOn ? c.fogD : c.fogL;
+  c.cena.background = new THREE.Color(noite ? 0x05080a : (c.ceu ?? 0xa3adab));
+  if (c.interno) { c.hemi.intensity = noite ? 0.5 : 0.8; c.sol.intensity = noite ? 0.1 : 0.55; }
+  else { c.hemi.color.set(noite ? 0x6f8592 : 0xd3dad6); c.hemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); c.hemi.intensity = noite ? 0.42 : 1.25; c.sol.color.set(noite ? 0xa9bccb : 0xf3eee2); c.sol.intensity = noite ? 0.32 : 1.15; }
+  for (const x of c.luzes || []) x.l.intensity = (noite ? 1 : 0.35) * x.i;
+  c.luz?.(c);
+}
+function quadroCen(t, dt) {
+  const c = CEN[modoCen]; if (!c || !c.pronto) return;
+  if (c.luzAt !== noite + '|' + nevoaOn) aplicaLuzCen(c);
+  const alvo = controls.target; c.sol.position.set(alvo.x - 30, alvo.y + 60, alvo.z + 25); c.sol.target.position.copy(alvo);
+  for (const s of standees) {
+    if (s.cena !== modoCen) continue;
+    if (s.alvo && s !== arrasto) { const p = s.g.position, k = Math.min(1, dt * 10); p.x += (s.alvo.x - p.x) * k; p.z += (s.alvo.z - p.z) * k; p.y = c.alt(p.x, p.z) + 0.13; }
+    poseFigura(s, camera.position.x - s.g.position.x, camera.position.z - s.g.position.z);
+  }
+  if (c.tetos) for (const tt of c.tetos) { // olhando de cima para dentro do cômodo, o teto (e o telhado) some
+    const b = tt.userData.bb ||= new THREE.Box3().setFromObject(tt).expandByScalar(0.8), a = controls.target;
+    const mira = a.x > b.min.x && a.x < b.max.x && a.z > b.min.z && a.z < b.max.z;
+    tt.visible = !(mira && camera.position.y > tt.position.y - 0.05);
+  }
+  for (const r of c.rotulosGM || []) r.visible = !SO_JOGADOR && !!c.verRotulos;
+  c.quadro?.(c, t, dt);
+}
+function camerasDoCen(c) {
+  const nav = $('#cams-cen'); nav.querySelectorAll('.btn').forEach(b => b.remove()); nav.querySelector('.lbl').textContent = c.curto || c.nome;
+  for (const [nome, v] of c.cams) {
+    const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = nome;
+    b.onclick = () => { voar(v, nome, v.nota); nav.querySelectorAll('.btn').forEach(x => x.classList.toggle('on', x === b)); };
+    nav.append(b);
+  }
+}
+function entrarCen(id) {
+  if (id && !ehCen(id)) return;
+  if (id) { constroiCen(id); if (modoSonho) entrarSonho(false); if (modoRem) entrarRemanso(false); if (modoMata) entrarMata(false); if (modoEstr) entrarEstrada(false); }
+  if (id === modoCen) { painelCen(); return; }
+  const antes = modoCen; modoCen = id || null; voo = null;
+  $('#cams').hidden = !!modoCen; $('#cams-cen').hidden = !modoCen; $('#b-pistas').hidden = true;
+  if (modoCen) {
+    const c = CEN[modoCen];
+    if (!antes) salvoCen = { p: camera.position.clone(), t: controls.target.clone() };
+    $('#brand-sub').textContent = c.sub || c.nome;
+    camerasDoCen(c); aplicaLuzCen(c);
+    const v = c.cams[0][1]; camera.position.set(...v.pos); controls.target.set(...v.alvo);
+    Object.assign(controls, { minDistance: 0.4, maxDistance: c.longe ?? 120, maxPolarAngle: Math.PI * (c.polar ?? 0.62) });
+    $('#nota-t').textContent = c.nome; $('#nota-x').textContent = c.nota || ''; $('#nota').hidden = SO_JOGADOR || !c.nota;
+  } else {
+    if (salvoCen) { camera.position.copy(salvoCen.p); controls.target.copy(salvoCen.t); }
+    salvoCen = null;
+    Object.assign(controls, { minDistance: 2.5, maxDistance: 520, maxPolarAngle: Math.PI * 0.49 });
+    $('#nota').hidden = true; $('#brand-sub').textContent = 'Alto Uruguai, junho de 2016';
+  }
+  botaoCen(); painelCen();
+  if (typeof renderLista === 'function') renderLista();
+}
+/* botão "Cenários" (só o mestre): abre a lista dos mapas à parte */
+function botaoCen() { const b = $('#b-cen'); if (!b) return; b.setAttribute('aria-pressed', String(!!modoCen)); b.querySelector('.t').textContent = modoCen ? 'Voltar ao vale' : 'Cenários'; }
+function menuCen() {
+  const m = $('#menu-cen'); if (!m) return;
+  if (!m.hidden) { m.hidden = true; return; }
+  const grupos = {}; for (const c of Object.values(CEN)) (grupos[c.grupo || 'Outros'] ||= []).push(c);
+  m.innerHTML = Object.entries(grupos).map(([gname, l]) => `<div class="mc-g"><b>${gname}</b>${l.map(c => `<button class="btn${modoCen === c.id ? ' on' : ''}" type="button" data-cen="${c.id}"><span>${c.nome}</span>${c.dica ? `<small>${c.dica}</small>` : ''}</button>`).join('')}</div>`).join('');
+  m.hidden = false;
+}
+/* painel do cenário: controles próprios (portão, rótulos, estados), só para o mestre */
+function painelCen() {
+  const p = $('#painel-cen'); if (!p) return;
+  const c = modoCen && CEN[modoCen];
+  if (!c || SO_JOGADOR || !c.painel) { p.hidden = true; p.innerHTML = ''; return; }
+  p.innerHTML = `<b>${c.curto || c.nome}</b>` + c.painel(c); p.hidden = false;
+}
+/* o que o mestre muda no cenário vai para todos junto com a cena (mesa/cena3d.cenEst) */
+const CEN_EST = {};
+function estCen(chave, valor) { CEN_EST[chave] = valor; for (const c of Object.values(CEN)) if (c.pronto) c.aoEstado?.(c, CEN_EST); painelCen(); if (PM && PM.isGM && PM.isGM()) PM.setCena(estadoCena()); }
+function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = false; for (const [k, v] of Object.entries(o)) if (CEN_EST[k] !== v) { CEN_EST[k] = v; mud = true; } if (mud) { for (const c of Object.values(CEN)) if (c.pronto) c.aoEstado?.(c, CEN_EST); painelCen(); } }
+
+/* ---------- Cemitério municipal (mapa à parte): muro alto, portão que o mestre abre, fecha e tranca,
+   capela mortuária com interior, jazigo dos Basso, ossários, setor antigo com o túmulo do coroinha
+   e a quadra das exumações com as covas abertas. Os 6 esconderijos do Coro existem de verdade no chão. ---------- */
+{
+  const MX = 32, MZ = 26;                          // o muro: x de -32 a 32, z de -26 a 26; o portão fica em z = +26
+  const EXU = { x0: 9, x1: 29, z0: 3, z1: 23 };    // a quadra das exumações (terreno fino, com as covas)
+  const COVAS = [ // x, z, rotação, com água?
+    [12.5, 6, 0, true], [16, 6, 0, true], [19.5, 6.4, 0.05, false], [23, 6, 0, true],
+    [12.5, 11.5, 0, true], [16, 11.3, 0, false], [23.5, 12, -0.08, true], [12.8, 17, 0, true], [16.4, 17.2, 0.06, true]];
+  const COVA_SECA = 5;                              // índice da cova vazia e seca (esconderijo 3)
+  const CAP = { x0: -3.6, x1: 3.6, z0: -24.5, z1: -16.5, y: 0.22 }; // a capela mortuária (porta para o sul)
+  const dentroCova = (x, z) => { for (let i = 0; i < COVAS.length; i++) { const [cx, cz, r] = COVAS[i], c = Math.cos(r), s = Math.sin(r), dx = x - cx, dz = z - cz, lx = dx * c - dz * s, lz = dx * s + dz * c; if (Math.abs(lx) < 0.6 && Math.abs(lz) < 1.15) return i; } return -1; };
+  function altCem(x, z) {
+    if (x > CAP.x0 && x < CAP.x1 && z > CAP.z0 && z < CAP.z1) return CAP.y;
+    const k = dentroCova(x, z); if (k >= 0) return -1.25;
+    let y = 0.12 * Math.sin(x * 0.17) * Math.cos(z * 0.13) + 0.06 * Math.sin(x * 0.41 + z * 0.29);
+    const fora = Math.max(0, Math.abs(x) - MX - 4) + Math.max(0, Math.abs(z) - MZ - 4);
+    y += Math.min(6, fora * 0.09) + Math.sin(x * 0.05) * Math.cos(z * 0.04) * Math.min(1, fora / 10) * 1.6;
+    if (x > EXU.x0 - 1 && x < EXU.x1 + 1 && z > EXU.z0 - 1 && z < EXU.z1 + 1) y -= 0.18; // a quadra baixa, onde a lama junta
+    return y;
+  }
+  const naGrade = (x0, z0, x1, z1) => { // o arrasto atravessa o muro? só passa pelo vão do portão, e só se ele estiver aberto
+    const dentro = (x, z) => Math.abs(x) < MX - 0.25 && Math.abs(z) < MZ - 0.25;
+    if (dentro(x0, z0) === dentro(x1, z1)) return true;
+    const portaoAberto = (CEN_EST.cemPortao || 'trancado') === 'aberto';
+    return portaoAberto && Math.abs(x1) < 1.5 && Math.abs(x0) < 1.5 && Math.max(z0, z1) > MZ - 2;
+  };
+  cenario({
+    id: 'c-cemiterio', nome: 'Cemitério municipal', para: 'o cemitério', curto: 'Cemitério', em: 'no cemitério', grupo: 'Cemitério', dica: 'covas abertas, capela, ossários',
+    sub: 'Cemitério municipal de São Valentim · fechado pela obra', ceu: 0x9aa4a2, densD: 0.02, densN: 0.034,
+    nota: 'Fechado pela hidrelétrica: muro novo de 2,1 m e o portão de ferro. Os números 1 a 6 (botão no painel) são os esconderijos do Coro: 1 capela mortuária, 2 atrás do jazigo dos Basso, 3 a cova vazia e seca, 4 debaixo da lona das exumações, 5 entre os ossários, 6 a caçamba da caminhonete.',
+    alt: altCem, longe: 110,
+    limita: (x0, z0, x1, z1) => naGrade(x0, z0, x1, z1),
+    cams: [
+      ['Vista geral', { pos: [6, 46, 62], alvo: [0, 0, 0] }],
+      ['O portão', { pos: [0, 2.3, 35], alvo: [0, 1.4, 22] }],
+      ['A capela', { pos: [0, 2.4, -8], alvo: [0, 1.6, -19] }],
+      ['Dentro da capela', { pos: [0, 1.7, -17.2], alvo: [0, 1.2, -23] }],
+      ['Covas abertas', { pos: [9, 7.5, 27], alvo: [18, -0.5, 11] }],
+      ['Jazigo dos Basso', { pos: [-4, 3.4, 2], alvo: [-11, 1, -7] }],
+      ['Ossários', { pos: [-18, 3.6, -8], alvo: [-28, 1.2, -16] }],
+      ['Setor antigo', { pos: [12, 4.5, -4], alvo: [20, 0.6, -17] }],
+    ],
+    painel(c) {
+      const p = CEN_EST.cemPortao || 'trancado', b = (v, t) => `<button class="btn${p === v ? ' on' : ''}" type="button" data-cem-portao="${v}">${t}</button>`;
+      return `<div class="pc-l"><span>Portão</span>${b('aberto', 'Aberto')}${b('fechado', 'Fechado')}${b('trancado', 'Trancado')}</div>
+        <div class="pc-l"><button class="btn${c.verRotulos ? ' on' : ''}" type="button" data-cem-num>Esconderijos 1–6</button><button class="btn${CEN_EST.cemVela ? ' on' : ''}" type="button" data-cem-vela>Vela no túmulo do coroinha</button></div>`;
+    },
+    aoEstado(c, e) {
+      c.portaoAlvo = (e.cemPortao || 'trancado') === 'aberto' ? 1 : 0;
+      if (c.cadeado) c.cadeado.visible = (e.cemPortao || 'trancado') === 'trancado';
+      if (c.vela) { c.vela.visible = !!e.cemVela; c.velaLuz.intensity = e.cemVela ? 2.2 : 0; }
+    },
+    luz(c) { if (c.hz) c.hz.material.map = noite ? c.hz.userData.n : c.hz.userData.d; for (const l of c.postes || []) l.intensity = noite ? 9 : 0; },
+    quadro(c, t, dt) {
+      const k = Math.min(1, dt * 1.6); c.portaoAng = (c.portaoAng ?? 0) + ((c.portaoAlvo ?? 0) - (c.portaoAng ?? 0)) * k;
+      if (c.folhas) { c.folhas[0].rotation.y = c.portaoAng * 1.75; c.folhas[1].rotation.y = -c.portaoAng * 1.75; }
+      if (c.velaLuz && c.vela.visible) c.velaLuz.intensity = 1.9 + Math.sin(t * 13) * 0.25 + Math.sin(t * 7.3) * 0.2;
+      for (const a of c.aguas || []) a.material.normalMap && a.material.normalMap.offset.set(t * 0.01, t * 0.007);
+    },
+    monta(c) {
+      const g = c.g, cn = 'c-cemiterio';
+      const mGrama = CX.matTex('grama', 40, 40, 0xc8d0b8), mLama = CX.matTex('lama', 8, 8, 0xd0c8b8), mTerra = CX.matTex('terra', 3, 18, 0xd8ccb8), mCalc = CX.matTex('calcamento', 1.2, 12);
+      const mMuro = CX.matTex('reboco_velho', 6, 1, 0xd8d2c4), mTopo = new THREE.MeshStandardMaterial({ color: 0x6f6a5c, roughness: 1 }), mFerro = new THREE.MeshStandardMaterial({ color: 0x1b1d1f, roughness: 0.55, metalness: 0.6 });
+      /* o chão: uma malha grande e, na quadra das exumações, uma malha fina que mostra as covas */
+      const terreno = (w, d, sw, sd, mat, cx, cz, filtro) => {
+        const geo = new THREE.PlaneGeometry(w, d, sw, sd); geo.rotateX(-Math.PI / 2); const p = geo.attributes.position;
+        for (let i = 0; i < p.count; i++) { const x = p.getX(i) + cx, z = p.getZ(i) + cz; p.setY(i, filtro(x, z)); }
+        geo.computeVertexNormals(); const m = new THREE.Mesh(geo, mat); m.position.set(cx, 0, cz); m.receiveShadow = true; g.add(m); return m;
+      };
+      const naQuadra = (x, z) => x > EXU.x0 + 0.3 && x < EXU.x1 - 0.3 && z > EXU.z0 + 0.3 && z < EXU.z1 - 0.3;
+      c.chao = new THREE.Group(); g.add(c.chao);
+      c.chao.add(terreno(240, 240, 160, 160, mGrama, 0, 0, (x, z) => naQuadra(x, z) ? altCem(x, z) - 2.5 : altCem(x, z)));
+      c.chao.add(terreno(EXU.x1 - EXU.x0 + 0.4, EXU.z1 - EXU.z0 + 0.4, 96, 96, CX.matTex('terra', 6, 6, 0xb39c80), (EXU.x0 + EXU.x1) / 2, (EXU.z0 + EXU.z1) / 2, (x, z) => altCem(x, z) + 0.01));
+      /* caminhos: do portão até a capela (pedra) e a travessa (terra) */
+      { const cam = new THREE.Mesh(new THREE.PlaneGeometry(3, 42, 3, 42), mCalc); cam.rotation.x = -Math.PI / 2; cam.position.set(0, 0.07, 4.5); const p = cam.geometry.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, altCem(p.getX(i), 4.5 - p.getY(i)) + 0.03 - 0.07); cam.geometry.computeVertexNormals(); cam.receiveShadow = true; g.add(cam);
+        const tr = new THREE.Mesh(new THREE.PlaneGeometry(58, 2, 58, 2), mTerra); tr.rotation.x = -Math.PI / 2; tr.position.set(-1, 0.06, 1.5); const q = tr.geometry.attributes.position; for (let i = 0; i < q.count; i++) q.setZ(i, altCem(q.getX(i) - 1, 1.5 - q.getY(i)) + 0.03 - 0.06); tr.geometry.computeVertexNormals(); tr.receiveShadow = true; g.add(tr);
+        const rua = new THREE.Mesh(new THREE.PlaneGeometry(160, 6, 80, 3), mTerra); rua.rotation.x = -Math.PI / 2; rua.position.set(0, 0.06, 32); const r = rua.geometry.attributes.position; for (let i = 0; i < r.count; i++) r.setZ(i, altCem(r.getX(i), 32 - r.getY(i)) + 0.03 - 0.06); rua.geometry.computeVertexNormals(); rua.receiveShadow = true; g.add(rua); }
+      /* o muro alto (novo, da obra) com pilares e o vão do portão */
+      const H = 2.1, E = 0.35;
+      const muro = (x, z, w, d) => { CX.caixa(g, w, H + 0.4, d, x, -0.4, z, mMuro); CX.caixa(g, w + 0.16, 0.12, d + 0.16, x, H, z, mTopo); };
+      muro(0, -MZ, 2 * MX + E, E); muro(-MX, 0, E, 2 * MZ); muro(MX, 0, E, 2 * MZ);
+      const vao = 3.2, lado = MX - vao / 2; muro(-(vao / 2 + lado / 2), MZ, lado + E / 2, E); muro(vao / 2 + lado / 2, MZ, lado + E / 2, E);
+      for (let x = -MX; x <= MX; x += 6.4) for (const z of [-MZ, MZ]) if (Math.abs(x) > 2) CX.caixa(g, 0.55, H + 0.3, 0.55, x, -0.2, z, mMuro);
+      for (let z = -MZ + 6.5; z < MZ; z += 6.5) for (const x of [-MX, MX]) CX.caixa(g, 0.55, H + 0.3, 0.55, x, -0.2, z, mMuro);
+      /* pilares do portão, arco com a placa e o portão de duas folhas (o mestre abre e fecha) */
+      for (const s of [-1, 1]) { CX.caixa(g, 0.7, 3.1, 0.7, s * 1.95, -0.2, MZ, mMuro); CX.caixa(g, 0.82, 0.14, 0.82, s * 1.95, 2.9, MZ, mTopo); }
+      { const arco = new THREE.Mesh(new THREE.TorusGeometry(1.95, 0.06, 6, 24, Math.PI), mFerro); arco.position.set(0, 2.85, MZ); g.add(arco);
+        const pl = CX.texto(['CEMITÉRIO MUNICIPAL'], 2.6, 0.38, { fundo: '#1d1f1e', cor: '#cfc7b3', brilho: 0.15, dupla: true }); pl.position.set(0, 3.55, MZ); g.add(pl); }
+      c.folhas = [];
+      for (const s of [-1, 1]) {
+        const piv = new THREE.Group(); piv.position.set(s * 1.6, 0, MZ); g.add(piv); c.folhas.push(piv);
+        const fo = new THREE.Group(); fo.position.x = -s * 0.8; piv.add(fo);
+        for (let k = 0; k < 9; k++) { const b = CX.cil(fo, 0.022, 0.022, 2.25, (k - 4) * 0.18, 0.05, 0, mFerro, 6); b.userData.portao = true; const ponta = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.14, 6), mFerro); ponta.position.set((k - 4) * 0.18, 2.36, 0); fo.add(ponta); }
+        for (const y of [0.2, 1.05, 2.0]) CX.caixa(fo, 1.62, 0.06, 0.05, 0, y, 0, mFerro);
+        const vol = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.025, 6, 16), mFerro); vol.position.set(0, 1.5, 0); fo.add(vol);
+      }
+      { const cad = new THREE.Group(); cad.position.set(0, 1.12, MZ + 0.08); g.add(cad); c.cadeado = cad;
+        const elo = new THREE.TorusGeometry(0.05, 0.012, 5, 10); for (let i = 0; i < 9; i++) { const e = new THREE.Mesh(elo, mFerro); e.position.set((i - 4) * 0.075, Math.abs(i - 4) * -0.02, 0); e.rotation.y = i % 2 ? Math.PI / 2 : 0; cad.add(e); }
+        CX.caixa(cad, 0.12, 0.14, 0.05, 0, -0.28, 0, new THREE.MeshStandardMaterial({ color: 0x8a6a2a, metalness: 0.7, roughness: 0.35 })); }
+      /* aviso da obra no muro */
+      { const av = CX.texto(['PROIBIDA A ENTRADA', 'Área em obra · Hidrelétrica Vale Alto', 'Remoção de restos mortais'], 2.4, 1.0, { fundo: '#e9e0c4', cor: '#7a1e14', suja: true, fonte: 46 }); av.position.set(4.6, 1.3, MZ + 0.19); g.add(av); }
+      /* a capela mortuária: paredes inteiras, porta para o sul, teto que some de cima, telhado */
+      { const s = CX.sala(c, g, CAP.x0, CAP.z0, CAP.x1 - CAP.x0, CAP.z1 - CAP.z0, { y: CAP.y, h: 3.4, parede: CX.matTex('reboco', 3, 1, 0xd9d0bd), piso: CX.matTex('calcamento', 3, 3, 0xa8a090), portas: [{ lado: 's', pos: 3.6, l: 1.4, h: 2.5 }], janelas: [{ lado: 'o', pos: 4, l: 0.9, h0: 1.4, h: 1.2 }, { lado: 'l', pos: 4, l: 0.9, h0: 1.4, h: 1.2 }], luz: 2.4, luzCor: 0xffcf8a });
+        const tel = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 4.6, 2.2, 4, 1), matTelha); tel.rotation.y = Math.PI / 4; tel.scale.set(1, 1, (CAP.z1 - CAP.z0 + 0.8) / 6.5); tel.position.set(0, CAP.y + 3.4 + 1.1, (CAP.z0 + CAP.z1) / 2); tel.castShadow = true; g.add(tel); c.tetos.push(tel);
+        CX.modelo(g, 'g', 'cross', 0, CAP.y + 3.4 + 2.15, CAP.z1 - 0.2, 0, 0.6);
+        const zc = CAP.z0 + 1.1; CX.caixa(g, 2.2, 0.95, 0.8, 0, CAP.y, zc, CX.matTex('madeira', 1, 1, 0x5a3a28)); // o altar
+        CX.modelo(g, 'g', 'cross', 0, CAP.y + 0.95, zc - 0.1, 0, 0.45);
+        CX.modelo(g, 'g', 'candle-multiple', -0.8, CAP.y + 0.95, zc, 0, 0.5); CX.modelo(g, 'g', 'candle-multiple', 0.8, CAP.y + 0.95, zc, 0, 0.5);
+        CX.caixa(g, 2.2, 0.5, 0.8, 0, CAP.y, -20.6, CX.matTex('madeira', 1, 1, 0x3e2a1e)); CX.modelo(g, 'g', 'coffin-old', 0, CAP.y + 0.5, -20.6, Math.PI / 2, 0.85, m => tinta(m, 0.45, 0x3a2618, 0.6)); // o caixão na eça
+        for (const z of [-18.6, -17.6]) for (const sx of [-1, 1]) { const bk = CX.caixa(g, 2.1, 0.45, 0.42, sx * 1.95, CAP.y, z, CX.matTex('madeira', 1, 1, 0x5e4330)); CX.caixa(g, 2.1, 0.5, 0.06, sx * 1.95, CAP.y + 0.45, z + 0.2, CX.matTex('madeira', 1, 1, 0x5e4330)); }
+        c.esconderijo1 = [0, -22.5]; }
+      /* fileiras de túmulos (setor novo), com jazigos de família */
+      const LAP = ['gravestone-cross', 'gravestone-cross-large', 'gravestone-round', 'gravestone-roof', 'gravestone-decorative', 'gravestone-bevel', 'gravestone-wide'];
+      const fila = (x0, x1, z0, z1, varia = '', dx = 2.6, dz = 3.2) => {
+        for (let x = x0; x <= x1; x += dx) for (let z = z0; z <= z1; z += dz) {
+          if (rnd() < 0.12) continue; const xx = x + (rnd() - 0.5) * 0.3, zz = z + (rnd() - 0.5) * 0.25, y = altCem(xx, zz);
+          inst('g', varia === 'velha' && rnd() < 0.35 ? 'gravestone-broken' : LAP[Math.floor(rnd() * LAP.length)], xx, y - 0.04, zz, (rnd() - 0.5) * (varia ? 0.4 : 0.12), 1, varia, null, cn);
+          if (rnd() < 0.55) inst('g', rnd() < 0.5 ? 'grave' : 'grave-border', xx, y - 0.02, zz + 1.15, 0, 1, varia || 'terra', null, cn);
+          if (rnd() < 0.12) inst('g', 'urn-round', xx + 0.6, y, zz + 0.4, 0, 0.8, varia, null, cn);
+        }
+      };
+      fila(-28, -6, 7, 22); fila(4.5, 6.5, 7, 22); fila(-28, -16, -6, 0); fila(4.5, 8, -14, -3); fila(-2.5 - 0.1, -2.5, -13, -3, '', 2.6, 3.2);
+      /* setor antigo (nordeste): lápides gastas, cruzes, mato alto e o túmulo do coroinha */
+      fila(12, 29, -23, -6, 'velha', 2.3, 2.9);
+      for (let i = 0; i < 26; i++) { const x = 11 + rnd() * 19, z = -24 + rnd() * 18; inst('n', 'grass_large', x, altCem(x, z), z, rnd() * TAU, 0.5 + rnd() * 0.4, 'mato', null, cn); }
+      { const tx = 20.5, tz = -14.8, y = altCem(tx, tz); CX.caixa(g, 0.9, 0.35, 1.7, tx, y - 0.05, tz + 0.6, CX.matTex('concreto', 1, 1, 0x9c968a));
+        CX.modelo(g, 'g', 'gravestone-cross', tx, y, tz - 0.4, 0, 0.75, m => tinta(m, 0.7, 0x4a4a40, 0.25));
+        const ins = CX.texto(['BENEDITO DAL MOLIN', '★ 1967   ✝ 1979', 'coroinha'], 0.72, 0.42, { fundo: '#8d877a', cor: '#2b2822', borda: false, suja: true, fonte: 50 }); ins.position.set(tx, y + 0.33, tz + 1.46); ins.rotation.x = -Math.PI / 2 + 0.25; g.add(ins);
+        const vela = new THREE.Group(); vela.position.set(tx + 0.25, y + 0.3, tz + 1.2); g.add(vela); c.vela = vela; vela.visible = false;
+        CX.cil(vela, 0.03, 0.035, 0.22, 0, 0, 0, new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 }), 8);
+        const ch = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffc46a })); ch.position.y = 0.26; ch.scale.y = 1.8; vela.add(ch);
+        c.velaLuz = new THREE.PointLight(0xffb060, 0, 7, 1.8); c.velaLuz.position.set(tx + 0.25, y + 0.62, tz + 1.2); g.add(c.velaLuz); }
+      /* jazigo dos Basso (esconderijo 2, atrás dele) e outros jazigos */
+      { const jx = -11, jz = -7; CX.modelo(g, 'g', 'crypt-large', jx, altCem(jx, jz), jz, 0, 1.05);
+        const pl = CX.texto(['FAMÍLIA BASSO'], 1.6, 0.3, { fundo: '#5c584e', cor: '#e2dac6', borda: false, fonte: 60 }); pl.position.set(jx, altCem(jx, jz) + 2.95, jz + 2.02); g.add(pl); }
+      CX.modelo(g, 'g', 'crypt-small', -19, altCem(-19, -2), -2, 0, 1); CX.modelo(g, 'g', 'crypt-large', 8.5, altCem(8.5, -19), -19, Math.PI / 2, 0.9, m => tinta(m, 0.7, 0x4a4a40, 0.2));
+      /* ossários (esconderijo 5): paredão de gavetas no canto noroeste, e corredor entre dois blocos */
+      { const mO = CX.matTex('concreto', 2, 1, 0xb8b2a6), x0 = -31.4, gav = new THREE.MeshStandardMaterial({ color: 0x8e887c, roughness: 1 });
+        for (const [bx, bz, bw, ry] of [[-31.2, -16, 14, Math.PI / 2], [-24.5, -12.8, 7, 0], [-24.5, -19.2, 7, 0]]) {
+          const gg = new THREE.Group(); gg.position.set(bx, altCem(bx, bz), bz); gg.rotation.y = ry; g.add(gg);
+          CX.caixa(gg, bw, 2.4, 0.9, 0, 0, 0, mO);
+          for (let i = 0; i < Math.floor(bw / 0.62); i++) for (let j = 0; j < 4; j++) { const t = CX.caixa(gg, 0.5, 0.4, 0.04, -bw / 2 + 0.36 + i * 0.62, 0.22 + j * 0.54, 0.46, gav, 0, false); if (rnd() < 0.15) t.material = new THREE.MeshStandardMaterial({ color: 0x2a2724, roughness: 1 }); if (bz === -12.8 || bz === -19.2) { const t2 = t.clone(); t2.position.z = -0.46; gg.add(t2); } }
+          CX.caixa(gg, bw + 0.2, 0.12, 1.1, 0, 2.4, 0, mTopo);
+        } }
+      /* a quadra das exumações: covas abertas (com água e lama), a cova seca, a lona, a caminhonete, montes de terra */
+      c.aguas = [];
+      COVAS.forEach(([x, z, r, agua], i) => {
+        const y0 = altCem(x + 0.9, z), borda = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.18, 2.6), mLama); // o barro revolvido em volta
+        const furo = new THREE.Shape(); furo.moveTo(-0.75, -1.3); furo.lineTo(0.75, -1.3); furo.lineTo(0.75, 1.3); furo.lineTo(-0.75, 1.3);
+        const h = new THREE.Path(); h.moveTo(-0.58, -1.13); h.lineTo(-0.58, 1.13); h.lineTo(0.58, 1.13); h.lineTo(0.58, -1.13); furo.holes.push(h);
+        const geo = new THREE.ExtrudeGeometry(furo, { depth: 0.12, bevelEnabled: true, bevelSize: 0.08, bevelThickness: 0.05, bevelSegments: 2 }); geo.rotateX(-Math.PI / 2);
+        const anel = new THREE.Mesh(geo, mLama); anel.position.set(x, y0 - 0.04, z); anel.rotation.y = r; anel.castShadow = true; anel.receiveShadow = true; g.add(anel);
+        if (agua) { const a = new THREE.Mesh(new THREE.PlaneGeometry(1.16, 2.26), new THREE.MeshStandardMaterial({ color: 0x2c3326, roughness: 0.12, metalness: 0.3, transparent: true, opacity: 0.88, normalMap: TEX.lodo ? repetida(TEX.lodo, 1, 2) : null })); a.rotation.x = -Math.PI / 2; a.rotation.z = r; a.position.set(x, -0.62, z); g.add(a); c.aguas.push(a); }
+        if (i !== COVA_SECA) { const mt = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8, 0, TAU, 0, Math.PI / 2), mLama); mt.scale.set(0.8, 0.45, 1.2); mt.position.set(x + 1.35, altCem(x + 1.35, z) - 0.05, z); mt.rotation.y = r; mt.castShadow = true; g.add(mt); }
+        if (rnd() < 0.5) inst('g', 'gravestone-broken', x - 1.0, altCem(x - 1, z), z - 0.8, 0.4, 0.9, 'velha', null, cn);
+      });
+      { const [x, z] = COVAS[COVA_SECA]; const pl = CX.texto(['vazia'], 0.4, 0.16, { fundo: '#cfc5ac', cor: '#3a2c20', fonte: 60 }); pl.position.set(x - 0.75, altCem(x - 0.8, z) + 0.45, z - 1.1); pl.rotation.y = 0.2; g.add(pl); CX.cil(g, 0.02, 0.02, 0.55, x - 0.75, altCem(x - 0.8, z) - 0.05, z - 1.12, CX.matTex('madeira'), 5); }
+      put('g', 'shovel-dirt', 14.3, 8.8, 0.4, { parent: g, y: altCem(14.3, 8.8) }); put('g', 'shovel-dirt', 21.3, 14.6, -0.6, { parent: g, y: altCem(21.3, 14.6) });
+      CX.modelo(g, 'g', 'coffin-old', 20.2, altCem(20.2, 9.3), 9.3, 1.3, 0.9, m => tinta(m, 0.4, 0x2e241a, 0.6));
+      for (const [x, z] of [[10.2, 3.6], [27.6, 3.6], [10.2, 22.3], [27.4, 22.4]]) CX.modelo(g, 'r', 'construction-cone', x, altCem(x, z), z, 0, 0.5);
+      /* a lona azul das exumações (esconderijo 4), esticada em quatro estacas, e as caixas embaixo */
+      { const lx = 24.5, lz = 16.5, y = altCem(lx, lz), mL = new THREE.MeshStandardMaterial({ color: 0x2f4f7a, roughness: 0.75, side: THREE.DoubleSide });
+        const lg = new THREE.PlaneGeometry(4.2, 3.4, 12, 10); const p = lg.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / 2.1, v = p.getY(i) / 1.7; p.setZ(i, -0.35 * (1 - u * u) * (1 - v * v) + (rnd() - 0.5) * 0.04); } lg.computeVertexNormals();
+        const lona = new THREE.Mesh(lg, mL); lona.rotation.x = -Math.PI / 2; lona.position.set(lx, y + 1.35, lz); lona.castShadow = true; g.add(lona);
+        for (const sx of [-1, 1]) for (const sz of [-1, 1]) CX.cil(g, 0.04, 0.05, 1.4, lx + sx * 2.0, y - 0.05, lz + sz * 1.6, CX.matTex('madeira', 1, 1, 0x6d5038), 6);
+        const aba = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.2), mL); aba.position.set(lx, y + 0.75, lz + 1.68); aba.rotation.x = 0.15; g.add(aba);
+        for (let i = 0; i < 4; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', lx - 1.3 + i * 0.85, y, lz - 0.6 + (i % 2) * 0.5, rnd(), 0.9); }
+      /* a caminhonete da obra (esconderijo 6: a caçamba) */
+      CX.modelo(g, 'c', 'truck', 25.5, altCem(25.5, 8), 8, Math.PI, 1.25, m => tinta(m, 0.75, 0x6d6a5a, 0.35));
+      /* árvores, postes e o lado de fora */
+      plantaArvores(g, [[-27, 24], [27, -24], [-30, -2], [30, 2], [-8, 23], [10, 24.5]].map(([x, z]) => [x, altCem(x, z) - 0.2, z, 0.35 + rnd() * 0.15, rnd() * TAU]), [[-20, -23], [5, -24], [-30, 13]].map(([x, z]) => [x, altCem(x, z) - 0.2, z, 0.4, rnd() * TAU]));
+      const fora = []; for (let i = 0; i < 70; i++) { const a = rnd() * TAU, r = 48 + rnd() * 60, x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(z - 32) < 6) continue; fora.push([x, altCem(x, z) - 0.2, z, 0.4 + rnd() * 0.25, rnd() * TAU]); }
+      plantaArvores(g, fora.filter((_, i) => i % 2), fora.filter((_, i) => !(i % 2)));
+      c.postes = [];
+      for (const z of [18, 8, -4]) { CX.modelo(g, 'g', 'lightpost-single', 2.3, altCem(2.3, z), z, 0, 1, m => tinta(m, 0.35, 0x1d2022, 0.7)); const l = new THREE.PointLight(0xbfe0d0, 0, 16, 1.6); l.position.set(2.3, altCem(2.3, z) + 3.3, z); g.add(l); c.postes.push(l); }
+      { CX.modelo(g, 'r', 'electricity-pole', -6, altCem(-6, 34), 34, 0, 1); const l = new THREE.PointLight(0xffd9a0, 0, 20, 1.5); l.position.set(-6, altCem(-6, 34) + 6, 34); g.add(l); c.postes.push(l); }
+      c.hz = horizonte(g, 'campo', 160, 110, -20);
+      /* os 6 esconderijos do Coro, com número que só o mestre vê */
+      [[0, 2.2, -22.4, '1'], [-11, 1.6, -10.6, '2'], [COVAS[COVA_SECA][0], 0.6, COVAS[COVA_SECA][1], '3'], [24.5, 2.4, 16.5, '4'], [-27.9, 3, -16, '5'], [25.5, 2.9, 9.6, '6']]
+        .forEach(([x, y, z, n]) => CX.rotuloGM(c, g, n, x, altCem(x, z) + y, z));
+      c.portaoAng = 0; c.aoEstado(c, CEN_EST);
+    },
+  });
+}
+
+/* ---------- mais ferramentas para interiores ---------- */
+Object.assign(CX, {
+  telhado(c, g, cx, y, cz, w, d, h = 1.6, mat = matTelha, aoLongoDeX = true) {
+    const s = new THREE.Shape(), L = aoLongoDeX ? d : w; s.moveTo(-L / 2 - 0.35, 0); s.lineTo(L / 2 + 0.35, 0); s.lineTo(0, h); s.lineTo(-L / 2 - 0.35, 0);
+    const comp = (aoLongoDeX ? w : d) + 0.7, geo = new THREE.ExtrudeGeometry(s, { depth: comp, bevelEnabled: false }); geo.translate(0, 0, -comp / 2);
+    const m = new THREE.Mesh(geo, mat); m.position.set(cx, y, cz); m.rotation.y = aoLongoDeX ? Math.PI / 2 : 0; m.castShadow = true; m.receiveShadow = true; g.add(m); (c.tetos ||= []).push(m); return m;
+  },
+  balcao(g, x, y, z, w = 2.4, ry = 0, cor = 0x6e4e36) { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = CX.matTex('madeira', 2, 1, cor); CX.caixa(gg, w, 1.0, 0.6, 0, 0, 0, m); CX.caixa(gg, w + 0.1, 0.05, 0.7, 0, 1.0, 0, CX.matTex('madeira', 2, 1, 0x4a3324)); return gg; },
+  prateleira(g, x, y, z, w = 2, h = 2, ry = 0, coisas = 'caixas') {
+    const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = new THREE.MeshStandardMaterial({ color: 0x6a6e70, roughness: 0.5, metalness: 0.5 });
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) CX.caixa(gg, 0.04, h, 0.04, sx * (w / 2 - 0.02), 0, sz * 0.22, m);
+    for (let i = 0; i < 4; i++) { const yy = 0.15 + i * (h - 0.25) / 3; CX.caixa(gg, w, 0.03, 0.48, 0, yy, 0, m, 0, false);
+      let xx = -w / 2 + 0.08; while (xx < w / 2 - 0.15) { const cw = coisas === 'potes' ? 0.12 : 0.2 + rnd() * 0.25, ch = coisas === 'potes' ? 0.18 : 0.15 + rnd() * 0.25;
+        const cor = coisas === 'potes' ? new THREE.Color().setHSL(0.08 + rnd() * 0.1, 0.4, 0.35 + rnd() * 0.2) : coisas === 'pastas' ? new THREE.Color().setHSL(rnd() < 0.5 ? 0.6 : 0.08, 0.3, 0.3 + rnd() * 0.15) : new THREE.Color().setHSL(0.09, 0.3, 0.42 + rnd() * 0.15);
+        if (coisas === 'potes') CX.cil(gg, cw / 2, cw / 2, ch, xx + cw / 2, yy + 0.015, (rnd() - 0.5) * 0.15, new THREE.MeshStandardMaterial({ color: cor, roughness: 0.3, transparent: true, opacity: 0.85 }), 10);
+        else CX.caixa(gg, coisas === 'pastas' ? 0.06 : cw, coisas === 'pastas' ? 0.3 : ch, coisas === 'pastas' ? 0.32 : 0.36, xx + (coisas === 'pastas' ? 0.03 : cw / 2), yy + 0.015, 0, new THREE.MeshStandardMaterial({ color: cor, roughness: 1 }), 0, false);
+        xx += (coisas === 'pastas' ? 0.065 : cw) + 0.02; if (rnd() < 0.08) xx += 0.2; } }
+    return gg; },
+  cama(g, x, y, z, ry = 0, casal = true) { return CX.modelo(g, 'm', 'bedDouble', x, y, z, ry, casal ? 1 : 0.8); },
+  quadro(g, x, y, z, ry, w = 0.5, h = 0.4, desenho) {
+    const cv = document.createElement('canvas'); cv.width = 256; cv.height = Math.round(256 * h / w); const k = cv.getContext('2d');
+    if (desenho) desenho(k, cv.width, cv.height); else { k.fillStyle = '#b8a888'; k.fillRect(0, 0, cv.width, cv.height); const gr = k.createLinearGradient(0, 0, 0, cv.height); gr.addColorStop(0, 'rgba(60,50,40,0.6)'); gr.addColorStop(1, 'rgba(30,25,20,0.8)'); k.fillStyle = gr; k.fillRect(cv.width * 0.12, cv.height * 0.12, cv.width * 0.76, cv.height * 0.76); for (let i = 0; i < 3; i++) { k.fillStyle = 'rgba(20,16,12,0.55)'; k.beginPath(); k.ellipse(cv.width * (0.3 + i * 0.2), cv.height * 0.45, 14, 20, 0, 0, TAU); k.fill(); k.fillRect(cv.width * (0.3 + i * 0.2) - 16, cv.height * 0.55, 32, cv.height * 0.3); } }
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+    const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg);
+    CX.caixa(gg, w + 0.08, h + 0.08, 0.03, 0, -h / 2 - 0.04, 0, new THREE.MeshStandardMaterial({ color: 0x3a2618, roughness: 0.7 }), 0, false);
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: t, roughness: 0.8 })); p.position.z = 0.02; gg.add(p); return gg;
+  },
+  calendario(g, x, y, z, ry) { return CX.quadro(g, x, y, z, ry, 0.42, 0.6, (k, w, h) => { k.fillStyle = '#efe9da'; k.fillRect(0, 0, w, h); k.fillStyle = '#8a2a20'; k.fillRect(0, 0, w, h * 0.3); k.fillStyle = '#fff'; k.font = '600 34px Georgia'; k.textAlign = 'center'; k.fillText('JUNHO', w / 2, h * 0.19); k.fillStyle = '#333'; k.font = '20px Georgia'; for (let d = 1; d <= 30; d++) { const c = (d + 4) % 7, r = Math.floor((d + 4) / 7); k.fillText(String(d), 22 + c * 32, h * 0.38 + r * 32); } }); },
+  manequim(g, x, y, z, ry = 0, extra = '') {
+    const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = new THREE.MeshStandardMaterial({ color: 0xcdbfa8, roughness: 0.7 });
+    CX.cil(gg, 0.18, 0.2, 0.05, 0, 0, 0, CX.matTex('madeira', 1, 1, 0x3e2a1e), 12); CX.cil(gg, 0.02, 0.02, 0.9, 0, 0.05, 0, m, 6);
+    const tor = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.45, 4, 10), m); tor.scale.set(1, 1, 0.65); tor.position.y = 1.25; tor.castShadow = true; gg.add(tor);
+    CX.cil(gg, 0.045, 0.05, 0.12, 0, 1.6, 0, m, 8); const cab = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), m); cab.scale.set(0.85, 1.15, 0.9); cab.position.y = 1.84; gg.add(cab);
+    if (extra === 'mascara') { const r = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.006, 4, 24), new THREE.MeshBasicMaterial({ color: 0x1a1a1a })); r.scale.set(0.9, 1.15, 1); r.position.set(0, 1.84, 0.095); gg.add(r); }
+    if (extra === 'flores') for (let i = 0; i < 12; i++) { const a = i / 12 * TAU, f = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 5), new THREE.MeshStandardMaterial({ color: [0xb83a4a, 0xe8d26a, 0xf2efe6][i % 3], roughness: 0.8 })); f.position.set(Math.cos(a) * 0.1, 1.95, Math.sin(a) * 0.1); gg.add(f); }
+    return gg; },
+  bau(g, x, y, z, ry = 0) { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const fe = new THREE.MeshStandardMaterial({ color: 0x34302a, roughness: 0.5, metalness: 0.6 });
+    CX.caixa(gg, 0.9, 0.5, 0.55, 0, 0, 0, fe); const t = new THREE.Mesh(new THREE.CylinderGeometry(0.275, 0.275, 0.9, 12, 1, false, 0, Math.PI), fe); t.rotation.z = Math.PI / 2; t.position.y = 0.5; gg.add(t);
+    for (const sx of [-0.3, 0.3]) CX.caixa(gg, 0.05, 0.52, 0.57, sx, 0, 0, new THREE.MeshStandardMaterial({ color: 0x8a6a2a, metalness: 0.7, roughness: 0.4 }), 0, false);
+    CX.caixa(gg, 0.1, 0.12, 0.04, 0, 0.36, 0.28, new THREE.MeshStandardMaterial({ color: 0x8a6a2a, metalness: 0.7, roughness: 0.4 }), 0, false); return gg; },
+  cortina(g, x, y, z, w, h, ry = 0, cor = 0x6a1418) { const geo = new THREE.PlaneGeometry(w, h, 40, 1), p = geo.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin(p.getX(i) * 9) * 0.06); geo.computeVertexNormals(); const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: cor, roughness: 0.9, side: THREE.DoubleSide })); m.position.set(x, y + h / 2, z); m.rotation.y = ry; m.castShadow = true; g.add(m); return m; },
+  microfone(g, x, y, z) { const m = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.6, roughness: 0.4 }); CX.cil(g, 0.08, 0.1, 0.03, x, y, z, m); CX.cil(g, 0.01, 0.01, 0.3, x, y + 0.03, z, m, 6); const c = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.06, 4, 8), new THREE.MeshStandardMaterial({ color: 0x8c8c8c, metalness: 0.8, roughness: 0.3 })); c.position.set(x, y + 0.4, z); g.add(c); },
+  console(g, x, y, z, ry = 0, w = 1.6) { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); CX.caixa(gg, w, 0.82, 0.7, 0, 0, 0, new THREE.MeshStandardMaterial({ color: 0x4a4038, roughness: 0.8 }));
+    const tampo = CX.caixa(gg, w, 0.04, 0.7, 0, 0.82, 0, new THREE.MeshStandardMaterial({ color: 0x2c2c2a, roughness: 0.6 }), 0, false); tampo.rotation.x = -0.2;
+    for (let i = 0; i < 12; i++) for (let j = 0; j < 3; j++) { const k = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.03, 8), new THREE.MeshStandardMaterial({ color: j === 0 ? 0xc9c2b0 : 0x111, roughness: 0.4 })); k.position.set(-w / 2 + 0.12 + i * (w - 0.24) / 11, 0.87 + j * 0.03, 0.2 - j * 0.14); gg.add(k); }
+    for (let i = 0; i < 2; i++) { const v = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.1), new THREE.MeshStandardMaterial({ color: 0xf0e2b0, emissive: 0xffd28a, emissiveIntensity: 0.5 })); v.position.set(-0.3 + i * 0.6, 0.98, -0.32); v.rotation.x = -0.4; gg.add(v); } return gg; },
+  escada(g, x, y, z, w = 1.1, degraus = 8, dir = -1) { const m = CX.matTex('madeira', 1, 1, 0x5e4330); for (let i = 0; i < degraus; i++) CX.caixa(g, w, 0.2, 0.3, x, y - (i + 1) * 0.2, z + dir * i * 0.3, m); },
+  /* um terreno simples em volta da casa (quintal e rua) */
+  arredor(c, g, o = {}) {
+    const chao = new THREE.Mesh(new THREE.PlaneGeometry(o.w ?? 90, o.d ?? 90), o.mat || CX.matTex('grama', 20, 20, 0xc4ccb4)); chao.rotation.x = -Math.PI / 2; chao.position.y = -0.03; chao.receiveShadow = true; g.add(chao); c.chao = chao;
+    if (o.rua !== false) { const r = new THREE.Mesh(new THREE.PlaneGeometry(o.w ?? 90, 6), o.matRua || CX.matTex('calcamento', 30, 2)); r.rotation.x = -Math.PI / 2; r.position.set(0, -0.01, o.ruaZ ?? 12); r.receiveShadow = true; g.add(r); }
+    if (o.arvores !== false) plantaArvores(g, [], [[-16, 0, -10, 0.4, 1], [18, 0, -9, 0.45, 2], [-20, 0, 18, 0.4, 3], [22, 0, 20, 0.5, 4]]);
+    if (o.horizonte !== false) c.hz = horizonte(g, 'campo', 120, 80, -14);
+  },
+});
+const luzHz = c => { if (c.hz) c.hz.material.map = noite ? c.hz.userData.n : c.hz.userData.d; };
+const alt0 = y => () => y;
+
+/* ---------- Igreja Matriz de Remanso (A Tragédia, sessão 7): nave, bancos, altar com a pedra, a torre, a lista e o Lacre ---------- */
+cenario({
+  id: 'c-igreja', nome: 'Igreja Matriz de Remanso', para: 'a igreja de Remanso', curto: 'Igreja Matriz', em: 'na igreja de Remanso', grupo: 'Chefes', dica: 'a Tragédia · sessão 7',
+  sub: 'Remanso, 1979 · a igreja afogada', interno: true, ceu: 0x2a3832, neblinaCor: 0x2f4038, densD: 0.03, densN: 0.04,
+  nota: 'Nave com bancos, altar com a pedra e a porta da torre. A lista de nomes está na parede norte. No painel: a vela preta (mostra as marcas do Lacre: três círculos ligados por nomes e um quarto vazio), o nível da água e as posições iniciais das duas Carpideiras.',
+  alt: (x, z) => (z < -10 && Math.abs(x) < 4.5 ? 0.6 : 0), longe: 40, polar: 0.7,
+  cams: [['A nave', { pos: [0, 3.2, 12], alvo: [0, 1.5, -8] }], ['O altar', { pos: [0, 2.4, -5], alvo: [0, 1.2, -13] }], ['A lista', { pos: [-2, 2, -1], alvo: [-5.9, 2.4, -1] }], ['A porta da torre', { pos: [2, 2, 8], alvo: [5.9, 1.2, 11] }], ['De cima', { pos: [0, 16, 6], alvo: [0, 0, -2] }]],
+  painel(c) { const n = CEN_EST.igAgua || 0, b = (v, t) => `<button class="btn${n === v ? ' on' : ''}" type="button" data-ig-agua="${v}">${t}</button>`;
+    return `<div class="pc-l"><button class="btn${CEN_EST.igVela ? ' on' : ''}" type="button" data-ig-vela>Vela preta acesa</button><button class="btn${c.verRotulos ? ' on' : ''}" type="button" data-cem-num>Carpideiras</button></div><div class="pc-l"><span>Água</span>${b(0, 'Seca')}${b(1, 'Tornozelo')}${b(2, 'Joelho')}${b(3, 'Cintura')}</div>`; },
+  botao(c, b) { if (b.dataset.igVela != null) estCen('igVela', !CEN_EST.igVela); if (b.dataset.igAgua != null) estCen('igAgua', +b.dataset.igAgua); },
+  aoEstado(c, e) { c.aguaAlvo = [-0.2, 0.15, 0.5, 1.0][e.igAgua || 0]; if (c.lacre) c.lacre.visible = !!e.igVela; if (c.velaG) { c.velaG.visible = !!e.igVela; c.velaL.intensity = e.igVela ? 3 : 0; } },
+  quadro(c, t, dt) { c.agua.position.y += ((c.aguaAlvo ?? -0.2) - c.agua.position.y) * Math.min(1, dt * 0.6); c.agua.visible = c.agua.position.y > -0.15; if (c.agua.material.normalMap) c.agua.material.normalMap.offset.set(t * 0.01, t * 0.008); if (c.velaG && c.velaG.visible) c.velaL.intensity = 2.7 + Math.sin(t * 11) * 0.3; },
+  monta(c) {
+    const g = c.g, pedra = CX.matTex('reboco_velho', 4, 2, 0x8f9a86), lodo = CX.matTex('lodo', 6, 12, 0x7d8a70);
+    const ch = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), lodo); ch.rotation.x = -Math.PI / 2; ch.receiveShadow = true; g.add(ch); c.chao = ch;
+    CX.sala(c, g, -6, -14, 12, 28, { h: 8, piso: CX.matTex('calcamento', 4, 10, 0x8a9480), parede: pedra, forro: CX.matTex('madeira', 3, 6, 0x4a4436), portas: [{ lado: 's', pos: 6, l: 2.4, h: 4 }, { lado: 'l', pos: 3, l: 1.2, h: 2.4 }], janelas: [3, 9, 15, 21].flatMap(p => [{ lado: 'o', pos: p, l: 1.1, h0: 3.2, h: 2.6 }, { lado: 'l', pos: p + 3, l: 1.1, h0: 3.2, h: 2.6 }]) });
+    CX.caixa(g, 9, 0.6, 4, 0, 0, -12, CX.matTex('calcamento', 3, 1, 0x7f8a74)); // o presbitério
+    for (const sx of [-1, 1]) CX.caixa(g, 0.4, 0.6, 1.2, sx * 1.2, 0, -9.6, pedra);
+    CX.caixa(g, 2.6, 1.0, 1.1, 0, 0.6, -12.6, CX.matTex('concreto', 1, 1, 0x9a9a8a)); // o altar de pedra
+    { const p = new THREE.Mesh(new THREE.DodecahedronGeometry(0.55, 0), new THREE.MeshStandardMaterial({ color: 0x1c2024, roughness: 0.5, flatShading: true })); p.scale.set(1.4, 0.6, 1); p.position.set(0, 1.85, -12.6); p.castShadow = true; g.add(p); } // a pedra do altar
+    CX.modelo(g, 'g', 'cross-column', 0, 0.6, -13.6, 0, 1.2, m => tinta(m, 0.42, 0x2c3326, 0.45));
+    for (let z = -6; z <= 10; z += 1.5) for (const sx of [-1, 1]) { const b = CX.caixa(g, 3.6, 0.45, 0.45, sx * 2.6, 0, z, CX.matTex('madeira', 2, 1, 0x4a4030)); b.rotation.y = (rnd() - 0.5) * 0.15; b.rotation.z = rnd() < 0.2 ? (rnd() - 0.5) * 0.3 : 0; CX.caixa(g, 3.6, 0.55, 0.06, sx * 2.6, 0.45, z + 0.22, CX.matTex('madeira', 2, 1, 0x4a4030)); }
+    /* a porta da torre (lado leste, perto da entrada) */
+    CX.caixa(g, 0.1, 2.3, 1.1, 5.95, 0, 11, CX.matTex('madeira', 1, 2, 0x3a2a1e)); { const pl = CX.texto(['TORRE'], 0.8, 0.22, { fundo: '#3d4238', cor: '#cfd2c0', borda: false, fonte: 60 }); pl.position.set(5.85, 2.55, 11); pl.rotation.y = -Math.PI / 2; g.add(pl); }
+    /* a lista riscada na parede oeste */
+    { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 512; const k = cv.getContext('2d'); k.fillStyle = '#6f705f'; k.fillRect(0, 0, 1024, 512); k.fillStyle = '#2a2a24'; k.font = 'italic 26px Georgia, serif'; k.fillText('14 · VI · 1979', 24, 40);
+      LISTA_1979.forEach((n, i) => { const x = 24 + (i % 4) * 250, y = 84 + Math.floor(i / 4) * 40; k.font = '24px Georgia, serif'; k.fillText(n.replace(/ \(.*\)/, ''), x, y); if (i < 1 || n.startsWith('Regina')) { k.strokeStyle = '#1a1a16'; k.lineWidth = 3; k.beginPath(); k.moveTo(x - 4, y - 8); k.lineTo(x + 220, y - 14); k.moveTo(x - 4, y - 16); k.lineTo(x + 216, y - 4); k.stroke(); } });
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const m = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, transparent: true, opacity: 0.92 })); m.position.set(-5.88, 2.6, -1); m.rotation.y = Math.PI / 2; g.add(m); }
+    /* o Lacre: só aparece com a vela preta acesa (três círculos ligados por nomes e o quarto, vazio) */
+    { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 1024; const k = cv.getContext('2d'); k.strokeStyle = 'rgba(255,214,150,0.95)'; k.lineWidth = 6; k.shadowColor = '#ffb050'; k.shadowBlur = 18;
+      const C = [[512, 300], [300, 640], [724, 640]]; for (const [x, y] of C) { k.beginPath(); k.arc(x, y, 110, 0, TAU); k.stroke(); }
+      k.beginPath(); k.arc(512, 512, 330, 0, TAU); k.stroke();
+      k.font = 'italic 22px Georgia'; k.fillStyle = 'rgba(255,214,150,0.9)'; for (let i = 0; i < 3; i++) { const [a, b] = [C[i], C[(i + 1) % 3]]; k.beginPath(); k.moveTo(a[0], a[1]); k.lineTo(b[0], b[1]); k.stroke(); k.save(); k.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); k.rotate(Math.atan2(b[1] - a[1], b[0] - a[0])); k.fillText(LISTA_1979.slice(1 + i * 4, 5 + i * 4).map(n => n.replace(/ \(.*\)/, '')).join(' · '), -200, -12); k.restore(); }
+      k.setLineDash([12, 14]); k.beginPath(); k.arc(860, 200, 90, 0, TAU); k.stroke();
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.position.set(0, 4.6, -13.88); g.add(m); c.lacre = m; m.visible = false; }
+    { const v = new THREE.Group(); v.position.set(0.9, 1.6, -12.4); g.add(v); c.velaG = v; v.visible = false; CX.cil(v, 0.035, 0.04, 0.3, 0, 0, 0, new THREE.MeshStandardMaterial({ color: 0x0b0b0b, roughness: 0.9 }), 8); const ch = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffc46a })); ch.scale.y = 1.8; ch.position.y = 0.35; v.add(ch); c.velaL = new THREE.PointLight(0xffb060, 0, 14, 1.5); c.velaL.position.set(0.9, 2.1, -12.4); g.add(c.velaL); }
+    /* a água que sobe durante o encontro */
+    c.agua = new THREE.Mesh(new THREE.PlaneGeometry(11.6, 27.6), new THREE.MeshStandardMaterial({ color: 0x2c3a30, roughness: 0.08, metalness: 0.3, transparent: true, opacity: 0.78, normalMap: TEX.lodo ? repetida(TEX.lodo, 3, 7) : null })); c.agua.rotation.x = -Math.PI / 2; c.agua.position.set(0, -0.2, 0); c.agua.userData.semColisao = true; g.add(c.agua);
+    for (let i = 0; i < 14; i++) inst('g', rnd() < 0.5 ? 'candle-multiple' : 'urn-round', -5 + rnd() * 10, 0, -4 + rnd() * 16, rnd() * TAU, 0.6, 'ruina', null, 'c-igreja');
+    const part = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 900 }, (_, i) => i % 3 === 1 ? rnd() * 7.5 : (i % 3 === 0 ? (rnd() - 0.5) * 11 : (rnd() - 0.5) * 27)), 3)), new THREE.PointsMaterial({ color: 0xbfe0d0, size: 0.05, transparent: true, opacity: 0.5, depthWrite: false })); g.add(part);
+    c.luzes = [{ l: (() => { const l = new THREE.PointLight(0x9fd0c0, 0, 30, 1.4); l.position.set(0, 6.5, 0); g.add(l); return l; })(), i: 2.2 }];
+    for (const [x, z, n] of [[-3.5, 4, 'C1'], [3.8, -3, 'C2']]) CX.rotuloGM(c, g, n, x, 2.4, z);
+    c.aguaAlvo = -0.2;
+  },
+});
+
+/* ---------- Praça de São Valentim (A Comédia, sessão 11): monumento, bancos, canteiros, orelhão e as fachadas ---------- */
+cenario({
+  id: 'c-praca', nome: 'Praça de São Valentim', para: 'a praça', curto: 'Praça', em: 'na praça', grupo: 'Chefes', dica: 'a Comédia · sessão 11',
+  sub: 'São Valentim do Vale · a praça', ceu: 0x9aa4a2,
+  nota: 'A praça só, sem carregar a cidade: espaço para os cinco, a multidão e os Sorridentes. No painel: a máscara da Comédia sobre a praça e as três rachaduras (0 a 3), que você marca à mão.',
+  alt: () => 0, longe: 80,
+  cams: [['A praça', { pos: [0, 14, 30], alvo: [0, 0, 0] }], ['O monumento', { pos: [6, 2.2, 8], alvo: [0, 2, 0] }], ['O orelhão', { pos: [-14, 2, 16], alvo: [-17, 1.4, 11] }], ['De cima', { pos: [0, 45, 12], alvo: [0, 0, 0] }]],
+  painel(c) { const n = CEN_EST.prRach || 0, b = v => `<button class="btn${n === v ? ' on' : ''}" type="button" data-pr-rach="${v}">${v}</button>`;
+    return `<div class="pc-l"><button class="btn${CEN_EST.prMasc ? ' on' : ''}" type="button" data-pr-masc>A máscara sobre a praça</button></div><div class="pc-l"><span>Rachaduras</span>${b(0)}${b(1)}${b(2)}${b(3)}</div>`; },
+  botao(c, b) { if (b.dataset.prMasc != null) estCen('prMasc', !CEN_EST.prMasc); if (b.dataset.prRach != null) estCen('prRach', +b.dataset.prRach); },
+  aoEstado(c, e) { if (c.masc) { c.masc.visible = !!e.prMasc; c.desenhaRach(e.prRach || 0); } },
+  luz(c) { luzHz(c); for (const l of c.postes || []) l.intensity = noite ? 10 : 0; },
+  quadro(c, t) { if (c.masc && c.masc.visible) { c.masc.position.y = 9 + Math.sin(t * 0.7) * 0.3; c.masc.lookAt(camera.position.x, c.masc.position.y, camera.position.z); } },
+  monta(c) {
+    const g = c.g; CX.arredor(c, g, { rua: false, arvores: false, w: 140, d: 140, mat: CX.matTex('calcamento', 50, 50, 0xb0a898) });
+    const piso = new THREE.Mesh(new THREE.CircleGeometry(15, 48), CX.matTex('calcamento', 10, 10, 0xd8cfbe)); piso.rotation.x = -Math.PI / 2; piso.position.y = 0.01; piso.receiveShadow = true; g.add(piso);
+    const grama = CX.matTex('grama', 3, 3, 0xc0caa8), muret = CX.matTex('concreto', 4, 1, 0xc2bcae);
+    for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4, x = Math.cos(a) * 9, z = Math.sin(a) * 9; const cant = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.2, 0.35, 28), muret); cant.position.set(x, 0.17, z); cant.castShadow = true; cant.receiveShadow = true; g.add(cant); const gr = new THREE.Mesh(new THREE.CircleGeometry(3.0, 28), grama); gr.rotation.x = -Math.PI / 2; gr.position.set(x, 0.36, z); g.add(gr);
+      CX.modelo(g, 'n', 'plant_bushLarge', x, 0.35, z, rnd() * TAU, 0.5); }
+    plantaArvores(g, [], [[0, 1], [1, 3], [2, 5], [3, 7]].map(([i, k]) => { const a = i * Math.PI / 2 + Math.PI / 4; return [Math.cos(a) * 9 + 1, 0.35, Math.sin(a) * 9 - 1, 0.45, k]; }));
+    /* o monumento no centro */
+    CX.caixa(g, 2.6, 0.5, 2.6, 0, 0, 0, muret); CX.caixa(g, 1.4, 2.4, 1.4, 0, 0.5, 0, CX.matTex('concreto', 1, 2, 0xd0cabc)); CX.modelo(g, 'n', 'statue_obelisk', 0, 2.9, 0, 0, 0.6);
+    { const pl = CX.texto(['SÃO VALENTIM', 'DO VALE'], 1.2, 0.5, { fundo: '#4a4a40', cor: '#e8e0c8', borda: false, fonte: 48 }); pl.position.set(0, 1.6, 0.72); g.add(pl); }
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, x = Math.cos(a) * 13.2, z = Math.sin(a) * 13.2; CX.modelo(g, 'u', 'detail-bench', x, 0, z, -a - Math.PI / 2, 0.9); }
+    c.postes = []; for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2, x = Math.cos(a) * 15.5, z = Math.sin(a) * 15.5; CX.modelo(g, 'r', 'light-curved', x, 0, z, -a + Math.PI / 2, 0.8); const l = new THREE.PointLight(0xffd9a0, 0, 22, 1.5); l.position.set(x, 4.5, z); g.add(l); c.postes.push(l); }
+    /* o orelhão */
+    { const ox = -17, oz = 11; CX.cil(g, 0.05, 0.05, 2.2, ox, 0, oz, matMetal, 8); const cap = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 10, 0, TAU, 0, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0xd8a22a, roughness: 0.5, side: THREE.DoubleSide })); cap.scale.set(1, 1.25, 1); cap.position.set(ox, 1.25, oz + 0.3); cap.rotation.x = Math.PI / 2.4; g.add(cap); CX.caixa(g, 0.3, 0.45, 0.15, ox, 1.2, oz + 0.15, new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.6 })); }
+    /* as ruas e as fachadas em volta (prefeitura, comércio, casas) */
+    const rua = CX.matTex('terra', 4, 30, 0xb8a890); for (const [w, d, x, z] of [[140, 7, 0, 21], [140, 7, 0, -21], [7, 140, 21, 0], [7, 140, -21, 0]]) { const r = new THREE.Mesh(new THREE.PlaneGeometry(w, d), rua); r.rotation.x = -Math.PI / 2; r.position.set(x, 0.005, z); r.receiveShadow = true; g.add(r); }
+    const PRED = ['building-a', 'building-b', 'building-c', 'building-d', 'building-e', 'building-f', 'building-g', 'building-h'];
+    let k = 0; for (const [z0, ry] of [[-30, 0], [30, Math.PI]]) for (let x = -30; x <= 30; x += 10) inst('k', PRED[k++ % PRED.length], x, 0, z0, ry, 1, '', null, 'c-praca');
+    for (const [x0, ry] of [[-30, Math.PI / 2], [30, -Math.PI / 2]]) for (let z = -20; z <= 20; z += 10) inst('k', PRED[k++ % PRED.length], x0, 0, z, ry, 1, '', null, 'c-praca');
+    { const pl = CX.texto(['PREFEITURA MUNICIPAL'], 5, 0.7, { fundo: '#1d2620', cor: '#e2e0d0', fonte: 60 }); pl.position.set(0, 6.5, -25.4); g.add(pl); }
+    /* a máscara da Comédia sobre a praça, com as rachaduras desenhadas */
+    { const img = new Image(); const cv = document.createElement('canvas'); cv.width = 512; cv.height = 512; const k2 = cv.getContext('2d'); const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+      c.masc = new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ map: t, transparent: true, fog: false, depthWrite: false })); c.masc.position.set(0, 9, 0); c.masc.visible = false; c.masc.userData.semColisao = true; g.add(c.masc);
+      const RACH = [[[250, 120], [232, 190], [262, 236], [240, 300]], [[330, 220], [372, 262], [358, 318], [398, 360]], [[160, 260], [128, 306], [150, 350], [118, 404]]];
+      c.desenhaRach = n => { k2.clearRect(0, 0, 512, 512); if (img.complete && img.naturalWidth) k2.drawImage(img, 0, 0, 512, 512); k2.strokeStyle = '#120808'; k2.lineWidth = 7; k2.lineJoin = 'round';
+        for (let i = 0; i < n; i++) { k2.beginPath(); RACH[i].forEach(([x, y], j) => j ? k2.lineTo(x, y) : k2.moveTo(x, y)); k2.stroke(); } t.needsUpdate = true; };
+      img.onload = () => c.desenhaRach(CEN_EST.prRach || 0); img.src = 'img/comedia.png'; }
+    CX.rotuloGM(c, g, 'S', 18, 2.5, -14); CX.rotuloGM(c, g, 'S', -18, 2.5, 14); CX.rotuloGM(c, g, 'C', 0, 3.8, -6);
+  },
+});
+
+/* ---------- Altar de Remanso (A Vazia, sessão 12): o círculo, os três círculos ligados por nomes, o quarto sem ligação,
+   a mão esquerda de criança em cera preta, água e lodo, de onde saem os três Rostos Lisos ---------- */
+cenario({
+  id: 'c-altar', nome: 'Altar de Remanso', para: 'o altar de Remanso', curto: 'Altar de Remanso', em: 'no altar de Remanso', grupo: 'Chefes', dica: 'a Vazia · sessão 12',
+  sub: 'Remanso · o fundo do vale', interno: true, ceu: 0x1a2622, neblinaCor: 0x22302a, densD: 0.04, densN: 0.05,
+  nota: 'O altar de pedra no círculo central; três círculos ligados por linhas de nomes e um quarto sem ligação; a mão esquerda de criança em cera preta. R1–R3 (painel) são de onde saem os Rostos Lisos. Há um tripé para o vídeo do Ícaro e um varal para as fotos do Kuuro. A escolha final não é automática.',
+  alt: (x, z) => (Math.hypot(x, z) < 3.2 ? 0.4 : 0), longe: 45, polar: 0.7,
+  cams: [['O altar', { pos: [0, 3.5, 11], alvo: [0, 1, 0] }], ['Os círculos', { pos: [0, 13, 4], alvo: [0, 0, 0] }], ['A mão de cera', { pos: [1.5, 1.6, 2], alvo: [0.4, 0.95, 0.3] }], ['As passagens', { pos: [-9, 2, 9], alvo: [-12, 1.5, -2] }]],
+  painel(c) { return `<div class="pc-l"><button class="btn${CEN_EST.alMasc ? ' on' : ''}" type="button" data-al-masc>A máscara dourada</button><button class="btn${c.verRotulos ? ' on' : ''}" type="button" data-cem-num>R1–R3</button></div>`; },
+  botao(c, b) { if (b.dataset.alMasc != null) estCen('alMasc', !CEN_EST.alMasc); },
+  aoEstado(c, e) { if (c.masc) { c.masc.visible = !!e.alMasc; c.mascL.intensity = e.alMasc ? 4 : 0; } },
+  quadro(c, t) { if (c.masc && c.masc.visible) { c.masc.position.y = 2.6 + Math.sin(t * 0.5) * 0.08; c.masc.lookAt(camera.position.x, 2.6, camera.position.z); } if (c.agua.material.normalMap) c.agua.material.normalMap.offset.set(t * 0.006, t * 0.004); },
+  monta(c) {
+    const g = c.g, pedra = new THREE.MeshStandardMaterial({ color: 0x4d544a, roughness: 1, flatShading: true }), lodo = CX.matTex('lodo', 10, 10, 0x6a7a62);
+    const ch = new THREE.Mesh(new THREE.CircleGeometry(30, 48), lodo); ch.rotation.x = -Math.PI / 2; ch.receiveShadow = true; g.add(ch); c.chao = ch;
+    /* o círculo central de pedra e o altar */
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.4, 32), CX.matTex('calcamento', 3, 3, 0x7d8476)); base.position.y = 0.2; base.receiveShadow = true; base.castShadow = true; g.add(base);
+    CX.caixa(g, 1.8, 0.9, 1.0, 0, 0.4, 0, CX.matTex('concreto', 1, 1, 0x858a7e));
+    /* as marcas no chão: três círculos ligados por nomes, o quarto sem ligação */
+    { const cv = document.createElement('canvas'); cv.width = 1024; cv.height = 1024; const k = cv.getContext('2d'); k.strokeStyle = 'rgba(30,26,20,0.85)'; k.lineWidth = 7;
+      const C = [[512, 210], [250, 690], [774, 690]]; for (const [x, y] of C) { k.beginPath(); k.arc(x, y, 120, 0, TAU); k.stroke(); }
+      k.font = 'italic 22px Georgia'; k.fillStyle = 'rgba(30,26,20,0.85)'; for (let i = 0; i < 3; i++) { const a = C[i], b = C[(i + 1) % 3]; k.beginPath(); k.moveTo(a[0], a[1]); k.lineTo(b[0], b[1]); k.stroke(); k.save(); k.translate((a[0] + b[0]) / 2, (a[1] + b[1]) / 2); k.rotate(Math.atan2(b[1] - a[1], b[0] - a[0])); k.fillText(LISTA_1979.slice(1 + i * 4, 5 + i * 4).map(n => n.replace(/ \(.*\)/, '')).join(' · '), -210, -14); k.restore(); }
+      k.beginPath(); k.arc(880, 150, 95, 0, TAU); k.stroke();
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const m = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), new THREE.MeshStandardMaterial({ map: t, transparent: true, roughness: 1, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.y = 0.02; m.userData.semColisao = true; g.add(m); }
+    /* a mão esquerda de criança em cera preta, em cima do altar */
+    { const cera = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.35 }), h = new THREE.Group(); h.position.set(0.4, 1.31, 0.25); h.rotation.y = 0.3; g.add(h);
+      const pal = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.02, 12), cera); pal.scale.set(1, 1, 1.2); h.add(pal);
+      [[-0.06, 0.05, 0.6], [-0.03, 0.09, 0.15], [0, 0.1, 0], [0.03, 0.09, -0.15], [0.055, 0.075, -0.3]].forEach(([x, z, r], i) => { const d = new THREE.Mesh(new THREE.CapsuleGeometry(0.011, i === 0 ? 0.035 : 0.05, 3, 6), cera); d.rotation.x = Math.PI / 2; d.rotation.z = r; d.position.set(x, 0.01, -z); h.add(d); }); }
+    /* paredes antigas, colunas quebradas e as passagens */
+    for (let i = 0; i < 14; i++) { const a = i / 14 * TAU, r = 13 + rnd() * 2; if (i % 5 === 2) continue; const x = Math.cos(a) * r, z = Math.sin(a) * r; const p = CX.caixa(g, 3 + rnd() * 2, 2 + rnd() * 2.5, 0.7, x, -0.2, z, CX.matTex('reboco_velho', 2, 1, 0x6d7a68)); p.rotation.y = -a + Math.PI / 2; }
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU + 0.2, x = Math.cos(a) * 8, z = Math.sin(a) * 8; inst('n', i % 3 ? 'statue_column' : 'statue_columnDamaged', x, 0, z, rnd() * TAU, 0.8, 'ruina', null, 'c-altar'); }
+    c.agua = new THREE.Mesh(new THREE.RingGeometry(9.5, 30, 48), new THREE.MeshStandardMaterial({ color: 0x24302a, roughness: 0.1, metalness: 0.3, transparent: true, opacity: 0.85, normalMap: TEX.lodo ? repetida(TEX.lodo, 6, 6) : null })); c.agua.rotation.x = -Math.PI / 2; c.agua.position.y = 0.12; c.agua.userData.semColisao = true; g.add(c.agua);
+    /* a máscara dourada (o mestre mostra) */
+    { const t = new THREE.TextureLoader().load('img/vazia.png'); t.colorSpace = THREE.SRGBColorSpace; c.masc = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.6), new THREE.MeshBasicMaterial({ map: t, transparent: true, fog: false })); c.masc.position.set(0, 2.6, 0); c.masc.visible = false; c.masc.userData.semColisao = true; g.add(c.masc); c.mascL = new THREE.PointLight(0xffd27a, 0, 16, 1.4); c.mascL.position.set(0, 2.8, 0.8); g.add(c.mascL); }
+    /* tripé com a câmera do vídeo do Ícaro e o varal com as fotos do Kuuro */
+    { const m = new THREE.MeshStandardMaterial({ color: 0x1e1e1e, metalness: 0.5, roughness: 0.4 }); for (let i = 0; i < 3; i++) { const p = CX.cil(g, 0.012, 0.012, 1.5, 5 + Math.cos(i * 2.1) * 0.25, 0, 3 + Math.sin(i * 2.1) * 0.25, m, 5); p.rotation.z = Math.cos(i * 2.1) * 0.15; p.rotation.x = Math.sin(i * 2.1) * -0.15; } CX.caixa(g, 0.28, 0.16, 0.14, 5, 1.45, 3, m); }
+    { const corda = CX.cil(g, 0.006, 0.006, 4, -5, 1.9, 3, new THREE.MeshStandardMaterial({ color: 0x7a6a50 }), 4); corda.rotation.z = Math.PI / 2; corda.position.y = 1.9;
+      for (let i = 0; i < 5; i++) CX.quadro(g, -6.6 + i * 0.8, 1.88, 3.02, 0, 0.3, 0.22); }
+    c.luzes = [{ l: (() => { const l = new THREE.PointLight(0x9fd0c0, 0, 28, 1.4); l.position.set(0, 7, 0); g.add(l); return l; })(), i: 2 }];
+    for (const [x, z, n] of [[-9, -6, 'R1'], [9, -6, 'R2'], [0, 10, 'R3']]) CX.rotuloGM(c, g, n, x, 2.2, z);
+  },
+});
+
+/* ---------- interiores de investigação: casca da casa (paredes de fora, piso, forro, telhado) + divisórias com porta ---------- */
+CX.divisoria = (g, ax, az, bx, bz, o = {}) => {
+  const H = o.h ?? 2.9, L = Math.hypot(bx - ax, bz - az), ang = -Math.atan2(bz - az, bx - ax), mat = o.mat || CX.matTex('reboco', 2, 1, 0xe2d8c4);
+  const ux = (bx - ax) / L, uz = (bz - az) / L, seg = (a, b, y0, y1) => { if (b - a < 0.02) return; const m = CX.caixa(g, b - a, y1 - y0, 0.12, 0, 0, 0, mat); const mid = (a + b) / 2; m.position.set(ax + ux * mid, (o.y ?? 0) + y0 + (y1 - y0) / 2, az + uz * mid); m.rotation.y = ang; };
+  if (o.porta == null) seg(0, L, 0, H); else { const p = o.porta * L, l = (o.l ?? 0.95) / 2; seg(0, p - l, 0, H); seg(p + l, L, 0, H); seg(p - l, p + l, o.ph ?? 2.15, H); }
+};
+function casaInterior(c, o) {
+  const g = c.g, W = o.w, D = o.d, x0 = -W / 2, z0 = -D / 2;
+  CX.arredor(c, g, { ruaZ: D / 2 + 4, mat: o.chaoFora, matRua: o.rua });
+  const s = CX.sala(c, g, x0, z0, W, D, { buraco: o.buraco, h: o.h ?? 3, piso: o.piso, parede: o.parede, forro: o.forro, portas: o.portas || [{ lado: 's', pos: W / 2, l: 1.1 }], janelas: o.janelas || [], luz: o.luz ?? 1.4, luzCor: o.luzCor });
+  CX.telhado(c, g, 0, (o.h ?? 3) + 0.12, 0, W, D, o.telhadoH ?? 1.8, o.telha || matTelha, W >= D);
+  for (const d of o.div || []) CX.divisoria(g, d[0], d[1], d[2], d[3], Object.assign({ h: o.h ?? 3, mat: o.paredeDentro || o.parede }, d[4] || {}));
+  for (const [x, z, i] of o.luzes || []) { const l = new THREE.PointLight(o.luzCor || 0xffd9a0, 0, 9, 1.6); l.position.set(x, (o.h ?? 3) - 0.35, z); g.add(l); (c.luzes ||= []).push({ l, i: i ?? 1.3 }); const lp = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 0.6 })); lp.position.copy(l.position); g.add(lp); }
+  if (o.placa) { const p = CX.texto([].concat(o.placa), Math.min(W * 0.7, 4.2), 0.7, { fundo: o.placaFundo || '#1d2620', cor: '#e8e2cc', fonte: 54 }); p.position.set(0, (o.h ?? 3) - 0.3, D / 2 + 0.11); g.add(p); }
+  return s;
+}
+const camsCasa = (W, D, extras) => [['Por fora', { pos: [W * 0.4, 4, D / 2 + 11], alvo: [0, 1.2, 0] }], ['De cima', { pos: [0, 15, D * 0.5 + 4], alvo: [0, 0, 0] }]].concat(extras);
+const INT = (def) => cenario(Object.assign({ grupo: 'Investigação', interno: false, ceu: 0xa3adab, longe: 60, polar: 0.62, alt: () => 0, luz: luzHz }, def));
+
+/* Prefeitura e Cartório: recepção, sala administrativa, arquivo, cartório, sala de documentos e o depósito de arquivos */
+INT({
+  id: 'c-prefeitura', nome: 'Prefeitura e Cartório', para: 'a prefeitura', curto: 'Prefeitura', em: 'na prefeitura', dica: 'atas, livro-ponto, 1979',
+  nota: 'Recepção (frente), sala administrativa (oeste), cartório (leste), arquivo e sala de documentos (fundos), depósito de arquivos (canto nordeste). Os documentos do Caderno de Enigmas (índice das folhas arrancadas, carbono da ata 215, relação das 32 pessoas, livro-ponto, registro de Arlindo Busatto) estão como objetos nas mesas e estantes: marque cada pista com um ponto amarelo.',
+  cams: camsCasa(16, 12, [['Recepção', { pos: [0, 1.7, 5.4], alvo: [0, 1.2, 1.5] }], ['Sala administrativa', { pos: [-4, 1.7, 1], alvo: [-6.5, 1, -1.5] }], ['Cartório', { pos: [4, 1.7, 1], alvo: [6.5, 1, -1.5] }], ['Arquivo', { pos: [-2, 1.7, -2.4], alvo: [-4, 1, -5.5] }], ['Sala de documentos', { pos: [2.5, 1.7, -2.4], alvo: [3.5, 1, -5.3] }], ['Depósito', { pos: [5.5, 1.7, -3], alvo: [7, 1, -5.4] }]]),
+  monta(c) {
+    const W = 16, D = 12;
+    casaInterior(c, { w: W, d: D, h: 3.2, placa: ['PREFEITURA MUNICIPAL', 'e Cartório de Registro'], parede: CX.matTex('reboco_amarelo', 4, 1, 0xf0e6c8), paredeDentro: CX.matTex('reboco', 3, 1, 0xe6dcc6), piso: CX.matTex('tabua', 8, 6, 0xb59a78),
+      portas: [{ lado: 's', pos: 8, l: 1.5, h: 2.5 }], janelas: [{ lado: 's', pos: 3, l: 1.4 }, { lado: 's', pos: 13, l: 1.4 }, { lado: 'o', pos: 3, l: 1.2 }, { lado: 'o', pos: 9, l: 1.2 }, { lado: 'l', pos: 3, l: 1.2 }, { lado: 'l', pos: 9, l: 1.2 }],
+      div: [[-3, -6, -3, 3, { porta: 0.75 }], [3, -6, 3, 3, { porta: 0.75 }], [-8, -1.5, -3, -1.5, { porta: 0.5 }], [3, -1.5, 8, -1.5, { porta: 0.3 }], [-3, -1.5, 3, -1.5, { porta: 0.5 }], [5.2, -6, 5.2, -1.5, { porta: 0.5 }], [-3, 3, 3, 3, { porta: 0.5, l: 1.4 }]],
+      luzes: [[0, 4.4], [-5.5, 1], [5.5, 1], [-5.5, -4], [1, -4], [6.6, -4]] });
+    const g = c.g, mad = CX.matTex('madeira', 1, 1, 0x6e4e36);
+    CX.balcao(g, 0, 0, 3.8, 3.2, 0); CX.cadeira(g, 0.6, 0, 3.0, Math.PI); CX.modelo(g, 'm', 'coatRackStanding', 2.5, 0, 5.4, 0, 1); CX.modelo(g, 'm', 'pottedPlant', -2.5, 0, 5.4, 0, 1);
+    CX.quadro(g, 0, 2.4, 5.88, Math.PI, 0.6, 0.45);
+    for (const x of [-6.5, -4.5]) { CX.mesa(g, x, 0, 0.6, 1.3, 0.75); CX.cadeira(g, x, 0, 1.3, Math.PI); CX.papel(g, x - 0.2, 0.8, 0.6, 0.2); } CX.arquivo(g, -7.6, 0, 2.4, Math.PI / 2); CX.modelo(g, 'm', 'radio', -4.5, 0.8, 0.4, 0, 0.7);
+    for (const z of [-0.5, 1.6]) CX.estante(g, 7.7, 0, z, 1.3, 2.2, -Math.PI / 2); CX.mesa(g, 5, 0, 0.5, 1.6, 0.8); CX.papel(g, 5, 0.8, 0.5, 0.1, 0.42, 0.32, 0x3a4a5a); CX.cadeira(g, 5, 0, 1.25, Math.PI);
+    for (let i = 0; i < 4; i++) CX.arquivo(g, -7.6, 0, -2.4 - i * 0.65, Math.PI / 2); CX.prateleira(g, -5, 0, -5.7, 2.4, 2.2, 0, 'pastas'); CX.mesa(g, -4.5, 0, -3.6, 1.2, 0.7); CX.papel(g, -4.6, 0.8, -3.6, 0.3, 0.32, 0.44, 0xd8cfb4);
+    CX.estante(g, 1.5, 0, -5.7, 1.4, 2.2, 0); CX.mesa(g, 0.5, 0, -3.6, 1.6, 0.8); CX.papel(g, 0.2, 0.8, -3.6, -0.2); CX.papel(g, 0.8, 0.81, -3.5, 0.4, 0.28, 0.38, 0xf0ead8); CX.cadeira(g, 0.5, 0, -2.9, Math.PI);
+    CX.prateleira(g, 6.6, 0, -5.7, 2.4, 2.2, 0, 'caixas'); for (let i = 0; i < 5; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', 5.8 + (i % 3) * 0.6, i > 2 ? 0.5 : 0, -3.2 - (i % 2) * 0.4, rnd(), 0.9);
+  },
+});
+
+/* Rádio Vale Alto: recepção, estúdio, sala de gravação (vidro), mesa de transmissão, arquivo de fitas e depósito */
+INT({
+  id: 'c-radio', nome: 'Rádio Vale Alto', para: 'a rádio', curto: 'Rádio', em: 'na rádio', dica: 'o cartucho de 9/6/1979',
+  nota: 'Recepção (frente), estúdio com a mesa de transmissão (meio), sala de gravação atrás do vidro, arquivo de fitas e cartuchos (fundos, oeste), depósito de equipamentos (fundos, leste). O tocador de cartuchos fica no depósito. A pista principal (o cartucho de 9 de junho de 1979) está no arquivo de fitas: marque com um ponto amarelo.',
+  cams: camsCasa(12, 11, [['Recepção', { pos: [0, 1.7, 4.8], alvo: [0, 1.2, 2] }], ['Estúdio', { pos: [-2.5, 1.8, 0.4], alvo: [0, 1, -1.2] }], ['Sala de gravação', { pos: [3, 1.7, 0.5], alvo: [4.5, 1, -1.5] }], ['Arquivo de fitas', { pos: [-2, 1.7, -2.6], alvo: [-4.5, 1.2, -4.8] }], ['Depósito', { pos: [2, 1.7, -2.8], alvo: [4.5, 1, -4.8] }]]),
+  monta(c) {
+    const W = 12, D = 11;
+    casaInterior(c, { w: W, d: D, h: 3, placa: ['RÁDIO VALE ALTO', 'AM 1350'], placaFundo: '#3a1210', parede: CX.matTex('reboco', 3, 1, 0xe8e2d4), piso: CX.matTex('tabua', 6, 6, 0x8a7a68),
+      janelas: [{ lado: 's', pos: 2.5, l: 1.4 }, { lado: 's', pos: 9.5, l: 1.4 }, { lado: 'o', pos: 6, l: 1 }],
+      div: [[-6, 1.6, 6, 1.6, { porta: 0.5 }], [2, -5.5, 2, 1.6, { porta: 0.7 }], [-6, -2.6, 2, -2.6, { porta: 0.6 }], [2, -2.6, 6, -2.6, { porta: 0.4 }]],
+      luzes: [[0, 3.6], [-2, -0.5], [4, -0.5], [-2, -4], [4, -4]] });
+    const g = c.g;
+    { const v = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshStandardMaterial({ color: 0x9fb4bd, transparent: true, opacity: 0.3, roughness: 0.1, side: THREE.DoubleSide })); v.position.set(2.01, 1.6, -0.6); v.rotation.y = Math.PI / 2; g.add(v); }
+    CX.balcao(g, 0, 0, 3.0, 2.4); CX.cadeira(g, 0, 0, 2.3, Math.PI); CX.modelo(g, 'm', 'loungeSofa', -4.5, 0, 4.4, Math.PI, 0.9); CX.quadro(g, 4, 2.0, 5.38, Math.PI, 0.9, 0.5);
+    CX.console(g, -1.5, 0, -1.6, 0, 2.0); CX.cadeira(g, -1.5, 0, -0.7, Math.PI); CX.microfone(g, -2.1, 0.86, -1.3); CX.microfone(g, -0.9, 0.86, -1.3);
+    CX.estante(g, -5.7, 0, -0.5, 1.6, 2.0, Math.PI / 2, true);
+    CX.mesa(g, 4.3, 0, -1.3, 1.2, 0.7); CX.microfone(g, 4.1, 0.8, -1.3); CX.cadeira(g, 4.3, 0, -0.5, Math.PI); CX.cortina(g, 5.95, 0, -0.5, 3.5, 2.6, -Math.PI / 2, 0x3a3a40);
+    for (const x of [-5.3, -3.7]) CX.prateleira(g, x, 0, -5.1, 1.4, 2.2, 0, 'pastas'); CX.prateleira(g, -5.7, 0, -3.6, 1.4, 2.2, Math.PI / 2, 'caixas'); CX.mesa(g, -2.3, 0, -4.4, 1.2, 0.7); CX.papel(g, -2.3, 0.8, -4.4, 0.2, 0.18, 0.12, 0x2a2a2a);
+    CX.prateleira(g, 4.4, 0, -5.1, 2.6, 2.0, 0, 'caixas'); CX.mesa(g, 3.2, 0, -3.6, 1.2, 0.7); CX.caixa(g, 0.6, 0.25, 0.4, 3.2, 0.8, -3.6, new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 0.6, metalness: 0.3 })); // o tocador de cartuchos
+    CX.modelo(g, 'm', 'televisionVintage', 5.3, 0, -3.3, -Math.PI / 2, 0.8);
+    { CX.cil(g, 0.06, 0.12, 9, -4.5, 3.1, -3.5, matMetal, 6); for (let i = 0; i < 4; i++) { const b = CX.caixa(g, 1.2 - i * 0.25, 0.04, 0.04, -4.5, 5 + i * 1.6, -3.5, matMetal, 0, false); } } // a antena no telhado
+  },
+});
+
+/* Armazém Pozzobon: balcão, prateleiras, estoque, depósito e os registros comerciais */
+INT({
+  id: 'c-armazem', nome: 'Armazém Pozzobon', para: 'o armazém', curto: 'Armazém', em: 'no armazém', dica: 'livro-caixa, velas pretas',
+  nota: 'Balcão e prateleiras (frente), estoque (meio), depósito (fundos) e o escritório dos registros comerciais (canto oeste). O livro-caixa com o registro das velas pretas e a conta da paróquia estão no escritório: marque com um ponto amarelo.',
+  cams: camsCasa(13, 12, [['O balcão', { pos: [0, 1.8, 5.2], alvo: [0, 1.1, 0.6] }], ['Prateleiras', { pos: [3, 1.7, 3], alvo: [5.8, 1.2, 1] }], ['Estoque', { pos: [0, 1.8, -1], alvo: [0, 1, -3.5] }], ['Registros', { pos: [-3.5, 1.7, -1.5], alvo: [-5, 1, -4.5] }], ['Depósito', { pos: [3.5, 1.7, -2], alvo: [4.5, 1, -5] }]]),
+  monta(c) {
+    const W = 13, D = 12;
+    casaInterior(c, { w: W, d: D, h: 3.4, placa: ['ARMAZÉM POZZOBON', 'secos e molhados'], placaFundo: '#2a3a24', parede: CX.matTex('reboco_amarelo', 3, 1, 0xe8d8b0), piso: CX.matTex('tabua', 7, 6, 0x9a7e5e),
+      portas: [{ lado: 's', pos: 6.5, l: 2.2, h: 2.6 }], janelas: [{ lado: 's', pos: 2.2, l: 1.6 }, { lado: 's', pos: 10.8, l: 1.6 }],
+      div: [[-6.5, -1.8, 6.5, -1.8, { porta: 0.5, l: 1.4 }], [-2.5, -6, -2.5, -1.8, { porta: 0.6 }], [2.5, -6, 2.5, -1.8, { porta: 0.4 }]],
+      luzes: [[0, 2.5], [-4, 2.5], [4, 2.5], [-4.5, -4], [0, -4], [4.5, -4]] });
+    const g = c.g;
+    CX.balcao(g, 0, 0, 0.8, 4.2, 0, 0x5a3e2a); CX.caixa(g, 0.4, 0.25, 0.3, -1.2, 1.05, 0.8, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.5, roughness: 0.4 })); // a caixa registradora
+    CX.caixa(g, 0.35, 0.08, 0.3, 1.1, 1.05, 0.8, new THREE.MeshStandardMaterial({ color: 0xb8b8b0, metalness: 0.7, roughness: 0.3 })); // a balança
+    for (const x of [-4.5, -2.2, 2.2, 4.5]) CX.prateleira(g, x, 0, -1.2, 2.0, 2.4, 0, x < 0 ? 'potes' : 'caixas');
+    CX.prateleira(g, -6.2, 0, 2.5, 3.0, 2.4, Math.PI / 2, 'potes'); CX.prateleira(g, 6.2, 0, 2.5, 3.0, 2.4, -Math.PI / 2, 'caixas');
+    for (let i = 0; i < 6; i++) { const s = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.35, 4, 8), new THREE.MeshStandardMaterial({ color: 0xc8b890, roughness: 1 })); s.position.set(-3.8 + i * 0.5, 0.35, 4.6); s.rotation.z = (rnd() - 0.5) * 0.4; s.castShadow = true; g.add(s); } // sacos
+    for (let i = 0; i < 9; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', -1.5 + (i % 3) * 0.7, Math.floor(i / 3) * 0.5, -4 - (i % 2) * 0.3, rnd() * 0.3, 0.95);
+    CX.mesa(g, -4.5, 0, -4.2, 1.4, 0.7); CX.cadeira(g, -4.5, 0, -3.4, Math.PI); CX.papel(g, -4.6, 0.8, -4.2, 0.2, 0.34, 0.46, 0x3a2a1e); CX.estante(g, -6.2, 0, -4.2, 1.6, 2.2, Math.PI / 2, true); CX.arquivo(g, -3.2, 0, -5.5, 0);
+    CX.prateleira(g, 4.5, 0, -5.4, 3.0, 2.4, 0, 'caixas'); for (let i = 0; i < 4; i++) { const b = CX.cil(g, 0.28, 0.28, 0.85, 3.5 + i * 0.7, 0, -3.3, CX.matTex('madeira', 1, 1, 0x6a4a30), 12); } // barris
+  },
+});
+
+/* Casa da Iracema: cozinha, sala, quarto, corredor e um depósito pequeno; o calendário na cozinha */
+INT({
+  id: 'c-iracema', nome: 'Casa da Iracema', para: 'a casa da Iracema', curto: 'Casa da Iracema', em: 'na casa da Iracema', dica: 'o calendário com as cruzes',
+  nota: 'Sala (frente), corredor, cozinha (fundos, leste) com o calendário na parede, quarto (fundos, oeste) e o depósito pequeno. O calendário com datas e cruzes é a pista principal: marque com um ponto amarelo.',
+  cams: camsCasa(11, 10, [['Sala', { pos: [-1, 1.7, 3.8], alvo: [-2.5, 1, 1.5] }], ['Corredor', { pos: [1, 1.6, 2.5], alvo: [1, 1.3, -3] }], ['Cozinha', { pos: [1.8, 1.7, -0.8], alvo: [4.2, 1.4, -4.6] }], ['Quarto', { pos: [-1.2, 1.7, -1], alvo: [-3.5, 0.8, -3.5] }], ['Depósito', { pos: [4.5, 1.7, 1.5], alvo: [4.6, 1, 3.5] }]]),
+  monta(c) {
+    const W = 11, D = 10;
+    casaInterior(c, { w: W, d: D, h: 2.8, parede: CX.matTex('reboco', 3, 1, 0xd8e0d0), paredeDentro: CX.matTex('reboco', 3, 1, 0xeadfc8), piso: CX.matTex('tabua', 6, 5, 0xa88a68), rua: CX.matTex('terra', 30, 2),
+      portas: [{ lado: 's', pos: 4.5, l: 1 }], janelas: [{ lado: 's', pos: 2, l: 1.1 }, { lado: 'o', pos: 2.5, l: 1 }, { lado: 'o', pos: 7.5, l: 1 }, { lado: 'l', pos: 2.5, l: 1 }],
+      div: [[-5.5, -1, 0.3, -1, { porta: 0.5 }], [1.8, -1, 5.5, -1, { porta: 0.25 }], [0.3, -5, 0.3, -1], [1.8, -5, 1.8, 5, { porta: 0.55 }], [1.8, 2, 5.5, 2, { porta: 0.5 }]],
+      luzes: [[-2, 2], [1, 1], [3.7, -3], [-2.5, -3], [3.6, 3.5]] });
+    const g = c.g;
+    CX.modelo(g, 'm', 'loungeSofa', -3, 0, 3.8, Math.PI, 0.9); CX.modelo(g, 'm', 'tableCoffee', -3, 0, 2.6, 0, 0.9); CX.modelo(g, 'm', 'televisionVintage', -3, 0, 0.0, 0, 0.9); CX.modelo(g, 'm', 'rugRectangle', -3, 0, 2.2, 0, 1); CX.quadro(g, -5.38, 1.8, 2, Math.PI / 2, 0.5, 0.4);
+    CX.modelo(g, 'm', 'kitchenCabinet', 3, 0, -4.7, 0, 1); CX.modelo(g, 'm', 'kitchenStove', 4.1, 0, -4.7, 0, 1); CX.modelo(g, 'm', 'kitchenFridge', 5.0, 0, -2.0, -Math.PI / 2, 1);
+    CX.mesa(g, 3.5, 0, -2.6, 1.2, 0.8); CX.cadeira(g, 3.0, 0, -2.0, Math.PI); CX.cadeira(g, 4.0, 0, -3.2, 0); CX.calendario(g, 2.6, 2.0, -4.88, 0);
+    CX.cama(g, -2.6, 0, -3.4, 0, false); CX.modelo(g, 'm', 'sideTable', -4.6, 0, -4.4, 0, 1); CX.modelo(g, 'm', 'lampRoundTable', -4.6, 0.55, -4.4, 0, 0.8); CX.quadro(g, -2.6, 1.9, -4.88, 0, 0.4, 0.5);
+    for (let i = 0; i < 4; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', 3 + (i % 2) * 0.6, Math.floor(i / 2) * 0.5, 4.3, rnd() * 0.4, 0.9); CX.prateleira(g, 5.1, 0, 3.4, 1.6, 2, -Math.PI / 2, 'potes');
+  },
+});
+
+/* Casa da Nonna Gema: sala, cozinha, quarto, o espaço de costura e a parede das fotos e lembranças */
+INT({
+  id: 'c-nonna', nome: 'Casa da Nonna Gema', para: 'a casa da Nonna Gema', curto: 'Casa da Nonna', em: 'na casa da Nonna Gema', dica: 'a aliança O. 1949, a Filodrammatica',
+  nota: 'Sala com a parede das fotografias e lembranças da Filodrammatica (frente), espaço de costura (canto leste), cozinha e quarto (fundos). A aliança com "O. 1949" fica na caixinha da cômoda do quarto. Não revele as respostas dos enigmas antes da hora: marque as pistas com pontos amarelos.',
+  cams: camsCasa(12, 10, [['Sala e fotos', { pos: [0, 1.7, 3.6], alvo: [-3.5, 1.6, 0.2] }], ['Costura', { pos: [2, 1.6, 3], alvo: [4.6, 1, 3.2] }], ['Cozinha', { pos: [1.5, 1.7, -1], alvo: [4, 1.2, -4] }], ['Quarto', { pos: [-1.5, 1.7, -1], alvo: [-4, 0.9, -4] }]]),
+  monta(c) {
+    const W = 12, D = 10;
+    casaInterior(c, { w: W, d: D, h: 2.9, parede: CX.matTex('tabua', 4, 1, 0xd8c8a8), paredeDentro: CX.matTex('reboco', 3, 1, 0xe8dcc0), piso: CX.matTex('tabua', 6, 5, 0x9a7a58), telha: matTelha,
+      portas: [{ lado: 's', pos: 6, l: 1 }], janelas: [{ lado: 's', pos: 3, l: 1.1 }, { lado: 's', pos: 9.5, l: 1.1 }, { lado: 'o', pos: 2.5, l: 1 }, { lado: 'l', pos: 2.5, l: 1 }, { lado: 'l', pos: 7.5, l: 1 }],
+      div: [[-6, -0.8, 6, -0.8, { porta: 0.5 }], [0, -5, 0, -0.8, { porta: 0.6 }]],
+      luzes: [[-2.5, 2], [3.5, 2.5], [3, -3], [-3, -3]] });
+    const g = c.g;
+    CX.modelo(g, 'm', 'loungeSofa', -2.5, 0, 3.9, Math.PI, 0.85); CX.modelo(g, 'm', 'rugRectangle', -2.5, 0, 2.5, 0, 1); CX.modelo(g, 'm', 'sideTable', -4.6, 0, 3.9, 0, 0.9);
+    for (let i = 0; i < 9; i++) CX.quadro(g, -5.88, 1.3 + (i % 3) * 0.55, -0.1 + Math.floor(i / 3) * 0.75 + (i % 2) * 0.1, Math.PI / 2, 0.36 + (i % 2) * 0.1, 0.3 + (i % 3) * 0.06);
+    { const cartaz = CX.texto(['FILODRAMMATICA', 'San Valentino'], 0.7, 0.9, { fundo: '#d8c8a0', cor: '#5a1e14', suja: true, fonte: 46 }); cartaz.position.set(-5.88, 1.9, 2.9); cartaz.rotation.y = Math.PI / 2; g.add(cartaz); }
+    /* a máquina de costura e o manequim de costura */
+    CX.mesa(g, 4.6, 0, 3.2, 1.1, 0.6); { const mq = new THREE.Group(); mq.position.set(4.6, 0.8, 3.2); g.add(mq); const pt = new THREE.MeshStandardMaterial({ color: 0x15130f, roughness: 0.4, metalness: 0.3 }); CX.caixa(mq, 0.45, 0.06, 0.2, 0, 0, 0, pt); CX.caixa(mq, 0.08, 0.26, 0.12, 0.17, 0.06, 0, pt); CX.caixa(mq, 0.4, 0.07, 0.11, 0, 0.3, 0, pt); CX.cil(mq, 0.012, 0.012, 0.12, -0.15, 0.2, 0, pt, 6); }
+    CX.cadeira(g, 4.6, 0, 2.5, Math.PI); CX.manequim(g, 5.4, 0, 1.6, -Math.PI / 2); CX.modelo(g, 'm', 'cardboardBoxClosed', 3.6, 0, 4.4, 0.2, 0.7);
+    CX.modelo(g, 'm', 'kitchenCabinet', 2.6, 0, -4.7, 0, 1); CX.modelo(g, 'm', 'kitchenStove', 3.7, 0, -4.7, 0, 1); CX.mesa(g, 3.5, 0, -2.4, 1.2, 0.8); CX.cadeira(g, 3.0, 0, -1.7, Math.PI); CX.cadeira(g, 4.0, 0, -3.1, 0);
+    CX.cama(g, -3, 0, -3.3, 0, true); CX.modelo(g, 'm', 'bookcaseClosed', -5.5, 0, -2, Math.PI / 2, 0.9); { const cx = -5.5, cz = -2; CX.caixa(g, 0.12, 0.07, 0.09, cx + 0.05, 0.92, cz - 0.05, new THREE.MeshStandardMaterial({ color: 0x5a1e22, roughness: 0.5 })); } // a caixinha da aliança
+    CX.quadro(g, -3, 2.0, -4.88, 0, 0.5, 0.4);
+  },
+});
+
+/* Salão Paroquial: o salão, o palco, os bastidores, a escada e o depósito embaixo com o camarim da Filodrammatica */
+INT({
+  id: 'c-salao', nome: 'Salão Paroquial', para: 'o salão paroquial', curto: 'Salão Paroquial', em: 'no salão paroquial', dica: 'o camarim: manequins e o baú',
+  alt: (x, z) => (x > 4.5 && z < -1 ? -2.6 : z < -3.2 && x < 4.5 ? 0.9 : 0),
+  nota: 'Salão com cadeiras e o palco (fundos), bastidores atrás das cortinas, escada (canto leste) para o depósito embaixo: quatro manequins (três com o contorno das máscaras no rosto, um com coroa de flores), quatro molduras de latão, o baú de ferro, cartões de elenco, a faca de cena e a tigela de barro. O baú não abre com um clique: o enigma é dos jogadores.',
+  cams: camsCasa(14, 14, [['O salão', { pos: [0, 2.2, 5.8], alvo: [0, 1.2, -3] }], ['O palco', { pos: [-1, 2.4, -0.5], alvo: [-1, 1.5, -5] }], ['Bastidores', { pos: [-4, 1.8, -4.4], alvo: [-1, 1.4, -6.5] }], ['O depósito embaixo', { pos: [5.8, -0.7, -1.6], alvo: [5.5, -1.7, -5] }], ['Manequins', { pos: [5, -0.9, -2.5], alvo: [6.4, -1.4, -5.8] }]]),
+  monta(c) {
+    const W = 14, D = 14;
+    casaInterior(c, { w: W, d: D, h: 4.2, buraco: [4.55, -7, 6.95, -1], placa: ['SALÃO PAROQUIAL'], placaFundo: '#3a2a1a', parede: CX.matTex('reboco_velho', 4, 1, 0xe8e0cc), paredeDentro: CX.matTex('reboco', 4, 1, 0xe6dccb), piso: CX.matTex('tabua', 7, 7, 0x9c7c5a),
+      portas: [{ lado: 's', pos: 7, l: 1.8, h: 2.8 }], janelas: [{ lado: 'o', pos: 4, l: 1.2, h0: 1.4 }, { lado: 'o', pos: 9, l: 1.2, h0: 1.4 }, { lado: 's', pos: 3, l: 1.2 }, { lado: 's', pos: 11, l: 1.2 }],
+      div: [[4.5, -7, 4.5, -1, { porta: 0.85 }], [4.5, -1, 7, -1, { porta: 0.5 }]],
+      luzes: [[-1, 3], [-1, -1], [-1, -5], [5.8, -4]] });
+    const g = c.g, mad = CX.matTex('tabua', 4, 1, 0x7a5a3c);
+    CX.caixa(g, 11.2, 0.9, 3.6, -1.1, 0, -5.2, mad); for (let i = 0; i < 3; i++) CX.caixa(g, 1.4, 0.3 * (i + 1), 0.35, 2.4, 0, -3.2 + i * -0.35 + 0.35, mad); // o palco e os degraus
+    CX.cortina(g, -4.5, 0.9, -3.45, 4.8, 3.2, 0); CX.cortina(g, 2.4, 0.9, -3.45, 3.5, 3.2, 0); CX.caixa(g, 11.2, 0.5, 0.2, -1.1, 3.7, -3.45, new THREE.MeshStandardMaterial({ color: 0x4a0e12, roughness: 0.9 }));
+    CX.cortina(g, -1, 0.9, -6.8, 10, 3.2, 0, 0x2a1a14);
+    for (let r = 0; r < 5; r++) for (let k = 0; k < 7; k++) if (!(k === 3)) CX.cadeira(g, -5 + k * 1.3, 0, -0.8 + r * 1.2, Math.PI);
+    /* a escada e o depósito embaixo (o chão do depósito fica 2,6 m abaixo) */
+    CX.escada(g, 5.8, 0, -1.3, 1.0, 13, -1);
+    { const fundo = -2.6, ch2 = CX.caixa(g, 2.4, 0.08, 6, 5.75, fundo - 0.08, -4, CX.matTex('concreto', 2, 4, 0x8a8478)); ch2.userData.piso = true;
+      for (const [w, d, x, z] of [[0.15, 6, 4.55, -4], [0.15, 6, 6.95, -4], [2.4, 0.15, 5.75, -7]]) CX.caixa(g, w, 2.6, d, x, fundo, z, CX.matTex('reboco_velho', 2, 1, 0xa8a090));
+      const l = new THREE.PointLight(0xffc880, 0, 7, 1.6); l.position.set(5.8, -0.5, -4.5); g.add(l); (c.luzes ||= []).push({ l, i: 1.4 });
+      CX.manequim(g, 5.1, fundo, -5.2, 0.4, 'mascara'); CX.manequim(g, 5.1, fundo, -6.3, 0.2, 'mascara'); CX.manequim(g, 6.4, fundo, -6.3, -0.3, 'mascara'); CX.manequim(g, 6.4, fundo, -5.0, -0.6, 'flores');
+      for (let i = 0; i < 4; i++) { const mol = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.03, 6, 4), new THREE.MeshStandardMaterial({ color: 0xb08a3a, metalness: 0.8, roughness: 0.35 })); mol.rotation.z = Math.PI / 4; mol.position.set(6.88, fundo + 1.4, -6.4 + i * 0.6); mol.rotation.y = Math.PI / 2; g.add(mol); }
+      CX.bau(g, 5.6, fundo, -3.4, Math.PI / 2);
+      CX.mesa(g, 6.3, fundo, -2.5, 0.9, 0.5); for (let i = 0; i < 5; i++) CX.papel(g, 6.05 + i * 0.12, fundo + 0.8 + i * 0.002, -2.5, (rnd() - 0.5) * 0.5, 0.09, 0.13, 0xf2ead2);
+      { const faca = CX.caixa(g, 0.25, 0.01, 0.03, 6.55, fundo + 0.8, -2.62, new THREE.MeshStandardMaterial({ color: 0xa8a8a0, metalness: 0.7, roughness: 0.3 }), 0.3); faca.rotation.y = 0.3; }
+      const tg = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 8, 0, TAU, Math.PI / 2, Math.PI / 2), new THREE.MeshStandardMaterial({ color: 0x9a5a3a, roughness: 0.9, side: THREE.DoubleSide })); tg.position.set(6.0, fundo + 0.93, -2.4); g.add(tg); }
+  },
+});
+
+/* Casa Paroquial de Remanso: escritório, quarto, sala, arquivo e armazenamento (debaixo d'água: lodo e luz verde) */
+INT({
+  id: 'c-paroquial', nome: 'Casa Paroquial de Remanso', para: 'a casa paroquial', curto: 'Casa Paroquial', em: 'na casa paroquial', dica: 'cartas do Pe. Anselmo, carta ao bispo',
+  interno: true, ceu: 0x22302a, neblinaCor: 0x2a3a32, densD: 0.05, densN: 0.06,
+  nota: 'Remanso, 1979. Escritório do Padre Anselmo (frente, oeste) com a escrivaninha, sala (frente, leste), quarto e o pequeno arquivo (fundos), armazenamento. As cartas do Padre Anselmo, o rascunho da carta ao bispo e as referências ao Lacre ficam no escritório e no arquivo: marque com pontos amarelos.',
+  cams: camsCasa(11, 10, [['Escritório', { pos: [-0.5, 1.7, 3.5], alvo: [-3.5, 1, 1.4] }], ['Sala', { pos: [0.8, 1.7, 3.6], alvo: [3.5, 1, 1.5] }], ['Quarto', { pos: [-1, 1.7, -1.2], alvo: [-3.6, 0.8, -3.6] }], ['Arquivo', { pos: [1.4, 1.7, -1.2], alvo: [3.8, 1.2, -4] }]]),
+  luz(c) { if (c.hz) c.hz.visible = false; },
+  monta(c) {
+    const W = 11, D = 10;
+    casaInterior(c, { w: W, d: D, h: 3, chaoFora: CX.matTex('lodo', 20, 20, 0x6a7a62), rua: CX.matTex('lodo', 30, 2, 0x5a6a52), parede: CX.matTex('reboco_velho', 3, 1, 0x7d8a70), paredeDentro: CX.matTex('reboco_velho', 3, 1, 0x8a957c), piso: CX.matTex('lodo', 5, 5, 0x7a8670), luzCor: 0x9fd0c0,
+      portas: [{ lado: 's', pos: 5.5, l: 1 }], janelas: [{ lado: 's', pos: 2.4, l: 1.1 }, { lado: 's', pos: 8.6, l: 1.1 }, { lado: 'o', pos: 5, l: 1 }],
+      div: [[-5.5, -0.5, 5.5, -0.5, { porta: 0.5 }], [0, -5, 0, -0.5, { porta: 0.5 }], [0, -0.5, 0, 5, { porta: 0.3 }]], luzes: [[-2.8, 2.2, 0.9], [2.8, 2.2, 0.9], [-2.8, -2.8, 0.9], [2.8, -2.8, 0.9]] });
+    const g = c.g, rui = m => tinta(m, 0.42, 0x2c3326, 0.45);
+    CX.mesa(g, -3.6, 0, 1.4, 1.5, 0.8, 0, CX.matTex('madeira', 1, 1, 0x3e3a2a)); CX.cadeira(g, -3.6, 0, 2.2, Math.PI); for (let i = 0; i < 4; i++) CX.papel(g, -4 + i * 0.25, 0.8 + i * 0.002, 1.3, (rnd() - 0.5) * 0.6, 0.21, 0.29, 0xc8c4a8);
+    CX.estante(g, -5.3, 0, 2.6, 1.5, 2.2, Math.PI / 2, true); CX.modelo(g, 'g', 'cross', -3.6, 1.8, -0.33, 0, 0.35, rui);
+    CX.modelo(g, 'm', 'loungeSofa', 3.2, 0, 3.8, Math.PI, 0.85, rui); CX.modelo(g, 'm', 'sideTable', 4.8, 0, 1.2, 0, 0.9, rui); CX.quadro(g, 3, 1.8, -0.38, Math.PI, 0.5, 0.6);
+    CX.cama(g, -3, 0, -3.2, 0, false); CX.modelo(g, 'm', 'coatRackStanding', -0.6, 0, -4.4, 0, 1, rui);
+    for (let i = 0; i < 3; i++) CX.arquivo(g, 1.0 + i * 0.6, 0, -4.6, 0); CX.prateleira(g, 4.5, 0, -3.6, 1.8, 2.0, -Math.PI / 2, 'pastas'); for (let i = 0; i < 3; i++) CX.modelo(g, 'm', 'cardboardBoxClosed', 3 + i * 0.6, 0, -1.4, rnd(), 0.8, rui);
+    const part = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(Array.from({ length: 600 }, (_, i) => i % 3 === 1 ? rnd() * 3 : (rnd() - 0.5) * 11), 3)), new THREE.PointsMaterial({ color: 0xbfe0d0, size: 0.04, transparent: true, opacity: 0.5, depthWrite: false })); g.add(part);
+  },
+});
+
+/* Garagem da Delegacia: os arquivos do inquérito, a viatura velha, prateleiras de caixas */
+INT({
+  id: 'c-delegacia', nome: 'Garagem da Delegacia', para: 'a garagem da delegacia', curto: 'Garagem da Delegacia', em: 'na garagem da delegacia', dica: 'os arquivos do inquérito',
+  nota: 'Garagem nos fundos da delegacia: a viatura, prateleiras de caixas de processos, arquivos de aço e a mesa com os volumes do inquérito. Marque as pistas com pontos amarelos.',
+  cams: camsCasa(12, 10, [['A garagem', { pos: [0, 2.4, 4.5], alvo: [0, 1, -1] }], ['Os arquivos', { pos: [-2, 1.7, 0], alvo: [-4.8, 1.2, -3.5] }], ['A mesa', { pos: [2.5, 1.7, -1], alvo: [4, 0.9, -3.4] }]]),
+  monta(c) {
+    const W = 12, D = 10;
+    casaInterior(c, { w: W, d: D, h: 3.4, placa: ['DELEGACIA DE POLÍCIA'], placaFundo: '#1a2a3a', parede: CX.matTex('concreto', 3, 1, 0xc8c4b8), piso: CX.matTex('concreto', 5, 4, 0x9a968c), rua: CX.matTex('calcamento', 30, 2),
+      portas: [{ lado: 's', pos: 6, l: 4.2, h: 2.9 }], janelas: [{ lado: 'o', pos: 5, l: 1.2, h0: 1.6, h: 0.8 }], luzes: [[0, 1], [-3.5, -3], [3.5, -3]] });
+    const g = c.g;
+    CX.modelo(g, 'c', 'police', 0, 0, 1.2, Math.PI, 1.1, m => tinta(m, 0.75, 0x5a5a50, 0.25));
+    CX.prateleira(g, -5.3, 0, 0.5, 3.6, 2.4, Math.PI / 2, 'caixas'); for (let i = 0; i < 4; i++) CX.arquivo(g, -4.6 + i * 0.6, 0, -4.6, 0);
+    CX.prateleira(g, 5.3, 0, 2.0, 3.0, 2.4, -Math.PI / 2, 'pastas');
+    CX.mesa(g, 3.6, 0, -3.6, 1.8, 0.8); CX.cadeira(g, 3.6, 0, -2.8, Math.PI); for (let i = 0; i < 3; i++) CX.caixa(g, 0.3, 0.06 + i * 0.01, 0.4, 3.0 + i * 0.4, 0.8 + i * 0.065, -3.6, new THREE.MeshStandardMaterial({ color: [0x6a3a2a, 0x2a4a6a, 0x5a5a3a][i], roughness: 1 }), 0, false);
+    CX.modelo(g, 'm', 'lampRoundFloor', 5.2, 0, -4.4, 0, 1); CX.modelo(g, 'u', 'pallet', -1.5, 0, -4.2, 0.2, 0.9);
+  },
+});
 
 /* ---------- câmeras e notas do mestre ---------- */
 /* textos do mestre: no código ficam só chaves '§id'; o texto vem do banco (mestre/textos), que só o mestre lê */
@@ -2777,6 +3587,16 @@ $('#b-navio').onclick = () => { const on = !navio.visible; navio.visible = on; $
 $('#b-sonho').onclick = () => { if (modoRem) entrarRemanso(false); entrarSonho(!modoSonho); };
 $('#b-rem').onclick = () => entrarRemanso(!modoRem);
 $('#b-mata').onclick = () => entrarMata(!modoMata);
+$('#b-cen').onclick = () => { if (modoCen) { $('#menu-cen').hidden = true; entrarCen(null); } else menuCen(); };
+$('#menu-cen').addEventListener('click', e => { const b = e.target.closest('[data-cen]'); if (!b) return; $('#menu-cen').hidden = true; entrarCen(b.dataset.cen); if (PM && PM.isGM()) PM.setCena(estadoCena()); });
+addEventListener('pointerdown', e => { const m = $('#menu-cen'); if (!m.hidden && !e.target.closest('#menu-cen, #b-cen')) m.hidden = true; });
+$('#painel-cen').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b || SO_JOGADOR) return; const c = modoCen && CEN[modoCen]; if (!c) return;
+  if (b.dataset.cemPortao) estCen('cemPortao', b.dataset.cemPortao);
+  if (b.dataset.cemNum != null) { c.verRotulos = !c.verRotulos; painelCen(); }
+  if (b.dataset.cemVela != null) estCen('cemVela', !CEN_EST.cemVela);
+  c.botao?.(c, b);
+});
 $('#b-estr').onclick = () => entrarEstrada(!modoEstr);
 $('#b-anda').onclick = () => { estrAndando = !estrAndando; const b = $('#b-anda'); b.setAttribute('aria-pressed', String(estrAndando)); b.classList.toggle('on', estrAndando); b.textContent = estrAndando ? 'Ônibus andando' : 'Ônibus parado'; };
 $('#b-pistas').onclick = () => { pistasOn = !pistasOn; $('#b-pistas').setAttribute('aria-pressed', String(pistasOn)); };
@@ -2819,6 +3639,11 @@ function frame() {
   controls.update();
   colideCamera(cenaAtiva());
   agua.material.normalMap.offset.set(t * 0.004, t * 0.003);
+  if (modoCen) {
+    quadroCen(t, dt);
+    try { renderer.render(CEN[modoCen].cena, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
+    return;
+  }
   if (modoEstr) {
     quadroEstrada(t, dt);
     try { renderer.render(estrCena, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
@@ -2866,8 +3691,9 @@ function loop() { if (!(PM && PM.pausado())) { frame(); soltaCamera(); } request
 const COL = { ray: new THREE.Raycaster(), lista: new Map(), dir: new THREE.Vector3(), lado: new THREE.Vector3(), cima: new THREE.Vector3(), orig: new THREE.Vector3(),
   desejada: new THREE.Vector3(), tem: false, distMostrada: null, raio: 0.35, ligada: true, caixa: new THREE.Box3(), tam: new THREE.Vector3() };
 if (/[?&]local\b/.test(location.search)) window.__mapaTeste = { camera, controls, COL, solidosDa: r => solidosDa(r), colide: r => colideCamera(r), raiz: () => cenaAtiva(), chao: (x, z) => chaoAqui(x, z), THREE, pistasCodigo: () => [...marcadores.map(m => ['remanso', m]), ...marcadoresM.map(m => ['mata', m])].map(([c, m]) => ({ cena: c, x: +m.position.x.toFixed(2), y: +(m.userData.y0 ?? m.position.y).toFixed(2), z: +m.position.z.toFixed(2), titulo: m.userData.titulo, texto: m.userData.texto })) }; // só no modo de teste local
-const cenaAtiva = () => (modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
+const cenaAtiva = () => (modoCen ? CEN[modoCen].cena : modoEstr ? estrCena : modoMata ? mataCena : modoRem ? remCena : modoSonho ? sonho : scene);
 function chaoAqui(x, z) {
+  if (modoCen) return CEN[modoCen].alt(x, z);
   if (modoEstr) return altE(x, z);
   if (modoMata) return altM(x, z);
   if (modoRem) return altR(x, z);
@@ -3057,7 +3883,7 @@ function sincPecas(ps) {
     vistos.add(id);
     const cor = p.cor || CORES[0], nome = String(p.nome || 'Figura').slice(0, 22);
     let s = porId.get(id);
-    const cn = (p.cena === 'mata' || p.cena === 'estrada') && cenaPronta(p.cena) ? p.cena : 'vale';
+    const cn = ((p.cena === 'mata' || p.cena === 'estrada') && cenaPronta(p.cena)) || ehCen(p.cena) ? p.cena : 'vale';
     if (s && s.cena !== cn) mudaCena(s, cn, +p.x, +p.z);
     if (!s) { s = figura(nome, cor, +p.x, +p.z, cn); s.id = id; porId.set(id, s); if (p.r != null) { s.face = +p.r; s.rIn = +p.r; } }
     else {
@@ -3222,13 +4048,15 @@ function renderLista() {
   add.lastChild.textContent = gm ? 'Adicionar figura' : 'Pôr a minha figura';
 }
 function estadoCena() {
-  return { susto: SUSTO, cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
+  return { susto: SUSTO, cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, cen: modoCen || '', cenEst: Object.assign({}, CEN_EST), noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
 }
 function aplicaCena(c) {
   if (!c) return;
   if (SO_JOGADOR) setTimeout(() => travaCamJogador(c.cam), 0);
   if (SO_JOGADOR) rotulos(!(c.susto && c.susto.cine));
   if (SO_JOGADOR && c.susto && c.susto.t && c.susto.t !== ultimoSusto) { ultimoSusto = c.susto.t; if (Date.now() - c.susto.t < 15000) setTimeout(efeitoSusto, 350); } // depois de trocar de cena, para a vista valer na cena certa
+  if (c.cenEst) aplicaEstCen(c.cenEst);
+  if ('cen' in c && !c.cen && modoCen) entrarCen(null);
   if (c.sonho === false && modoSonho) entrarSonho(false);
   if (c.mata === false && modoMata) entrarMata(false);
   if (c.estr === false && modoEstr) entrarEstrada(false);
@@ -3238,6 +4066,7 @@ function aplicaCena(c) {
   if (c.estr && !modoEstr) entrarEstrada(true);
   if (c.anda != null && !!c.anda !== estrAndando) $('#b-anda').onclick();
   if (c.sonho && !modoSonho) { if (modoRem) entrarRemanso(false); entrarSonho(true); }
+  if (c.cen && ehCen(c.cen) && c.cen !== modoCen) entrarCen(c.cen);
   if (c.nivel && NIVEIS[c.nivel] != null && NIVEIS[c.nivel] !== nivelAlvo) document.querySelector('[data-nivel="' + c.nivel + '"]')?.onclick();
   if (c.noite != null && !!c.noite !== noite) $('#b-hora').onclick();
   if (c.nevoa != null && !!c.nevoa !== nevoaOn) $('#b-nevoa').onclick();
@@ -3250,7 +4079,7 @@ function aplicaCena(c) {
    personagem acha e pega, o mestre entrega: uma troca atômica no banco garante que só uma ficha leva, e o item entra
    no inventário dela. */
 const MARC = { pistas: new Map(), objs: new Map(), verP: true, verO: true, modo: null, dlg: null, alvoMover: null };
-const cenaMarc = () => modoRem ? 'remanso' : modoSonho ? 'sonho' : cenaAqui();
+const cenaMarc = () => modoCen ? modoCen : modoRem ? 'remanso' : modoSonho ? 'sonho' : cenaAqui();
 const grupoMarc = cn => cn === 'remanso' ? gRemanso : cn === 'sonho' ? gSonho : grupoCena(cn);
 const CAT_OBJ = { medicina: 'Medicina', utilidades: 'Utilidades', investigacao: 'Investigação', sobrevivencia: 'Sobrevivência', equipamentos: 'Equipamentos', municao: 'Munição', narrativo: 'Objeto narrativo', especial: 'Componente especial' };
 const MOD_OBJ = { caixa: 'Caixa de papelão', caixote: 'Caixote de madeira', mochila: 'Mochila', maleta: 'Maleta', frasco: 'Frasco ou vidro', caderno: 'Caderno ou livro', pacote: 'Pacote', ferramenta: 'Ferramenta', lata: 'Lata', nenhum: 'Nada novo (já está no cenário: gaveta, armário, carro)' };
@@ -3436,7 +4265,7 @@ function iniciaPonte() {
   try { iniciaMarcadores(gm); } catch (e) { console.error('[marcadores]', e); }
   $('#chars h2').textContent = 'Peças';
   $('#chars p').textContent = gm ? 'Arraste qualquer peça. O cadeado prende a peça do jogador; “Esconder” tira NPCs e ameaças da vista deles.' : 'Arraste a sua figura. Na call, quem está perto ouve você mais alto.';
-  if (SO_JOGADOR) for (const sel of ['#agua', '#b-rem', '#b-mata', '#b-estr', '#b-anda', '#b-sonho', '#b-fundo', '#b-navio', '#b-hora', '#b-nevoa', '#b-pistas']) { const el = $(sel); if (el) el.style.display = 'none'; }
+  if (SO_JOGADOR) for (const sel of ['#agua', '#b-cen', '#b-rem', '#b-mata', '#b-estr', '#b-anda', '#b-sonho', '#b-fundo', '#b-navio', '#b-hora', '#b-nevoa', '#b-pistas']) { const el = $(sel); if (el) el.style.display = 'none'; }
   $('#b-add').onclick = () => {
     const [x, z] = pontoNovo();
     if (gm) { const n = porId.size + 1; PM.novaPeca(null, { nome: 'Figura ' + n, tipo: 'npc', x, z, cena: cenaAqui() === 'vale' ? '' : cenaAqui() }, true); }
