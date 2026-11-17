@@ -176,12 +176,6 @@
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && auth.uid === $uid"
       }
-    },
-    "objetos": {
-      ".read": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true",
-      "$id": {
-        ".write": "auth != null && (root.child('mesa/mestres/' + auth.uid).val() === true || (auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && data.exists() && newData.exists() && data.child('estado').val() === 'disponivel' && data.child('liberado').val() === true && newData.child('estado').val() === 'recolhido' && newData.child('recolhidoPor/uid').val() === auth.uid && newData.child('nome').val() === data.child('nome').val() && newData.child('cena').val() === data.child('cena').val() && newData.child('x').val() === data.child('x').val() && newData.child('z').val() === data.child('z').val() && newData.child('item/nome').val() === data.child('item/nome').val() && newData.child('item/qtd').val() === data.child('item/qtd').val() && root.child('fichas/' + newData.child('recolhidoPor/fid').val() + '/dono').val() === auth.uid))"
-      }
     }
   }
 }

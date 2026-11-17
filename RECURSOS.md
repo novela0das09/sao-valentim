@@ -79,6 +79,13 @@ Este guia diz onde cada coisa mora e como acrescentar recursos sem quebrar o que
   - Quem aplica é o navegador do mestre (`autoAplica`), toda vez que a cena ou o estado do som muda. Ele só desliga o que a própria regra ligou.
 - **Som privado:** `SV.sons.privado([uids], id)`. Vem pelo cartão "Som só para alguém" da aba Sons ou pela mensagem particular da Mesa. O mestre ouve junto.
 
+### Música e painel de trilha (`trilha.js`)
+- **Painel:** botão ♪ Trilha na borda esquerda do mapa, só para o mestre. Abas Sessões, Vilões (Presença, Aparição, Manifestação, Confronto), Categorias, Personagens e Motivos; busca; botões Cortar música, Silêncio e Ambiente; lista do que está em loop, com × para desligar.
+- **Catálogo:** fica em `mestre/trilha` (só o mestre lê), com as sessões, as notas de direção e os vilões. O código público não tem esses textos. Vem do arquivo `segredos-trilha.json`, que fica só no computador do mestre e fora do Git (o `.gitignore` cobre `segredos*.json`). Reimportar mantém os arquivos anexados e as escolhas feitas no painel.
+- **Arquivo de cada música:** o `+` ao lado da faixa envia o MP3 (até 15 MB). Música grande vai em partes de 4 MB: `sons_arq/<id>`, `sons_arq/<id>_p1`, `sons_arq/<id>_p2`… (cabe nas regras que já estão no ar). Cada aparelho guarda uma cópia no navegador (IndexedDB), então a música baixa uma vez só.
+- **Canal de música:** `sons/estado/musica = { id, loop, n, t }`. Toca uma por vez, com troca suave. `{ corte: true }` corta seco; `{ silencio: true }` faz a música e os ambientes sumirem devagar, e os efeitos e sons privados continuam. "Ambiente" tira a música e reaplica os sons automáticos da cena.
+- **Volume da música:** separado do volume dos sons, em cada aparelho (aba Sons → No seu aparelho).
+
 ## Regras do banco (`database.rules.json`)
 Cole o arquivo em Firebase → Realtime Database → Regras e publique. Os caminhos novos desta versão são:
 - `sons_priv`;

@@ -92,7 +92,7 @@
     if (SV.isGM) (db.onFilhos ? db.onFilhos.bind(db) : db.on)('pecas_gm', v => { D.pecasGM = v || {}; avisa('pecas'); SV.M && SV.M.sincArte && SV.M.sincArte(); });
     db.on('mesa/travas', v => { D.travas = v || {}; avisa('pecas'); });
     /* objetos coletáveis (marcador azul): o público só tem o que já pode ser achado; a ficha completa fica em mestre/objetos */
-    db.on('objetos', v => { D.objetos = v && typeof v === 'object' ? v : {}; avisa('objetos'); if (SV.isGM) SV.M && SV.M.sincObjetos && SV.M.sincObjetos(); });
+    /* objetos (azul) e pistas (amarelo): só o mestre recebe; o jogador não recebe posição nenhuma */
     if (SV.isGM) db.on('mestre/objetos', v => { D.objPriv = v && typeof v === 'object' ? v : {}; avisa('objetos'); SV.M && SV.M.sincObjetos && SV.M.sincObjetos(); });
     /* pistas do mapa (marcador amarelo): posição, texto e estado só no banco do mestre; o jogador nunca recebe */
     if (SV.isGM) db.on('mestre/pistas3d', v => { D.pistas3d = v && typeof v === 'object' ? v : {}; avisa('pistas3d'); });
@@ -468,44 +468,30 @@
     itensCatalogo: () => ['Kit de primeiros socorros', 'Kit médico', 'Energético', 'Calmante natural', 'Chocolate e café', 'Analgésico', 'Lanterna', 'Isqueiro', 'Celular', 'Câmera fotográfica', 'Gravador de voz', 'Rádio de pilha', 'Corda', 'Pé de cabra', 'Sinalizador', 'Cuia de chimarrão', 'Cigarro de palha', 'Mochila impermeável', 'Munição .38', 'Munição .32', 'Munição .380', 'Munição .40', 'Munição 9 mm', 'Cartucho calibre 12', 'Munição de rifle', 'Pedras para estilingue', 'Cartucho de sinalizador'],
     onSegredos(cb) { return ouve('segredos', () => cb()); },
     /* ---------- objetos coletáveis (azul) ---------- */
-    objetos() { const out = {}; for (const [id, o] of Object.entries(D.objetos || {})) if (o && o.cena) out[id] = Object.assign({}, o, { id }); if (SV.isGM) for (const [id, o] of Object.entries(D.objPriv || {})) if (o && o.cena) out[id] = Object.assign({}, out[id] || {}, o, { id, publico: out[id] || null }); return out; },
+    objetos() { const out = {}; if (SV.isGM) for (const [id, o] of Object.entries(D.objPriv || {})) if (o && o.cena) out[id] = Object.assign({}, o, { id }); return out; },
     onObjetos(cb) { return ouve('objetos', () => cb()); },
     salvarObjeto(id, o) {
       if (!SV.isGM) return null; id = id || SV.db.key();
-      const priv = Object.assign({}, D.objPriv[id] || {}, o, { t: Date.now() }); delete priv.publico; delete priv.id;
+      const priv = Object.assign({}, D.objPriv[id] || {}, o, { t: Date.now() }); delete priv.id;
       priv.estado ||= 'escondido';
-      SV.db.set('mestre/objetos/' + id, priv).then(() => M.sincObjetos()).catch(e => SV.toast('Não deu para salvar o objeto (' + (e.code || e.message) + ').'));
-      D.objPriv[id] = priv; return id;
+      SV.db.set('mestre/objetos/' + id, priv).catch(e => SV.toast('Não deu para salvar o objeto (' + (e.code || e.message) + ').'));
+      D.objPriv[id] = priv; avisa('objetos'); return id;
     },
-    removerObjeto(id) { if (!SV.isGM) return; SV.db.remove('mestre/objetos/' + id).catch(() => {}); SV.db.remove('objetos/' + id).catch(() => {}); },
-    /* o público só tem o objeto que está "disponível" (ou acabou de ser recolhido, para sumir para todos) */
-    sincObjetos() {
-      if (!SV.isGM) return;
-      for (const [id, o] of Object.entries(D.objPriv || {})) {
-        if (!o) continue; const pub = D.objetos[id];
-        if (pub && pub.estado === 'recolhido' && o.estado !== 'recolhido') { SV.db.update('mestre/objetos/' + id, { estado: 'recolhido', recolhidoPor: pub.recolhidoPor || null }).catch(() => {}); continue; }
-        const quer = o.estado === 'disponivel' ? { cena: o.cena, x: +o.x, y: +o.y, z: +o.z, nome: String(o.nome || 'Objeto'), desc: String(o.desc || ''), cat: String(o.cat || 'utilidades'), modelo: String(o.modelo || 'caixa'), estado: 'disponivel', liberado: o.dificuldade === 'facil' && !o.teste ? true : !!o.liberado, item: o.item && o.item.nome ? { nome: String(o.item.nome), qtd: Math.max(1, +o.item.qtd || 1) } : null } : null;
-        if (!quer) { if (pub && pub.estado !== 'recolhido') SV.db.remove('objetos/' + id).catch(() => {}); continue; }
-        const igual = pub && ['cena', 'x', 'y', 'z', 'nome', 'desc', 'cat', 'modelo', 'estado', 'liberado'].every(k => pub[k] === quer[k]) && JSON.stringify(pub.item || null) === JSON.stringify(quer.item);
-        if (!igual) SV.db.set('objetos/' + id, quer).catch(() => {});
-      }
-      for (const id of Object.keys(D.objetos || {})) if (!D.objPriv[id]) SV.db.remove('objetos/' + id).catch(() => {});
-    },
-    /* o mestre libera depois de um teste bem-sucedido (o jogador não vê a dificuldade) */
-    liberarObjeto(id, on = true) { if (SV.isGM) SV.db.update('mestre/objetos/' + id, { liberado: !!on }).catch(() => {}); },
-    devolverObjeto(id) { if (!SV.isGM) return; SV.db.update('mestre/objetos/' + id, { estado: 'disponivel', recolhidoPor: null }).catch(() => {}); SV.db.remove('objetos/' + id).catch(() => {}); },
-    /* recolher: troca atômica no banco; só depois entra na mochila da ficha */
-    async recolher(id, fid) {
+    removerObjeto(id) { if (SV.isGM) SV.db.remove('mestre/objetos/' + id).catch(() => {}); },
+    devolverObjeto(id) { if (SV.isGM) SV.db.update('mestre/objetos/' + id, { estado: 'escondido', recolhidoPor: null }).catch(() => {}); },
+    /* o marcador azul é só do mestre: quando o personagem acha o objeto, o mestre entrega.
+       A troca é atômica (dois cliques ao mesmo tempo não entregam duas vezes) e o item entra na mochila da ficha. */
+    async entregarObjeto(id, fid) {
+      if (!SV.isGM) return false;
       const f = fid && D.fichas[fid] && D.fichas[fid].f;
-      if (!f) { SV.toast('Escolha a ficha que recolhe o objeto.'); return false; }
-      if (!SV.isGM && f.dono !== SV.me.uid) { SV.toast('Só a sua ficha pode recolher.'); return false; }
-      const quem = { uid: SV.me.uid, fid, nome: String(f.nome || ''), t: Date.now() };
+      if (!f) { SV.toast('Escolha a ficha que recebe o objeto.'); return false; }
+      const quem = { fid, nome: String(f.nome || ''), t: Date.now() };
       let r;
-      try { r = await SV.db.transacao('objetos/' + id, cur => { if (!cur || cur.estado !== 'disponivel' || cur.liberado !== true) return; return Object.assign({}, cur, { estado: 'recolhido', recolhidoPor: quem }); }); }
-      catch (e) { SV.toast('Não deu para recolher (' + (e.code || e.message) + ').'); return false; }
-      if (!r.ok) { SV.toast('Esse objeto não está mais disponível.'); return false; }
+      try { r = await SV.db.transacao('mestre/objetos/' + id, cur => { if (cur == null) return cur; if (cur.estado === 'recolhido') return; return Object.assign({}, cur, { estado: 'recolhido', recolhidoPor: quem }); }); }
+      catch (e) { SV.toast('Não deu para entregar (' + (e.code || e.message) + ').'); return false; }
+      if (!r.ok || !r.val || !r.val.recolhidoPor || r.val.recolhidoPor.t !== quem.t) { SV.toast('Esse objeto já foi entregue.'); return false; }
       const it = r.val && r.val.item; if (it && it.nome) M.darItem(fid, it.nome, it.qtd || 1);
-      SV.toast(quem.nome + ' recolheu ' + (r.val.nome || 'o objeto') + '.'); return true;
+      SV.toast(quem.nome + ' pegou ' + (r.val.nome || 'o objeto') + '.'); return true;
     },
     /* põe um item na mochila da ficha (o mesmo inventário de sempre; soma se já tiver) */
     darItem(fid, nome, qtd = 1) {
@@ -565,8 +551,8 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=52' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=32' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=53' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=33' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
     if (a === 'notas') abaNotas();
@@ -755,9 +741,9 @@
     const box = $('#p-sons'); if (!SV.sons) return;
     const S = SV.sons, gm = SV.isGM, loops = (S.estado && S.estado.loops) || {};
     const todos = S.todos();
-    const amb = todos.filter(x => x.tipo === 'ambiente'), efe = todos.filter(x => x.tipo !== 'ambiente');
+    const amb = todos.filter(x => x.tipo === 'ambiente'), efe = todos.filter(x => x.tipo !== 'ambiente' && x.tipo !== 'musica');
     const pad = (x, modo) => `<button class="pad${loops[x.id] ? ' on' : ''}" type="button" data-som="${esc(x.id)}" data-modo="${modo}" ${gm ? '' : 'disabled'} aria-pressed="${!!loops[x.id]}"><b>${esc(x.nome)}</b><small>${modo === 'loop' ? (loops[x.id] ? 'tocando' : 'ambiente') : 'efeito'}${x.pronto ? '' : ' · arquivo'}</small>${gm && !x.pronto ? `<span class="del" role="button" tabindex="0" data-apaga-som="${esc(x.id)}" aria-label="Apagar ${esc(x.nome)}">×</span>` : ''}</button>`;
-    const tocando = Object.keys(loops).map(id => (S.item(id) || { nome: 'Som' }).nome);
+    const mus = S.musicaAtual(), tocando = (mus ? ['♪ ' + (S.item(mus.id) || { nome: 'Música' }).nome] : []).concat(Object.keys(loops).map(id => (S.item(id) || { nome: 'Som' }).nome));
     box.innerHTML = `<div class="titulo-pg"><h1>Sons</h1><p>${gm ? 'O que você tocar aqui toca para todos ao mesmo tempo. Ambientes ficam em loop; efeitos tocam uma vez.' : 'O mestre controla os sons da mesa. Aqui você ajusta o volume no seu aparelho.'}</p></div>
       <div class="mesa"><div class="col">
       ${gm ? `<div class="cartao"><h2>Ambientes <small>toque para ligar ou desligar</small></h2><div class="pads">${amb.map(x => pad(x, 'loop')).join('')}</div>
@@ -769,6 +755,7 @@
       </div><div class="col">
       <div class="cartao"><h2>No seu aparelho</h2>
         <div class="faixa"><span>Volume</span><input type="range" min="0" max="1" step="0.05" value="${S.vol}" data-vol aria-label="Volume dos sons"><b>${Math.round(S.vol * 100)}%</b></div>
+        <div class="faixa"><span>Música</span><input type="range" min="0" max="1" step="0.05" value="${S.musVol}" data-musvol aria-label="Volume da música"><b>${Math.round(S.musVol * 100)}%</b></div>
         <label class="chave"><input type="checkbox" data-mudo ${S.mudo ? 'checked' : ''}><span>Silenciar os sons da mesa<small>A call continua normal.</small></span></label>
         ${S.ac && S.ac.state === 'running' ? '' : '<p class="vazio">O navegador só libera o som depois do primeiro toque na página. Toque em qualquer lugar.</p>'}</div>
       ${gm ? `<div class="cartao"><h2>Seus arquivos <small>até 3 MB cada</small></h2>
@@ -814,7 +801,7 @@
       const id = b.dataset.som;
       if (id) { SV.sons.ctx(); if (b.dataset.modo === 'loop') SV.sons.loop(id, !(SV.sons.estado.loops || {})[id]); else SV.sons.efeito(id); }
     });
-    box.addEventListener('input', e => { if (e.target.dataset.vol != null) { SV.sons.setVol(+e.target.value); e.target.nextElementSibling.textContent = Math.round(+e.target.value * 100) + '%'; } });
+    box.addEventListener('input', e => { if (e.target.dataset.vol != null) { SV.sons.setVol(+e.target.value); e.target.nextElementSibling.textContent = Math.round(+e.target.value * 100) + '%'; } if (e.target.dataset.musvol != null) { SV.sons.setMusVol(+e.target.value); e.target.nextElementSibling.textContent = Math.round(+e.target.value * 100) + '%'; } });
     box.addEventListener('change', e => { if (e.target.dataset.mudo != null) SV.sons.setMudo(e.target.checked); if (e.target.dataset.autoOn != null) SV.sons.setAuto(e.target.checked); });
     box.addEventListener('submit', async e => {
       e.preventDefault();
@@ -1158,7 +1145,7 @@
     SV.sons.onChange(() => { if (aba === 'sons' && !campoAberto($('#p-sons'))) render.sons(); });
     assina();
     montaNotas(); ligaNotas();
-    SV._iniciou = true; if (SV.isGM && SV.central) SV.central.inicia();
+    SV._iniciou = true; if (SV.isGM && SV.central) SV.central.inicia(); if (SV.isGM && SV.trilha) SV.trilha.inicia();
     render.voz(); render.mesa(); badges();
     irAba(SV.ls.get('aba', 'mapa'));
     setInterval(() => { if (aba === 'mesa') render.mesa(); }, 30000);

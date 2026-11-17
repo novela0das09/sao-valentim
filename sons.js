@@ -147,21 +147,43 @@
     ['orelhao', 'Orelhão tocando', 'efeito'], ['apito', 'Apito do vapor', 'efeito'], ['agua', 'Algo cai na água', 'efeito']
   ].map(([id, nome, tipo]) => ({ id: 'p:' + id, nome, tipo, pronto: true }));
 
+  /* cópia local dos arquivos (IndexedDB): a música baixa uma vez por aparelho, não a cada sessão */
+  const cache = {
+    db: null,
+    abre() {
+      if (this.db) return this.db;
+      this.db = new Promise(ok => {
+        try { const r = indexedDB.open('sv-sons', 1); r.onupgradeneeded = () => r.result.createObjectStore('a'); r.onsuccess = () => ok(r.result); r.onerror = () => ok(null); }
+        catch { ok(null); }
+      });
+      return this.db;
+    },
+    async ler(id, ver) {
+      try { const d = await this.abre(); if (!d) return null;
+        return await new Promise(ok => { const q = d.transaction('a').objectStore('a').get(id); q.onsuccess = () => ok(q.result && q.result.v === (ver || 0) ? q.result.d : null); q.onerror = () => ok(null); });
+      } catch { return null; }
+    },
+    async gravar(id, ver, dados) { try { const d = await this.abre(); if (d) d.transaction('a', 'readwrite').objectStore('a').put({ v: ver || 0, d: dados }, id); } catch {} },
+    async apagar(id) { try { const d = await this.abre(); if (d) d.transaction('a', 'readwrite').objectStore('a').delete(id); } catch {} }
+  };
   const S = (SV.sons = {
     ac: null, master: null, vol: clamp(SV.ls.get('somVol', 0.8), 0, 1), mudo: !!SV.ls.get('somMudo', false), bloqueado: false,
+    musVol: clamp(SV.ls.get('musVol', 0.7), 0, 1), musG: null, musH: null, musN: '',
     lib: {}, estado: {}, tocando: new Map(), buffers: new Map(), ultimoEfeito: SV.ls.get('somUltimo', ''), listeners: new Set(),
     avisa() { for (const f of this.listeners) try { f(); } catch {} },
     onChange(f) { this.listeners.add(f); return () => this.listeners.delete(f); },
     ctx() {
       if (!this.ac) {
         const A = window.AudioContext || window.webkitAudioContext; if (!A) return null;
-        this.ac = new A(); this.master = this.ac.createGain(); this.master.connect(this.ac.destination); this.aplicaVol();
+        this.ac = new A(); this.master = this.ac.createGain(); this.master.connect(this.ac.destination);
+        this.musG = this.ac.createGain(); this.musG.connect(this.master); this.aplicaVol();
       }
       if (this.ac.state === 'suspended') this.ac.resume().then(() => { this.bloqueado = false; this.avisa(); }).catch(() => {});
       this.bloqueado = this.ac.state !== 'running';
       return this.ac;
     },
-    aplicaVol() { if (this.master) this.master.gain.setTargetAtTime(this.mudo ? 0 : this.vol, this.ac.currentTime, 0.1); },
+    aplicaVol() { if (this.master) { this.master.gain.setTargetAtTime(this.mudo ? 0 : this.vol, this.ac.currentTime, 0.1); this.musG.gain.setTargetAtTime(this.musVol, this.ac.currentTime, 0.1); } },
+    setMusVol(v) { this.musVol = clamp(v, 0, 1); SV.ls.set('musVol', this.musVol); this.aplicaVol(); this.avisa(); },
     setVol(v) { this.vol = clamp(v, 0, 1); SV.ls.set('somVol', this.vol); this.aplicaVol(); this.avisa(); },
     setMudo(m) { this.mudo = !!m; SV.ls.set('somMudo', this.mudo); this.aplicaVol(); this.avisa(); },
     init() {
@@ -180,8 +202,15 @@
     async buffer(id) {
       if (this.buffers.has(id)) return this.buffers.get(id);
       const p = (async () => {
-        const dados = await SV.db.get('sons_arq/' + id.slice(2));
-        if (!dados) throw new Error('sem arquivo');
+        const k = id.slice(2), it = (this.lib || {})[k] || {}, partes = Math.max(1, +it.partes || 1);
+        let dados = await cache.ler(id, it.criado);
+        if (!dados) {
+          /* músicas grandes vêm em partes: sons_arq/k, sons_arq/k_p1, sons_arq/k_p2… */
+          const ps = await Promise.all(Array.from({ length: partes }, (_, i) => SV.db.get('sons_arq/' + k + (i ? '_p' + i : ''))));
+          if (ps.some(x => !x)) throw new Error('sem arquivo');
+          dados = ps.join('');
+          cache.gravar(id, it.criado, dados);
+        }
         const bin = atob(String(dados).split(',').pop()), a = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
         return await this.ac.decodeAudioData(a.buffer);
@@ -190,9 +219,9 @@
       p.catch(() => this.buffers.delete(id));
       return p;
     },
-    async toca(id, loop, vol = 1) {
+    async toca(id, loop, vol = 1, saida) {
       const ac = this.ctx(); if (!ac) return null;
-      const g = ac.createGain(); g.gain.value = 0.0001; g.connect(this.master);
+      const g = ac.createGain(); g.gain.value = 0.0001; g.connect(saida || this.master);
       g.gain.setTargetAtTime(vol, ac.currentTime, loop ? 0.8 : 0.02);
       let parar = () => {}, dur = 0;
       if (id.startsWith('p:')) {
@@ -219,6 +248,7 @@
         if (!this.tocando.has(id)) this.tocando.set(id, this.toca(id, true, clamp(+v || 1, 0, 1)));
         else this.tocando.get(id).then(x => x && x.g.gain.setTargetAtTime(clamp(+v || 1, 0, 1), this.ac.currentTime, 0.3));
       }
+      this.aplicaMusica();
       const e = this.estado && this.estado.efeito;
       if (!e && this.efeitos && this.efeitos.length) { for (const h of this.efeitos) h.then(x => x && x.fim()); this.efeitos = []; }
       if (e && e.n && e.n !== this.ultimoEfeito) {
@@ -226,6 +256,28 @@
         if (Date.now() - (e.t || 0) < 8000) { this.efeitos = (this.efeitos || []).slice(-6); this.efeitos.push(this.toca(e.id, false, 1)); }
       }
     },
+    /* ---------- trilha: uma música por vez, para todos ----------
+       sons/estado/musica = { id, loop, n, t } tocando; { corte: true } corta seco; { silencio: true } some devagar */
+    aplicaMusica() {
+      const m = (this.estado && this.estado.musica) || null, n = m ? m.n || '' : '', quer = !!(m && m.id && !m.corte && !m.silencio);
+      if (n === this.musN && (quer === !!this.musH || this.musFalhou === n)) return;
+      this.musN = n;
+      const velho = this.musH; this.musH = null;
+      if (velho) velho.then(x => { if (!x) return; const rapido = m && m.corte; x.g.gain.setTargetAtTime(0.0001, this.ac.currentTime, rapido ? 0.03 : 1.2); setTimeout(() => { try { x.parar(); } catch {} x.g.disconnect(); }, rapido ? 300 : 5000); });
+      if (m && m.id && !m.corte && !m.silencio) {
+        const h = this.toca(m.id, m.loop !== false, 1, this.musG);
+        this.musH = h;
+        h.then(x => { if (!x && this.musH === h) { this.musH = null; this.musFalhou = n; this.avisa(); } });
+      }
+      this.avisa();
+    },
+    musicaAtual() { const m = this.estado && this.estado.musica; return m && m.id && !m.corte && !m.silencio ? m : null; },
+    musica(id, loop = true) { if (SV.isGM && id) SV.db.set('sons/estado/musica', { id, loop: !!loop, t: Date.now(), n: SV.uid() }); },
+    cortar() { if (SV.isGM) SV.db.set('sons/estado/musica', { corte: true, t: Date.now(), n: SV.uid() }); },
+    /* silêncio: música e ambientes somem devagar; efeitos e sons privados continuam */
+    silencio() { if (SV.isGM) SV.db.update('sons/estado', { musica: { silencio: true, t: Date.now(), n: SV.uid() }, loops: null, auto: null }); },
+    /* volta para o ambiente do lugar: tira a música e reaplica os sons automáticos da cena */
+    ambiente() { if (!SV.isGM) return; SV.db.set('sons/estado/musica', { silencio: true, t: Date.now(), n: SV.uid() }).then(() => { this.ultAuto = ''; this.autoAplica(); }); },
     /* ---------- som privado ---------- */
     tocaPriv() {
       const p = this.priv; if (!p || !p.n || p.n === this.ultimoPriv) return;
@@ -267,19 +319,26 @@
     loop(id, on) { if (!SV.isGM) return; on ? SV.db.set('sons/estado/loops/' + id, 1) : SV.db.update('sons/estado', { ['loops/' + id]: null, ['auto/' + id]: null }); },
     pararTudo() { if (SV.isGM) SV.db.update('sons/estado', { loops: null, auto: null }); },
     pararEfeito() { if (!SV.isGM) return; SV.db.set('sons/estado/efeito', null); for (const h of this.efeitos || []) h.then(x => x && x.fim()); this.efeitos = []; },
-    async subir(file, tipo) {
-      if (!SV.isGM || !file) return;
-      if (file.size > 3 * 1024 * 1024) { SV.toast('O arquivo passa de 3 MB. Corte um trecho menor ou converta para MP3.', 'err'); return; }
+    async subir(file, tipo, nome) {
+      if (!SV.isGM || !file) return null;
+      const max = tipo === 'musica' ? 15 : 3;
+      if (file.size > max * 1024 * 1024) { SV.toast('O arquivo passa de ' + max + ' MB. ' + (tipo === 'musica' ? 'Converta para MP3 de 128 kbps.' : 'Corte um trecho menor ou converta para MP3.'), 'err'); return null; }
       const dados = await new Promise((ok, falha) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = falha; r.readAsDataURL(file); });
-      const k = SV.db.key();
-      await SV.db.set('sons_arq/' + k, dados);
-      await SV.db.set('sons/lib/' + k, { id: 'a:' + k, nome: file.name.replace(/\.[^.]+$/, '').slice(0, 40), tipo, criado: Date.now() });
-      SV.toast('Som adicionado.');
+      const k = SV.db.key(), TAM = 4000000, partes = Math.max(1, Math.ceil(dados.length / TAM));
+      for (let i = 0; i < partes; i++) await SV.db.set('sons_arq/' + k + (i ? '_p' + i : ''), dados.slice(i * TAM, (i + 1) * TAM));
+      const it = { id: 'a:' + k, nome: (nome || file.name.replace(/\.[^.]+$/, '')).slice(0, 60), tipo, criado: Date.now() };
+      if (partes > 1) it.partes = partes;
+      await SV.db.set('sons/lib/' + k, it);
+      if (tipo !== 'musica') SV.toast('Som adicionado.');
+      return it.id;
     },
     async apagar(id) {
       if (!SV.isGM || !id.startsWith('a:')) return;
-      const k = id.slice(2);
-      await SV.db.remove('sons/lib/' + k); await SV.db.remove('sons_arq/' + k); await SV.db.remove('sons/estado/loops/' + id);
+      const k = id.slice(2), partes = Math.max(1, +((this.lib || {})[k] || {}).partes || 1);
+      await SV.db.remove('sons/lib/' + k);
+      for (let i = 0; i < partes; i++) await SV.db.remove('sons_arq/' + k + (i ? '_p' + i : ''));
+      await SV.db.remove('sons/estado/loops/' + id); cache.apagar(id);
+      const m = this.estado && this.estado.musica; if (m && m.id === id) this.cortar();
     }
   });
 })();

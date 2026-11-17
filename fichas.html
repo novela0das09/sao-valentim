@@ -3439,30 +3439,44 @@ function mgLogica(f) {
     m.log.length ? h('div', { class: 'log' }, m.log.map(t => h('div', null, t))) : null,
     m.fim ? row(bt('Outra vez', () => { UIS.mg.lg = null; renderGuia(); })) : null)];
 }
-const FIM_ESC = { achado: 'A criatura te encontrou. Hora do teste de defesa…', escapou: 'Você escapou sem ser visto.', desistiu: 'A criatura cansou de procurar e foi embora.' };
+const FIM_ESC = { achado: 'A criatura te encontrou. Hora do teste de defesa…', escapou: 'Você escapou sem ser visto.', desistiu: 'A criatura parou de procurar e foi embora.' };
+/* Regra oficial do esconderijo: Furtividade + Físico, cada dado é um esconderijo (sem DT, sem dado de pavor).
+   Esconder de novo gasta a rodada: rola de novo e, com soma 7 ou mais, fica com UM dos dois números (pode repetir um que já tem).
+   Não há rerrolagem livre (só a do Vigilante, pela regra dele). A criatura procura 2 números por rodada; um número achado
+   derruba todos os dados com aquele número. Quem ainda tem dado continua escondido sem rolar nada. Quanto tempo ela procura
+   é segredo do mestre: aqui o protótipo sorteia um limite que você não vê. */
 function mgEsconder(f) {
-  const m = UIS.mg.esc, intro = Pp('Você rola <strong>Furtividade + Físico</strong> e <strong>não conta os números para o mestre</strong>. Cada dado é um ponto de esconderijo. A cada rodada a criatura procura em alguns números; se acertar o número de um dado, esse dado cai. Sem dados, ela te achou. Aqui o protótipo faz o papel da criatura.');
-  if (!m || m.fid !== f.id) return [intro, row(bt('Esconder ' + f.nome, () => { UIS.mg.esc = { fid: f.id, dados: [atrEf(f, 'fisico'), perDie(f, 'furtividade')].map(d => ({ d, v: rolar(d) })), rodada: 1, procura: 1, saindo: 0, log: [], fim: null }; renderGuia(); }, 'red'))];
-  const acao = a => {
-    const R = 'Rodada ' + m.rodada + ': ';
-    if (a === 'esconder') { const d = perDie(f, 'furtividade'); m.dados.push({ d, v: rolar(d) }); m.log.unshift(R + 'você se encolhe mais (+1 dado).'); }
-    if (a === 'quieto') m.log.unshift(R + 'você prende a respiração.');
-    if (a === 'sair') { m.saindo++; m.log.unshift(R + 'você vai saindo devagar.'); }
-    if (a === 'correr') { const x = m.dados.find(y => !y.achado); if (x) x.achado = true; m.log.unshift(R + 'você sai correndo e faz barulho (−1 dado).'); m.fim = m.dados.some(y => !y.achado) ? 'escapou' : 'achado'; renderGuia(); return; }
+  const m = UIS.mg.esc, intro = Pp('Você rola <strong>Furtividade + Físico</strong> e <strong>não conta os números para o mestre</strong>. Cada dado é um esconderijo (não soma). A cada rodada a criatura procura em <strong>2 números</strong>; quem tem aquele número perde aquele esconderijo. Sem esconderijos, ela te achou. Para se esconder de novo, gaste a rodada: role outra vez e, se a soma der <strong>7 ou mais</strong>, fique com um dos dois números (pode ser repetido). Aqui o protótipo faz o papel da criatura.');
+  if (!m || m.fid !== f.id) return [intro, row(bt('Esconder ' + f.nome, () => { UIS.mg.esc = { fid: f.id, dados: [atrEf(f, 'fisico'), perDie(f, 'furtividade')].map(d => ({ d, v: rolar(d) })), rodada: 1, limite: 4 + Math.floor(Math.random() * 4), saindo: 0, novo: null, log: [], fim: null }; renderGuia(); }, 'red'))];
+  const procura = R => {
     const max = Math.max(...m.dados.map(x => faces(x.d))), nums = [];
-    while (nums.length < Math.min(m.procura, max)) { const n = 1 + Math.floor(Math.random() * max); if (!nums.includes(n)) nums.push(n); }
+    while (nums.length < Math.min(2, max)) { const n = 1 + Math.floor(Math.random() * max); if (!nums.includes(n)) nums.push(n); }
     nums.sort((a2, b2) => a2 - b2);
     let pegou = 0; for (const x of m.dados) if (!x.achado && nums.includes(x.v)) { x.achado = true; pegou++; }
-    m.log.unshift('A criatura procura ' + (nums.length > 1 ? 'nos pontos ' + nums.join(', ') : 'no ponto ' + nums[0]) + (pegou ? ': achou ' + pegou + (pegou > 1 ? ' dados seus!' : ' dado seu!') : ': nada.'));
+    m.log.unshift(R + 'a criatura procura nos números ' + nums.join(' e ') + (pegou ? ': achou ' + pegou + (pegou > 1 ? ' esconderijos seus!' : ' esconderijo seu!') : ': nada.'));
     if (!m.dados.some(x => !x.achado)) m.fim = 'achado';
     else if (m.saindo >= 2) m.fim = 'escapou';
-    else { m.rodada++; if (m.rodada === 3) m.procura = 2; if (m.rodada === 5) m.procura = 3; if (m.rodada > 6) m.fim = 'desistiu'; }
-    renderGuia();
+    else { m.rodada++; if (m.rodada > m.limite) m.fim = 'desistiu'; }
   };
+  const acao = a => {
+    const R = 'Rodada ' + m.rodada + ': ';
+    if (a === 'esconder') {
+      const d1 = atrEf(f, 'fisico'), d2 = perDie(f, 'furtividade'), v1 = rolar(d1), v2 = rolar(d2);
+      if (v1 + v2 >= 7) { m.novo = [{ d: d1, v: v1 }, { d: d2, v: v2 }]; m.log.unshift(R + 'você rolou ' + v1 + ' e ' + v2 + ' (soma ' + (v1 + v2) + '): escolha um dos números.'); renderGuia(); return; }
+      m.log.unshift(R + 'você rolou ' + v1 + ' e ' + v2 + ' (soma ' + (v1 + v2) + ', precisava de 7): não achou outro lugar.');
+    }
+    if (a === 'quieto') m.log.unshift(R + 'você prende a respiração.');
+    if (a === 'sair') { m.saindo++; m.log.unshift(R + 'você vai saindo devagar.'); }
+    if (a === 'correr') { const x = m.dados.find(y => !y.achado); if (x) x.achado = true; m.log.unshift(R + 'você sai correndo e faz barulho (perde um esconderijo).'); m.fim = m.dados.some(y => !y.achado) ? 'escapou' : 'achado'; renderGuia(); return; }
+    procura(R); renderGuia();
+  };
+  const escolhe = x => { m.dados.push({ d: x.d, v: x.v }); m.novo = null; procura('Rodada ' + m.rodada + ': você ficou com o ' + x.v + '; '); renderGuia(); };
   return [intro, h('div', { class: 'mg' },
-    h('div', { class: 'linha' }, h('b', null, 'Rodada ' + m.rodada), h('span', { style: { color: 'var(--muted)', fontSize: '13px' } }, 'A criatura procura em ' + m.procura + (m.procura > 1 ? ' pontos' : ' ponto') + ' por rodada. Sair devagar leva 2 rodadas.')),
-    h('div', { class: 'linha', 'aria-label': 'Seus dados de esconderijo' }, m.dados.map(x => h('span', { class: x.achado ? 'achado' : '', title: x.achado ? 'Encontrado' : 'Escondido' }, dado(x.d, x.v, 38)))),
-    m.fim ? h('div', { class: 'fim ' + (m.fim === 'achado' ? 'bad' : 'ok') }, FIM_ESC[m.fim]) : h('div', { class: 'linha' }, bt('Esconder melhor (+1 dado)', () => acao('esconder')), bt('Ficar quieto', () => acao('quieto')), bt(m.saindo ? 'Continuar saindo' : 'Sair devagar', () => acao('sair')), bt('Sair correndo (−1 dado)', () => acao('correr'))),
+    h('div', { class: 'linha' }, h('b', null, 'Rodada ' + m.rodada), h('span', { style: { color: 'var(--muted)', fontSize: '13px' } }, 'A criatura procura em 2 números por rodada. Sair devagar leva 2 rodadas.')),
+    h('div', { class: 'linha', 'aria-label': 'Seus esconderijos' }, m.dados.map(x => h('span', { class: x.achado ? 'achado' : '', title: x.achado ? 'Encontrado' : 'Escondido' }, dado(x.d, x.v, 38)))),
+    m.fim ? h('div', { class: 'fim ' + (m.fim === 'achado' ? 'bad' : 'ok') }, FIM_ESC[m.fim])
+      : m.novo ? h('div', { class: 'linha' }, h('span', null, 'Ficar com:'), m.novo.map(x => bt(String(x.v), () => escolhe(x), 'red')))
+      : h('div', { class: 'linha' }, bt('Esconder de novo (soma 7+)', () => acao('esconder')), bt('Ficar quieto', () => acao('quieto')), bt(m.saindo ? 'Continuar saindo' : 'Sair devagar', () => acao('sair')), bt('Sair correndo (perde um esconderijo)', () => acao('correr'))),
     m.log.length ? h('div', { class: 'log' }, m.log.map(t => h('div', null, t))) : null,
     m.fim ? row(bt('Jogar de novo', () => { UIS.mg.esc = null; renderGuia(); }), m.fim === 'achado' ? bt('Teste de defesa', () => usarPreset(f, 'defesa'), 'red') : null) : null)];
 }

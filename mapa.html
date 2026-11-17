@@ -3246,9 +3246,9 @@ function aplicaCena(c) {
 
 /* ===================== marcadores do mapa =====================
    AMARELO (pista): só o mestre. Posição, texto e estado ficam em mestre/pistas3d, que o jogador não lê
-   (nem no código público, nem no banco). AZUL (objeto): um objeto físico no cenário (caixa, mochila, gaveta...) com um
-   pontinho azul em cima. O jogador só recebe o objeto quando o mestre o deixa "disponível"; ao recolher, uma troca atômica
-   no banco garante que só um leva, e o item entra no inventário da ficha. */
+   (nem no código público, nem no banco). AZUL (objeto consumível): também só o mestre, em mestre/objetos. Quando um
+   personagem acha e pega, o mestre entrega: uma troca atômica no banco garante que só uma ficha leva, e o item entra
+   no inventário dela. */
 const MARC = { pistas: new Map(), objs: new Map(), verP: true, verO: true, modo: null, dlg: null, alvoMover: null };
 const cenaMarc = () => modoRem ? 'remanso' : modoSonho ? 'sonho' : cenaAqui();
 const grupoMarc = cn => cn === 'remanso' ? gRemanso : cn === 'sonho' ? gSonho : grupoCena(cn);
@@ -3256,7 +3256,7 @@ const CAT_OBJ = { medicina: 'Medicina', utilidades: 'Utilidades', investigacao: 
 const MOD_OBJ = { caixa: 'Caixa de papelão', caixote: 'Caixote de madeira', mochila: 'Mochila', maleta: 'Maleta', frasco: 'Frasco ou vidro', caderno: 'Caderno ou livro', pacote: 'Pacote', ferramenta: 'Ferramenta', lata: 'Lata', nenhum: 'Nada novo (já está no cenário: gaveta, armário, carro)' };
 const DIF = { facil: 'Fácil', moderado: 'Moderado', dificil: 'Difícil', muito: 'Muito difícil' };
 const EST_P = { escondida: 'Ainda escondida', descoberta: 'Descoberta', indisponivel: 'Indisponível' };
-const EST_O = { escondido: 'Escondido (os jogadores não veem)', disponivel: 'Disponível (aparece o ponto azul)', recolhido: 'Recolhido' };
+const EST_O = { escondido: 'No lugar, ainda não acharam', disponivel: 'Já acharam, falta pegar', recolhido: 'Entregue' };
 const _mm = {};
 const matM = (k, f) => _mm[k] ||= f();
 function modeloObjeto(tipo) {
@@ -3308,7 +3308,6 @@ function sincMarcadores() {
   for (const [id, e] of [...MARC.objs]) if (!os[id]) { e.g.parent && e.g.parent.remove(e.g); MARC.objs.delete(id); }
   for (const [id, o] of Object.entries(os)) {
     const est = o.estado || 'escondido';
-    if (!gm && est !== 'disponivel') { const e = MARC.objs.get(id); if (e) { e.g.parent && e.g.parent.remove(e.g); MARC.objs.delete(id); } continue; }
     poeMarcador(MARC.objs, id, o, e => {
       const k = est + '|' + (o.modelo || 'caixa');
       if (e.k !== k) {
@@ -3361,8 +3360,9 @@ function dlgObjetoGM(id) {
   const o = (PM.objetos() || {})[id]; if (!o) return;
   const it = o.item || {}, rp = o.recolhidoPor;
   const d = abreDlg(`<h3><span class="ponto" style="background:#4aa3ff"></span>Objeto <span style="flex:1"></span><button class="btn" data-x type="button">Fechar</button></h3>
-    <label>Nome (o que os jogadores veem)<input id="mo-n" value="${esc(o.nome || '')}"></label>
-    <label>Descrição para os jogadores<textarea id="mo-d">${esc(o.desc || '')}</textarea></label>
+    <p class="nota">Só você vê este marcador. Quando um personagem achar e pegar o objeto, entregue abaixo: o item entra na mochila da ficha.</p>
+    <label>Nome<input id="mo-n" value="${esc(o.nome || '')}"></label>
+    <label>Descrição (para você ler quando acharem)<textarea id="mo-d">${esc(o.desc || '')}</textarea></label>
     <div class="lin2"><label>Categoria<select id="mo-c">${opts(CAT_OBJ, o.cat || 'utilidades')}</select></label><label>Aparência<select id="mo-m">${opts(MOD_OBJ, o.modelo || 'caixa')}</select></label></div>
     <div class="lin2"><label>Vai para o inventário como<input id="mo-i" value="${esc(it.nome || '')}" placeholder="vazio = só para examinar" list="mo-lista"></label><label>Quantidade<input id="mo-q" type="number" min="1" step="1" value="${+it.qtd || 1}"></label></div>
     <datalist id="mo-lista">${(PM.itensCatalogo ? PM.itensCatalogo() : []).map(n => `<option value="${esc(n)}">`).join('')}</datalist>
@@ -3370,29 +3370,19 @@ function dlgObjetoGM(id) {
     <div class="lin2"><label>Teste (perícias aceitas)<input id="mo-p" value="${esc(o.teste || '')}" placeholder="ex.: Percepção ou Pesquisar"></label><label>DT<input id="mo-dt" type="number" min="0" step="1" value="${o.dt ?? ''}" placeholder="a sua"></label></div>
     <label>Requisito para pegar (chave, pé de cabra, combinação…)<input id="mo-r" value="${esc(o.requisito || '')}"></label>
     <label>Notas do mestre<textarea id="mo-o" style="min-height:50px">${esc(o.notas || '')}</textarea></label>
-    <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mo-l"${o.liberado ? ' checked' : ''}> Liberado para recolher (marque depois do teste; objeto fácil sem teste já sai liberado)</label>
-    ${rp ? `<p class="nota">Recolhido por ${esc(rp.nome || '?')} em ${new Date(rp.t || 0).toLocaleString('pt-BR')}.</p>` : ''}
+    ${rp ? `<p class="nota">Entregue para ${esc(rp.nome || '?')} em ${new Date(rp.t || 0).toLocaleString('pt-BR')}.</p>` : (PM.minhasFichas && PM.minhasFichas().length ? `<div class="lin2"><label>Entregar para<select id="mo-pf">${PM.minhasFichas().map(f => `<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('')}</select></label><label>&nbsp;<button class="btn red" id="mo-g" type="button">Entregar</button></label></div>` : '<p class="nota">Nenhuma ficha de jogador na mesa para receber.</p>')}
     <div class="lin"><button class="btn red" id="mo-s" type="button">Salvar</button>${o.estado === 'recolhido' ? '<button class="btn" id="mo-v" type="button">Devolver ao cenário</button>' : ''}<button class="btn" id="mo-mv" type="button">Mover</button><button class="btn" id="mo-a" type="button">Apagar</button></div>`);
   d.querySelector('#mo-s').onclick = () => {
     const nomeIt = d.querySelector('#mo-i').value.trim(), dt = d.querySelector('#mo-dt').value;
     PM.salvarObjeto(id, Object.assign({}, o, { nome: d.querySelector('#mo-n').value.trim() || 'Objeto', desc: d.querySelector('#mo-d').value, cat: d.querySelector('#mo-c').value, modelo: d.querySelector('#mo-m').value,
       item: nomeIt ? { nome: nomeIt, qtd: Math.max(1, Math.floor(+d.querySelector('#mo-q').value) || 1) } : null, dificuldade: d.querySelector('#mo-f').value, estado: d.querySelector('#mo-e').value,
-      teste: d.querySelector('#mo-p').value.trim(), dt: dt === '' ? null : Math.max(0, Math.floor(+dt)), requisito: d.querySelector('#mo-r').value.trim(), notas: d.querySelector('#mo-o').value, liberado: d.querySelector('#mo-l').checked }));
+      teste: d.querySelector('#mo-p').value.trim(), dt: dt === '' ? null : Math.max(0, Math.floor(+dt)), requisito: d.querySelector('#mo-r').value.trim(), notas: d.querySelector('#mo-o').value }));
     fechaMarc();
   };
   const dv = d.querySelector('#mo-v'); if (dv) dv.onclick = () => { PM.devolverObjeto(id); fechaMarc(); };
+  const dg = d.querySelector('#mo-g'); if (dg) dg.onclick = async () => { dg.disabled = true; await PM.entregarObjeto(id, d.querySelector('#mo-pf').value); fechaMarc(); };
   d.querySelector('#mo-mv').onclick = () => { MARC.modo = 'mover'; MARC.alvoMover = { tipo: 'objeto', id }; avisoMarc('Clique onde o objeto fica agora'); fechaMarc(); };
   d.querySelector('#mo-a').onclick = () => { if (confirm('Apagar este objeto do mapa?')) { PM.removerObjeto(id); fechaMarc(); } };
-}
-function dlgObjetoJogador(id) {
-  const o = (PM.objetos() || {})[id]; if (!o || o.estado !== 'disponivel') return;
-  const minhas = (PM.minhasFichas ? PM.minhasFichas() : []);
-  const pode = o.liberado === true;
-  const d = abreDlg(`<h3><span class="ponto" style="background:#4aa3ff"></span>${esc(o.nome || 'Objeto')}<span style="flex:1"></span><button class="btn" data-x type="button">Fechar</button></h3>
-    ${o.desc ? `<p class="desc">${esc(o.desc)}</p>` : ''}
-    ${pode ? (minhas.length ? `<label>Quem recolhe<select id="mo-f">${minhas.map(f => `<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('')}</select></label><div class="lin"><button class="btn red" id="mo-g" type="button">${o.item ? 'Recolher' : 'Pegar para examinar'}</button></div>` : '<p class="nota">Você ainda não tem uma ficha na mesa.</p>')
-      : '<p class="nota">Daqui não dá para pegar. Diga ao mestre o que o seu personagem faz para alcançar ou procurar isso.</p>'}`);
-  const g = d.querySelector('#mo-g'); if (g) g.onclick = async () => { g.disabled = true; const ok = await PM.recolher(id, d.querySelector('#mo-f').value); fechaMarc(); };
 }
 let _avisoM = null;
 function avisoMarc(txt) { if (_avisoM) _avisoM.remove(); _avisoM = null; if (!txt) return; _avisoM = document.createElement('div'); _avisoM.className = 'marc-aviso'; _avisoM.textContent = txt + ' (Esc cancela)'; document.body.append(_avisoM); }
@@ -3411,10 +3401,10 @@ function iniciaMarcadores(gm) {
     }
     const h = marcadorClicado(e); if (!h) return;
     if (h.tipo === 'pista' && gm) dlgPista(h.id);
-    else if (h.tipo === 'objeto') gm ? dlgObjetoGM(h.id) : dlgObjetoJogador(h.id);
+    else if (h.tipo === 'objeto' && gm) dlgObjetoGM(h.id);
   });
   if (gm) {
-    const b = document.createElement('button'); b.className = 'btn'; b.id = 'b-marc'; b.type = 'button'; b.title = 'Pistas (amarelo, só você) e objetos (azul)'; b.setAttribute('aria-label', b.title);
+    const b = document.createElement('button'); b.className = 'btn'; b.id = 'b-marc'; b.type = 'button'; b.title = 'Pistas (amarelo) e objetos (azul), só você vê'; b.setAttribute('aria-label', b.title);
     b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.6-6-11a6 6 0 1 1 12 0c0 5.4-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="t">Marcadores</span>';
     $('#b-pers').before(b);
     b.onclick = () => {
