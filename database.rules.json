@@ -173,7 +173,7 @@
     },
     "notas": {
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
+        ".read": "auth != null && (auth.uid === $uid || root.child('mesa/mestres/' + auth.uid).val() === true)",
         ".write": "auth != null && root.child('mesa/banidos/' + auth.uid).val() !== true && auth.uid === $uid"
       }
     }

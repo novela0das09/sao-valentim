@@ -552,7 +552,7 @@
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
     if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=53' + location.search.replace('?', '&'); }
-    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=33' + location.search.replace('?', '&'); }
+    if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=34' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
     if (a === 'notas') abaNotas();
@@ -678,6 +678,12 @@
       cheiaHTML = `<div class="cartao"><h2>Textos secretos <small>só o mestre lê</small></h2>
         <p class="vazio">${nSeg ? nSeg + ' textos carregados (pistas, notas de lugar e o Lacre).' : 'Nenhum texto carregado: as pistas e as notas do mapa aparecem vazias. Importe o arquivo segredos-mestre.json (guardado só no seu computador).'}</p>
         <form class="compor" data-form="segredos"><input class="campo" type="file" name="arq" accept=".json,application/json" style="padding:7px"><button class="btn red" type="submit">Importar</button></form></div>`;
+      cheiaHTML += `<div class="cartao"><h2>Limpar a mesa <small>apaga para todos</small></h2>
+        <div class="limpa-op"><label class="chave"><input type="checkbox" data-limpa="mesa/mural" checked><span>Mural de avisos</span></label>
+        <label class="chave"><input type="checkbox" data-limpa="rolagens" checked><span>Rolagens</span></label>
+        <label class="chave"><input type="checkbox" data-limpa="pedidos"><span>Pedidos e mensagens particulares</span></label></div>
+        <div class="acoes"><button class="btn sm red" type="button" data-acao="limpar">Limpar o que marquei</button></div>
+        <p class="vazio">Fichas, mapa, sons e anotações não são tocados.</p></div>`;
       cheiaHTML += `<div class="cartao"><h2>Dias até a cheia <small>todos veem no topo</small></h2>
         <form class="compor" data-form="cheia" style="flex-wrap:wrap"><input class="campo" name="t" type="number" min="0" max="99" value="${c.dias ?? ''}" aria-label="Dias que faltam" placeholder="Dias" style="flex:0 0 90px"><input class="campo" name="data" value="${esc(c.data || '')}" placeholder="Data na campanha (ex.: 4 de junho)" style="flex:1 1 150px"><input class="campo" name="hora" value="${esc(c.hora || '')}" placeholder="Hora (ex.: 22h)" style="flex:0 1 110px"><button class="btn red" type="submit">Atualizar</button></form>
         ${c.dias !== undefined && c.dias !== null && c.dias !== '' ? '<div class="acoes"><button class="btn sm" type="button" data-acao="cheia-tira">Esconder o contador</button></div>' : ''}</div>`;
@@ -722,6 +728,13 @@
       const d = b.dataset;
       if (d.tira) SV.db.remove('mesa/mural/' + d.tira);
       if (d.acao === 'cheia-tira' && SV.isGM) SV.db.remove('mesa/cheia');
+      if (d.acao === 'limpar' && SV.isGM) {
+        const ps = [...box.querySelectorAll('[data-limpa]:checked')].map(x => x.dataset.limpa);
+        const nomes = { 'mesa/mural': 'o mural', rolagens: 'as rolagens', pedidos: 'os pedidos e mensagens' };
+        if (!ps.length) { SV.toast('Marque o que limpar.'); return; }
+        if (!confirm('Apagar ' + ps.map(x => nomes[x]).join(', ') + ' para todos? Não dá para desfazer.')) return;
+        Promise.all(ps.map(x => SV.db.remove(x))).then(() => SV.toast('Mesa limpa.'), e => SV.toast('Não deu para limpar (' + (e.code || e.message) + ').', 'err'));
+      }
       if (d.apagaPed) SV.db.remove('pedidos/' + d.apagaPed);
       if (d.acao === 'limpar-rol') { if (b.dataset.certeza) SV.db.remove('rolagens'); else { b.dataset.certeza = '1'; b.textContent = 'Toque de novo para apagar'; setTimeout(() => desenhaMesa(), 3000); } }
       if (d.poeGm) SV.db.set('mesa/mestres/' + d.poeGm, true).then(() => render.mesa());
@@ -961,10 +974,39 @@
   }
   const catsUsadas = () => [...new Set([...CATS_N, ...Object.values(N.lista).map(n => n && n.cat).filter(Boolean)])];
 
+  /* o mestre lê (sem editar) o caderno de qualquer jogador */
+  const NO = { uid: '', lista: null, solta: null };
+  function opcoesQuem() {
+    const sel = $('#n-quem'); if (!sel) return;
+    const jog = Object.entries(D.users).filter(([u]) => !ehGM(u) && !D.banidos[u]).sort((a, b) => String(a[1].nome).localeCompare(b[1].nome));
+    sel.innerHTML = '<option value="">você</option>' + jog.map(([u, x]) => `<option value="${esc(u)}"${u === NO.uid ? ' selected' : ''}>${esc(x.nome || 'Sem nome')}</option>`).join('');
+  }
+  function desenhaOutro() {
+    const box = $('#n-outro'), meu = $('#notas'); if (!box || !meu) return;
+    box.hidden = !NO.uid; meu.hidden = !!NO.uid;
+    if (!NO.uid) return;
+    const nome = nomeDe(NO.uid);
+    if (NO.lista === null) { box.innerHTML = `<h2>Caderno de ${esc(nome)}</h2><p class="vazio">Carregando…</p>`; return; }
+    if (NO.lista === false) { box.innerHTML = `<h2>Caderno de ${esc(nome)}</h2><p class="vazio">O banco não deixou ler este caderno. As regras novas do Firebase precisam estar publicadas.</p>`; return; }
+    const ns = Object.values(NO.lista).filter(n => n && !vaziaN(n)).sort((a, b) => (!!b.fixa - !!a.fixa) || (b.t || 0) - (a.t || 0));
+    box.innerHTML = `<h2>Caderno de ${esc(nome)} <small>${ns.length} ${ns.length === 1 ? 'anotação' : 'anotações'} · só leitura</small></h2>` +
+      (ns.length ? ns.map(n => `<details class="n-ler"><summary><b>${esc(n.titulo || 'Sem título')}</b><small>${esc([n.cat, dataHora(n.t)].filter(Boolean).join(' · '))}</small></summary><div class="n-ler-txt">${esc(n.texto || '')}</div></details>`).join('') : '<p class="vazio">Nenhuma anotação ainda.</p>');
+  }
+  function abreOutro(uid) {
+    if (NO.solta) { try { NO.solta(); } catch {} NO.solta = null; }
+    NO.uid = uid || ''; NO.lista = null; opcoesQuem(); desenhaOutro();
+    if (!NO.uid) return;
+    const alvo = NO.uid, cb = v => { if (NO.uid !== alvo) return; NO.lista = (v && v.n) || {}; desenhaOutro(); };
+    SV.db.get('notas/' + alvo).then(cb, () => { if (NO.uid === alvo) { NO.lista = false; desenhaOutro(); } });
+    try { const u = SV.db.on('notas/' + alvo + '/n', v => { if (NO.uid === alvo) { NO.lista = v || {}; desenhaOutro(); } }); if (typeof u === 'function') NO.solta = u; } catch {}
+  }
+  SV.verNotasDe = uid => { if (!SV.isGM) return; irAba('notas'); montaNotas(); abreOutro(uid); };
+
   function montaNotas() {
     const box = $('#p-notas'); if (!box || box.dataset.ok) return;
     box.dataset.ok = '1';
-    box.innerHTML = `<div class="titulo-pg"><h1>Anotações</h1><p id="n-sub"></p></div>
+    box.innerHTML = `<div class="titulo-pg"><h1>Anotações</h1><p id="n-sub"></p>${SV.isGM ? '<label class="n-quem">Caderno de <select class="campo" id="n-quem" aria-label="De quem é o caderno"><option value="">você</option></select></label>' : ''}</div>
+      <div class="cartao n-outro" id="n-outro" hidden></div>
       <div class="notas" id="notas">
         <div class="cartao n-lista"><h2>Caderno <small id="n-conta"></small></h2>
           <button class="btn red" type="button" data-n="nova">+ Nova anotação</button>
@@ -974,6 +1016,7 @@
         <div class="cartao n-edit" id="n-edit"></div>
       </div>
       <datalist id="n-cats"></datalist>`;
+    if (SV.isGM) { opcoesQuem(); const q = $('#n-quem'); q.addEventListener('focus', opcoesQuem); q.addEventListener('change', () => abreOutro(q.value)); }
     box.addEventListener('click', e => {
       const it = e.target.closest('[data-nota]');
       if (it) { abreN(it.dataset.nota); return; }

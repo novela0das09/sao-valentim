@@ -2381,7 +2381,8 @@ function blocoProgressao(f) {
       blocoHabPerfil(f),
       !ev && !ehMestre() ? h('p', { class: 'legenda' }, 'A evolução de nível é aberta pelo mestre.') : null,
       !ev ? (!ehMestre() ? null : h('div', { class: 'row' }, h('button', { class: 'btn sm red', type: 'button', disabled: f.nivel >= 10 || null, onclick: () => { f.evolAberta = { de: f.nivel, para: Math.min(10, f.nivel + 1), foto: fotoFicha(f), t: Date.now() }; UIS.edit = true; salvar(); renderTudo(); } }, 'Evoluir para o nível ' + Math.min(10, f.nivel + 1)),
-          h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.evolAberta = { de: f.nivel, para: f.nivel, foto: fotoFicha(f), t: Date.now(), ajuste: true }; UIS.edit = true; salvar(); renderTudo(); } }, 'Registrar ajuste do mestre')))
+          h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { f.evolAberta = { de: f.nivel, para: f.nivel, foto: fotoFicha(f), t: Date.now(), ajuste: true }; UIS.edit = true; salvar(); renderTudo(); } }, 'Registrar ajuste do mestre'),
+          f.dono && (f.papel || 'pj') === 'pj' ? h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { try { window.parent.SV.verNotasDe(f.dono); } catch (e) { toast('Abra pelo site para ver as anotações.'); } } }, 'Ver as anotações do jogador') : null))
         : [h('div', { class: 'dica' }, h('b', null, ev.ajuste ? 'Ajuste do mestre aberto.' : 'Evolução para o nível ' + ev.para + ' aberta.'),
             'A ficha está em modo de edição: mude atributos, perícias, PV, PD e habilidades. Ao concluir, tudo o que mudou entra no histórico.',
             ev.ajuste ? h('span', null, 'Ajuste livre do mestre (não segue a tabela de níveis).') : h('span', null, 'Este nível dá: ', h('strong', null, textoBen(BEN_OFICIAL[ev.para] || {})), '. Aplique à mão; a ficha confere.'),

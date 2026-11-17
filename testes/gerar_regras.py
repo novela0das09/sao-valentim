@@ -80,7 +80,7 @@ R = {"rules": {
       ".write": "auth != null && auth.uid === $to && !newData.exists()",
       "$from": {".write": f"{DENTRO} && (auth.uid === $from || (auth.uid === $to && !newData.exists()))"}}},
   },
-  "notas": {"$uid": {".read": "auth != null && auth.uid === $uid", ".write": f"{DENTRO} && auth.uid === $uid"}},
+  "notas": {"$uid": {".read": f"auth != null && (auth.uid === $uid || {GM})", ".write": f"{DENTRO} && auth.uid === $uid"}},
 }}
 # objetos coletáveis (azul) e pistas (amarelo) ficam só em mestre/, que só o mestre lê: nenhuma regra nova
 json.dump(R, open(sys.argv[1], 'w', encoding='utf-8', newline=''), ensure_ascii=False, indent=2)
