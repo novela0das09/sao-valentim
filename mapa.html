@@ -143,6 +143,12 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .marc-dlg .lin2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .marc-dlg .desc { white-space: pre-wrap; line-height: 1.45; color: var(--mist); }
 .marc-dlg .nota { font-size: 12px; color: var(--mist-2); }
+.mk-dica { position: fixed; z-index: 60; max-width: 300px; padding: 10px 12px; border-radius: 12px; background: rgba(12, 14, 16, .94); border: 1px solid #4aa3ff; color: var(--mist); font: 500 12.5px var(--f-ui); pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,.55); display: grid; gap: 5px; }
+.mk-dica[hidden] { display: none; }
+.mk-t { display: flex; align-items: center; gap: 8px; } .mk-t b { font: 700 16px var(--f-ui); line-height: 1.2; } .mk-t .ponto { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.mk-dt { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.1); font: 700 12px var(--f-ui); white-space: nowrap; }
+.mk-d { line-height: 1.45; color: var(--mist); } .mk-l { font-size: 12px; color: var(--mist-2); }
+.marc-dlg.mk-card { width: 300px; } .marc-dlg details summary { cursor: pointer; font-size: 12px; color: var(--mist-2); } .marc-dlg details { display: grid; gap: 6px; }
 .marc-painel { display: grid; gap: 6px; padding: 8px; border: 1px dashed var(--line); border-radius: 10px; margin-top: 4px; font: 500 12px var(--f-ui); color: var(--mist); }
 .marc-painel label { display: flex; gap: 6px; align-items: center; }
 .marc-aviso { position: fixed; left: 50%; bottom: 70px; transform: translateX(-50%); z-index: 40; padding: 8px 14px; border-radius: 999px; background: rgba(10,12,14,.85); border: 1px solid #e0b45e; color: #fff; font: 600 12px var(--f-ui); }
@@ -4911,46 +4917,45 @@ function abreDlg(html, cor) {
   d.querySelector('[data-x]')?.addEventListener('click', fechaMarc); return d;
 }
 const opts = (obj, v) => Object.entries(obj).map(([k, n]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(n)}</option>`).join('');
+/* cartão curto do mestre: nome grande com a DT, uma descrição breve e o teste; nada de entregar, categoria ou aparência */
+const resumo = (t, n = 230) => { t = String(t || ''); const m = t.match(/O QUE É:\s*([\s\S]*?)(\n\n|\nO QUE)/); const loc = (t.match(/^Local:\s*(.+)$/m) || [])[1]; let r = m ? m[1].trim() : t.replace(/^Local:.*$/m, '').replace(/STATUS:[^\n]*\n?/, '').trim(); if (r.length > n) r = r.slice(0, n).replace(/\s+\S*$/, '') + '…'; return { r, loc }; };
+const dtDe = nome => { const m = String(nome || '').match(/^(.*?)\s*[—-]\s*(DT\s*\d+|sem DT)\s*$/i); return m ? [m[1], m[2]] : [nome, '']; };
+const cartaoHTML = (cor, nome, dt, desc, loc, teste) => `<div class="mk-t"><span class="ponto" style="background:${cor}"></span><b>${esc(nome)}</b>${dt ? `<span class="mk-dt">${esc(dt)}</span>` : ''}</div>${desc ? `<div class="mk-d">${esc(desc)}</div>` : ''}${loc ? `<div class="mk-l">📍 ${esc(loc)}</div>` : ''}${teste ? `<div class="mk-l">🎲 ${esc(teste)}</div>` : ''}`;
+const DESC_ITEM = {"Kit de primeiros socorros": "Curativos, gaze, esparadrapo e antisséptico para cuidar de ferimentos leves.", "Kit médico": "Material de atendimento do posto: suturas, seringas e remédios de uso controlado.", "Analgésico": "Cartela de comprimidos para dor.", "Calmante natural": "Chá ou gotas de ervas que acalmam os nervos.", "Pomada de cicatrização": "Bisnaga de pomada para cortes e queimaduras.", "Energético": "Lata de energético: espanta o sono e o cansaço.", "Chocolate e café": "Barra de chocolate e um pouco de café: força para seguir.", "Lanterna": "Lanterna de mão com pilhas.", "Rádio de pilha": "Radinho de pilha que pega AM e FM.", "Gravador de voz": "Gravador portátil de fita.", "Câmera fotográfica": "Câmera de filme com alguns cliques sobrando.", "Celular": "Celular com pouca bateria e sinal fraco no vale.", "Fones de ouvido": "Fones de estúdio, bons para escutar detalhes numa gravação.", "Corda": "Rolo de corda grossa, uns 15 metros.", "Pé de cabra": "Barra de ferro para forçar portas, tampas e gavetas.", "Machado": "Machado de rachar lenha.", "Taco de beisebol": "Taco de madeira maciça.", "Faca de cozinha": "Faca de cozinha afiada.", "Isqueiro": "Isqueiro a gás, funcionando.", "Mochila impermeável": "Mochila que não deixa a água entrar.", "Sinalizador": "Pistola sinalizadora de emergência.", "Cartucho de sinalizador": "Cartucho para a pistola sinalizadora.", "Cuia de chimarrão": "Cuia com bomba e erva.", "Cigarro de palha": "Cigarros de palha enrolados à mão.", "Incenso": "Varetas de incenso, cheiro forte de igreja.", "Incenso antigo": "Varetas de incenso velhas, guardadas há anos.", "Velas": "Maço de velas brancas.", "Pedras para estilingue": "Pedrinhas redondas escolhidas para estilingue.", "Pistola": "Arma institucional sob responsabilidade do delegado. Não é item solto.", "Mapa antigo da região": "Mapa de papel com estradas e propriedades de antes da barragem.", "Mapa antigo do cemitério": "Planta do cemitério com quadras e jazigos.", "Mapa antigo de Remanso": "Mapa de papel da vila antes da inundação, com anotações.", "Mapa da cidade": "Mapa simples de São Valentim do Vale.", "Mapa da região": "Mapa escolar da região, com nomes antigos.", "Mapa topográfico": "Mapa de campo dos topógrafos, com trilhas, desníveis e pontos da mata.", "Mapa da barragem": "Planta da barragem e dos acessos da obra."};
+function dadosMarc(h) {
+  if (h.tipo === 'pista') { const o = (PM.pistas3d() || {})[h.id]; if (!o) return null; const [n, dt] = dtDe(resolve(o.titulo)), { r, loc } = resumo(resolve(o.texto)); return { o, cor: '#ffc040', nome: n, dt, desc: r, loc, teste: dt && !/sem/i.test(dt) ? 'Percepção ou Investigação' : '' }; }
+  const o = (PM.objetos() || {})[h.id]; if (!o) return null; const [n, dt] = dtDe(o.nome), { r, loc } = resumo(o.desc); return { o, cor: '#4aa3ff', nome: n, dt: dt || (o.dt != null ? 'DT ' + o.dt : ''), desc: r || DESC_ITEM[String(n).trim()] || DESC_ITEM[(o.item && o.item.nome) || ''] || '', loc, teste: o.teste || 'Percepção ou Investigação' };
+}
+let _ultPos = { x: innerWidth / 2, y: 120 };
+function abreCartao(html) { const d = abreDlg(html); d.classList.add('mk-card'); const w = 300; d.style.left = Math.min(innerWidth - w - 12, Math.max(12, _ultPos.x + 14)) + 'px'; d.style.top = Math.min(innerHeight - 260, Math.max(64, _ultPos.y - 20)) + 'px'; d.style.right = 'auto'; return d; }
 function dlgPista(id) {
-  const o = (PM.pistas3d() || {})[id]; if (!o) return;
-  const d = abreDlg(`<h3><span class="ponto" style="background:#ffc040"></span>Pista do mestre <span style="flex:1"></span><button class="btn" data-x type="button">Fechar</button></h3>
-    <p class="nota">Só você vê este ponto. Os jogadores não recebem a posição nem o texto.</p>
-    <label>Nome<input id="mp-t" value="${esc(resolve(o.titulo))}"></label>
-    <label>Conteúdo<textarea id="mp-x">${esc(resolve(o.texto))}</textarea></label>
-    <label>Estado<select id="mp-e">${opts(EST_P, o.estado || 'escondida')}</select></label>
-    <div class="lin"><button class="btn red" id="mp-s" type="button">Salvar</button><button class="btn" id="mp-r" type="button" title="Publica o nome e o conteúdo no mural para todos">Revelar aos jogadores</button><button class="btn" id="mp-m" type="button">Mover</button><button class="btn" id="mp-a" type="button">Apagar</button></div>`);
-  d.querySelector('#mp-s').onclick = () => { PM.salvarPista3d(id, Object.assign({}, o, { titulo: d.querySelector('#mp-t').value.trim(), texto: d.querySelector('#mp-x').value, estado: d.querySelector('#mp-e').value })); fechaMarc(); };
-  d.querySelector('#mp-r').onclick = () => { PM.salvarPista3d(id, Object.assign({}, o, { titulo: d.querySelector('#mp-t').value.trim(), texto: d.querySelector('#mp-x').value })); setTimeout(() => PM.revelarPista3d(id), 300); fechaMarc(); };
+  const x = dadosMarc({ tipo: 'pista', id }); if (!x) return; const o = x.o;
+  const d = abreCartao(`${cartaoHTML(x.cor, x.nome, x.dt, x.desc, x.loc, '')}
+    <details><summary>Editar</summary><label>Nome<input id="mp-t" value="${esc(resolve(o.titulo))}"></label><label>Texto<textarea id="mp-x">${esc(resolve(o.texto))}</textarea></label></details>
+    <div class="lin"><button class="btn" id="mp-s" type="button">Salvar</button><button class="btn" id="mp-m" type="button">Mover</button><button class="btn" id="mp-a" type="button">Apagar</button><span style="flex:1"></span><button class="btn" data-x type="button">Fechar</button></div>`);
+  d.querySelector('[data-x]').onclick = fechaMarc;
+  d.querySelector('#mp-s').onclick = () => { PM.salvarPista3d(id, Object.assign({}, o, { titulo: d.querySelector('#mp-t').value.trim(), texto: d.querySelector('#mp-x').value })); fechaMarc(); };
   d.querySelector('#mp-m').onclick = () => { MARC.modo = 'mover'; MARC.alvoMover = { tipo: 'pista', id }; avisoMarc('Clique onde a pista fica agora'); fechaMarc(); };
   d.querySelector('#mp-a').onclick = () => { if (confirm('Apagar esta pista do mapa?')) { PM.removerPista3d(id); fechaMarc(); } };
 }
 function dlgObjetoGM(id) {
-  const o = (PM.objetos() || {})[id]; if (!o) return;
-  const it = o.item || {}, rp = o.recolhidoPor;
-  const d = abreDlg(`<h3><span class="ponto" style="background:#4aa3ff"></span>Objeto <span style="flex:1"></span><button class="btn" data-x type="button">Fechar</button></h3>
-    <p class="nota">Só você vê este marcador. Quando um personagem achar e pegar o objeto, entregue abaixo: o item entra na mochila da ficha.</p>
-    <label>Nome<input id="mo-n" value="${esc(o.nome || '')}"></label>
-    <label>Descrição (para você ler quando acharem)<textarea id="mo-d">${esc(o.desc || '')}</textarea></label>
-    <div class="lin2"><label>Categoria<select id="mo-c">${opts(CAT_OBJ, o.cat || 'utilidades')}</select></label><label>Aparência<select id="mo-m">${opts(MOD_OBJ, o.modelo || 'caixa')}</select></label></div>
-    <div class="lin2"><label>Vai para o inventário como<input id="mo-i" value="${esc(it.nome || '')}" placeholder="vazio = só para examinar" list="mo-lista"></label><label>Quantidade<input id="mo-q" type="number" min="1" step="1" value="${+it.qtd || 1}"></label></div>
-    <datalist id="mo-lista">${(PM.itensCatalogo ? PM.itensCatalogo() : []).map(n => `<option value="${esc(n)}">`).join('')}</datalist>
-    <div class="lin2"><label>Dificuldade (só você vê)<select id="mo-f">${opts(DIF, o.dificuldade || 'facil')}</select></label><label>Estado<select id="mo-e">${opts(EST_O, o.estado || 'escondido')}</select></label></div>
-    <div class="lin2"><label>Teste (perícias aceitas)<input id="mo-p" value="${esc(o.teste || '')}" placeholder="ex.: Percepção ou Pesquisar"></label><label>DT<input id="mo-dt" type="number" min="0" step="1" value="${o.dt ?? ''}" placeholder="a sua"></label></div>
-    <label>Requisito para pegar (chave, pé de cabra, combinação…)<input id="mo-r" value="${esc(o.requisito || '')}"></label>
-    <label>Notas do mestre<textarea id="mo-o" style="min-height:50px">${esc(o.notas || '')}</textarea></label>
-    ${rp ? `<p class="nota">Entregue para ${esc(rp.nome || '?')} em ${new Date(rp.t || 0).toLocaleString('pt-BR')}.</p>` : (PM.minhasFichas && PM.minhasFichas().length ? `<div class="lin2"><label>Entregar para<select id="mo-pf">${PM.minhasFichas().map(f => `<option value="${esc(f.id)}">${esc(f.nome)}</option>`).join('')}</select></label><label>&nbsp;<button class="btn red" id="mo-g" type="button">Entregar</button></label></div>` : '<p class="nota">Nenhuma ficha de jogador na mesa para receber.</p>')}
-    <div class="lin"><button class="btn red" id="mo-s" type="button">Salvar</button>${o.estado === 'recolhido' ? '<button class="btn" id="mo-v" type="button">Devolver ao cenário</button>' : ''}<button class="btn" id="mo-mv" type="button">Mover</button><button class="btn" id="mo-a" type="button">Apagar</button></div>`);
-  d.querySelector('#mo-s').onclick = () => {
-    const nomeIt = d.querySelector('#mo-i').value.trim(), dt = d.querySelector('#mo-dt').value;
-    PM.salvarObjeto(id, Object.assign({}, o, { nome: d.querySelector('#mo-n').value.trim() || 'Objeto', desc: d.querySelector('#mo-d').value, cat: d.querySelector('#mo-c').value, modelo: d.querySelector('#mo-m').value,
-      item: nomeIt ? { nome: nomeIt, qtd: Math.max(1, Math.floor(+d.querySelector('#mo-q').value) || 1) } : null, dificuldade: d.querySelector('#mo-f').value, estado: d.querySelector('#mo-e').value,
-      teste: d.querySelector('#mo-p').value.trim(), dt: dt === '' ? null : Math.max(0, Math.floor(+dt)), requisito: d.querySelector('#mo-r').value.trim(), notas: d.querySelector('#mo-o').value }));
-    fechaMarc();
-  };
-  const dv = d.querySelector('#mo-v'); if (dv) dv.onclick = () => { PM.devolverObjeto(id); fechaMarc(); };
-  const dg = d.querySelector('#mo-g'); if (dg) dg.onclick = async () => { dg.disabled = true; await PM.entregarObjeto(id, d.querySelector('#mo-pf').value); fechaMarc(); };
+  const x = dadosMarc({ tipo: 'objeto', id }); if (!x) return; const o = x.o;
+  const d = abreCartao(`${cartaoHTML(x.cor, x.nome, x.dt, x.desc, x.loc, x.teste)}
+    <details><summary>Editar</summary><label>Nome (com a DT)<input id="mo-n" value="${esc(o.nome || '')}"></label><label>Descrição<textarea id="mo-d" style="min-height:60px">${esc(o.desc || '')}</textarea></label><label>Teste para achar<input id="mo-p" value="${esc(o.teste || 'Percepção ou Investigação')}"></label></details>
+    <div class="lin"><button class="btn" id="mo-s" type="button">Salvar</button><button class="btn" id="mo-mv" type="button">Mover</button><button class="btn" id="mo-a" type="button">Apagar</button><span style="flex:1"></span><button class="btn" data-x type="button">Fechar</button></div>`);
+  d.querySelector('[data-x]').onclick = fechaMarc;
+  d.querySelector('#mo-s').onclick = () => { PM.salvarObjeto(id, Object.assign({}, o, { nome: d.querySelector('#mo-n').value.trim() || 'Objeto', desc: d.querySelector('#mo-d').value, teste: d.querySelector('#mo-p').value.trim() })); fechaMarc(); };
   d.querySelector('#mo-mv').onclick = () => { MARC.modo = 'mover'; MARC.alvoMover = { tipo: 'objeto', id }; avisoMarc('Clique onde o objeto fica agora'); fechaMarc(); };
-  d.querySelector('#mo-a').onclick = () => { if (confirm('Apagar este objeto do mapa?')) { PM.removerObjeto(id); fechaMarc(); } };
+  d.querySelector('#mo-a').onclick = () => { if (confirm('Apagar este objeto do mapa?')) { PM.removerObjeto ? PM.removerObjeto(id) : PM.salvarObjeto(id, null); fechaMarc(); } };
+}
+/* passar o mouse em cima de um ponto amarelo ou azul mostra o cartão pequeno; tirou o mouse, some */
+function iniciaDica() {
+  const dica = document.createElement('div'); dica.className = 'mk-dica'; dica.hidden = true; document.body.append(dica); let pend = null, ultimo = '';
+  canvas.addEventListener('pointermove', e => { _ultPos = { x: e.clientX, y: e.clientY }; if (pend) return; pend = requestAnimationFrame(() => { pend = null;
+    if (!PM || SO_JOGADOR || MARC.dlg) { dica.hidden = true; return; } const h = marcadorClicado(e); if (!h) { dica.hidden = true; ultimo = ''; canvas.style.cursor = ''; return; }
+    const k = h.tipo + h.id; if (k !== ultimo) { const x = dadosMarc(h); if (!x) return; dica.innerHTML = cartaoHTML(x.cor, x.nome, x.dt, x.desc, x.loc, x.teste); dica.style.borderColor = x.cor; ultimo = k; }
+    dica.hidden = false; canvas.style.cursor = 'pointer'; const w = dica.offsetWidth, hh = dica.offsetHeight; dica.style.left = Math.min(innerWidth - w - 8, e.clientX + 16) + 'px'; dica.style.top = Math.max(8, Math.min(innerHeight - hh - 8, e.clientY - hh - 12)) + 'px'; }); });
+  canvas.addEventListener('pointerleave', () => { dica.hidden = true; ultimo = ''; });
 }
 let _avisoM = null;
 function avisoMarc(txt) { if (_avisoM) _avisoM.remove(); _avisoM = null; if (!txt) return; _avisoM = document.createElement('div'); _avisoM.className = 'marc-aviso'; _avisoM.textContent = txt + ' (Esc cancela)'; document.body.append(_avisoM); }
@@ -4998,6 +5003,7 @@ function iniciaMarcadores(gm) {
   const sinc = () => requestAnimationFrame(sincMarcadores);
   if (PM.onPistas3d) PM.onPistas3d(sinc); if (PM.onObjetos) PM.onObjetos(sinc); if (PM.onSegredos) PM.onSegredos(sinc);
   sincMarcadores();
+  if (gm) iniciaDica();
 }
 function iniciaPonte() {
   const gm = PM.isGM();
