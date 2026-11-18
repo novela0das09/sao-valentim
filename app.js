@@ -466,7 +466,7 @@
     revelarPista3d(id) { const p = SV.isGM && D.pistas3d[id]; if (!p) return; const txt = (s => (s && s[0] === '§' ? ((D.segredos || {})[s.slice(1)] || '') : s))(p.texto || ''), tit = (s => (s && s[0] === '§' ? ((D.segredos || {})[s.slice(1)] || '') : s))(p.titulo || ''); SV.db.push('mesa/mural', { texto: (tit ? tit + '\n\n' : '') + txt, t: Date.now() }).then(() => SV.toast('Pista revelada no mural.')); SV.db.update('mestre/pistas3d/' + id, { estado: 'descoberta', revelada: Date.now() }).catch(() => {}); },
     /* fichas de jogador que esta pessoa pode usar para recolher (o mestre: todas) */
     minhasFichas() { return Object.values(D.fichas).map(x => x && x.f).filter(f => f && (f.papel || 'pj') === 'pj' && (SV.isGM || f.dono === SV.me.uid)).map(f => ({ id: f.id, nome: String(f.nome || 'Sem nome') })); },
-    itensCatalogo: () => ['Kit de primeiros socorros', 'Kit médico', 'Energético', 'Calmante natural', 'Chocolate e café', 'Analgésico', 'Lanterna', 'Isqueiro', 'Celular', 'Câmera fotográfica', 'Gravador de voz', 'Rádio de pilha', 'Corda', 'Pé de cabra', 'Sinalizador', 'Cuia de chimarrão', 'Cigarro de palha', 'Mochila impermeável', 'Munição .38', 'Munição .32', 'Munição .380', 'Munição .40', 'Munição 9 mm', 'Cartucho calibre 12', 'Munição de rifle', 'Pedras para estilingue', 'Cartucho de sinalizador'],
+    itensCatalogo: () => ['Kit de primeiros socorros', 'Kit médico', 'Energético', 'Calmante natural', 'Chocolate e café', 'Analgésico', 'Lanterna', 'Isqueiro', 'Celular', 'Câmera fotográfica', 'Gravador de voz', 'Rádio de pilha', 'Corda', 'Pé de cabra', 'Sinalizador', 'Cuia de chimarrão', 'Cigarro de palha', 'Mochila impermeável', 'Munição .38', 'Munição .32', 'Munição .380', 'Munição .40', 'Munição 9 mm', 'Cartucho calibre 12', 'Munição de rifle', 'Pedras para estilingue', 'Cartucho de sinalizador', 'Faca de cozinha', 'Machado', 'Taco de beisebol', 'Incenso', 'Pomada de cicatrização', 'Velas', 'Fones de ouvido', 'Mapa antigo da região', 'Mapa antigo do cemitério', 'Mapa antigo de Remanso', 'Mapa da cidade', 'Mapa da região', 'Mapa topográfico', 'Mapa da barragem', 'Pistola'],
     onSegredos(cb) { return ouve('segredos', () => cb()); },
     /* ---------- objetos coletáveis (azul) ---------- */
     objetos() { const out = {}; if (SV.isGM) for (const [id, o] of Object.entries(D.objPriv || {})) if (o && o.cena) out[id] = Object.assign({}, o, { id }); return out; },
@@ -552,7 +552,7 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=54' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=55' + location.search.replace('?', '&'); }
     if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=34' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
@@ -787,7 +787,7 @@
         <p class="vazio">Você também ouve, para acompanhar a cena.</p>` : '<p class="vazio">Nenhum jogador entrou na mesa ainda.</p>'}</div>`;
   }
   /* sons automáticos: o mestre liga ambientes conforme o mapa, o período, o clima e a água */
-  const OPC = { mapa: [['', 'qualquer mapa'], ['cidade', 'Cidade'], ['remanso', 'Remanso'], ['mata', 'Mata'], ['estrada', 'Estrada'], ['sonho', 'O Sonho'], ['c-cemiterio', 'Cemitério'], ['c-igreja', 'Igreja Matriz de Remanso'], ['c-praca', 'Praça'], ['c-altar', 'Altar de Remanso'], ['c-prefeitura', 'Prefeitura e Cartório'], ['c-radio', 'Rádio Vale Alto'], ['c-armazem', 'Armazém Pozzobon'], ['c-iracema', 'Casa da Iracema'], ['c-nonna', 'Casa da Nonna Gema'], ['c-salao', 'Salão Paroquial'], ['c-paroquial', 'Casa Paroquial'], ['c-delegacia', 'Garagem da Delegacia']],
+  const OPC = { mapa: [['', 'qualquer mapa'], ['cidade', 'Cidade'], ['remanso', 'Remanso'], ['mata', 'Mata'], ['estrada', 'Estrada'], ['sonho', 'O Sonho'], ['c-cemiterio', 'Cemitério'], ['c-igreja', 'Igreja Matriz de Remanso'], ['c-praca', 'Praça'], ['c-altar', 'Altar de Remanso'], ['c-prefeitura', 'Prefeitura e Cartório'], ['c-radio', 'Rádio Vale Alto'], ['c-armazem', 'Armazém Pozzobon'], ['c-iracema', 'Casa da Iracema'], ['c-nonna', 'Casa da Nonna Gema'], ['c-salao', 'Salão Paroquial (Filodrammatica)'], ['c-paroquial', 'Casa Paroquial'], ['c-delegacia', 'Delegacia e Brigada Militar'], ['c-posto', 'Posto de Saúde'], ['c-escola', 'Escola'], ['c-pousada', 'Pousada da Lúcia'], ['c-macedo', 'Casa dos Macedo'], ['c-dalmolin', 'Casa dos Dal Molin'], ['c-tonico', 'Casa do Seu Tonico'], ['c-construtora', 'Construtora'], ['c-serraria', 'Serraria'], ['c-cooperativa', 'Cooperativa'], ['c-canteiro', 'Canteiro da UHE']],
     periodo: [['', 'dia ou noite'], ['dia', 'Dia'], ['noite', 'Noite']], clima: [['', 'com ou sem neblina'], ['neblina', 'Neblina'], ['limpo', 'Sem neblina']],
     agua: [['', 'qualquer água'], ['seca', 'Seca'], ['normal', 'Normal'], ['cheia', 'Cheia']] };
   function cartaoAuto() {
