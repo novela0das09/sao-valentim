@@ -99,6 +99,13 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .arte-box footer .ok { background: rgba(226, 178, 94, .18); border-color: rgba(226, 178, 94, .6); color: #f5d99f; }
 .arte-msg { min-height: 18px; font-size: 12.5px; color: var(--lamp); }
 @media (max-width: 560px) { .arte-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); } .arte-img { height: 130px; } }
+.dias { position: fixed; z-index: 3; top: calc(env(safe-area-inset-top, 0px) + 58px); right: max(14px, env(safe-area-inset-right, 0px)); display: flex; align-items: center; gap: 6px; padding: 4px 8px 4px 10px; background: rgba(6, 10, 11, .72); border: 1px solid var(--line); border-right: 2px solid #b3322c; border-radius: 6px; color: #eef0e6; }
+.dias b { font: 600 26px/1 var(--f-display); min-width: 1.4ch; text-align: center; font-variant-numeric: tabular-nums; }
+.dias small { font: 500 10px/1.15 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mist-2); }
+.dias button { width: 22px; height: 22px; padding: 0; border: 1px solid var(--line); border-radius: 4px; background: rgba(255,255,255,.04); color: var(--mist); font: 600 14px/1 var(--f-ui); cursor: pointer; }
+.dias button:hover { border-color: var(--mist-2); } .dias button:focus-visible { outline: 2px solid var(--lamp); outline-offset: 1px; }
+.dias.zero b { color: #e0484f; }
+@media (max-width: 640px) { .dias { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 118px); } .dias b { font-size: 21px; } }
 .lugar { position: fixed; z-index: 2; left: 50%; transform: translateX(-50%); top: calc(env(safe-area-inset-top, 0px) + 74px); padding: 6px 16px; border-radius: 99px; background: rgba(6, 10, 11, .7); border: 1px solid var(--line); font: italic 500 18px var(--f-display); color: #eef0e6; pointer-events: none; transition: opacity .5s; white-space: nowrap; }
 .nota { max-height: 45vh; overflow: auto; position: fixed; z-index: 2; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 92px); max-width: min(300px, calc(100vw - 32px)); padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); font-size: 12.5px; color: var(--mist-2); transition: opacity .5s; }
 .nota b { display: block; font: 600 16px var(--f-display); color: #eef0e6; margin-bottom: 2px; }
@@ -192,6 +199,7 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 <div class="menu-cen" id="menu-cen" hidden role="menu" aria-label="Cenários"></div>
 <div class="painel-cen" id="painel-cen" hidden></div>
 <div class="lugar" id="lugar" hidden></div>
+<div class="dias" id="dias" hidden role="status" aria-live="polite"></div>
 <div class="nota" id="nota" hidden><b id="nota-t"></b><span id="nota-x"></span></div>
 
 <aside class="chars" id="chars" aria-label="Personagens no mapa">
@@ -345,10 +353,26 @@ moon.shadow.bias = -0.0004; moon.shadow.normalBias = 0.04;
 scene.add(moon, moon.target);
 const sky = new THREE.Mesh(new THREE.SphereGeometry(1800, 32, 16), new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
-  uniforms: { top: { value: new THREE.Color(0x030607) }, mid: { value: new THREE.Color(0x0b1515) }, bot: { value: new THREE.Color(0x172322) } },
+  /* céu sempre nublado: gradiente + camada de nuvens procedural (fbm) que anda devagar */
+  uniforms: { top: { value: new THREE.Color(0x07090b) }, mid: { value: new THREE.Color(0x0d1214) }, bot: { value: new THREE.Color(0x141a1b) },
+    nuvC: { value: new THREE.Color(0x2b3439) }, nuvE: { value: new THREE.Color(0x0b0f12) }, uT: { value: 0 } },
   vertexShader: 'varying vec3 vp; void main(){ vp = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
-  fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bot; varying vec3 vp; void main(){ float h = vp.y; vec3 c = h > 0.0 ? mix(mid, top, smoothstep(0.0, 0.55, h)) : bot; c = mix(bot, c, smoothstep(-0.02, 0.12, h)); gl_FragColor = vec4(c, 1.0); }',
+  fragmentShader: `uniform vec3 top; uniform vec3 mid; uniform vec3 bot; uniform vec3 nuvC; uniform vec3 nuvE; uniform float uT; varying vec3 vp;
+    float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hs(i), hs(i + vec2(1, 0)), f.x), mix(hs(i + vec2(0, 1)), hs(i + vec2(1, 1)), f.x), f.y); }
+    float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 5; i++) { v += a * vn(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return v; }
+    void main(){ float h = vp.y; vec3 c = h > 0.0 ? mix(mid, top, smoothstep(0.0, 0.55, h)) : bot; c = mix(bot, c, smoothstep(-0.02, 0.12, h));
+      if (h > 0.0) { vec2 p = vp.xz / (h + 0.12) * 1.15 + vec2(uT * 0.008, uT * 0.003);
+        float n = fbm(p), n2 = fbm(p * 2.4 + vec2(5.2, 1.3) - vec2(uT * 0.004, 0.0));
+        float cob = 0.72 + 0.28 * smoothstep(0.32, 0.62, n);
+        vec3 nv = mix(nuvE, nuvC, smoothstep(0.25, 0.8, n2 * 0.6 + n * 0.5));
+        c = mix(c, nv, cob * smoothstep(0.0, 0.22, h)); }
+      gl_FragColor = vec4(c, 1.0);
+      #include <colorspace_fragment>
+    }`,
 }));
+/* o mesmo céu nas outras cenas abertas (estrada, mata, cenários de fora) */
+const ceuNublado = cena => { const m = new THREE.Mesh(sky.geometry, sky.material); m.renderOrder = -1; cena.add(m); return m; };
 scene.add(sky);
 const stars = (() => {
   const n = 1800, p = new Float32Array(n * 3);
@@ -363,8 +387,9 @@ function softTex(inner = 'rgba(255,255,255,1)', outer = 'rgba(255,255,255,0)', s
   g.fillStyle = gr; g.fillRect(0, 0, size, size); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 const moonSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex('rgba(235,242,240,1)', 'rgba(200,220,215,0)'), fog: false, depthWrite: false, transparent: true, opacity: 0.8 }));
-moonSprite.position.copy(MOON_OFF).normalize().multiplyScalar(1500); moonSprite.scale.setScalar(150); scene.add(moonSprite);
-const fogNoite = new THREE.FogExp2(0x0d1615, 0.0055), fogDia = new THREE.FogExp2(0x9aa9a6, 0.0028), fogAgua = new THREE.FogExp2(0x0b211c, 0.045);
+moonSprite.position.copy(MOON_OFF).normalize().multiplyScalar(1500); moonSprite.scale.setScalar(420); moonSprite.material.opacity = 0.14; scene.add(moonSprite); // a lua só clareia atrás das nuvens
+stars.visible = false; // noite nublada: sem estrelas
+const fogNoite = new THREE.FogExp2(0x0d1615, 0.0055), fogDia = new THREE.FogExp2(0x8f9796, 0.0032), fogAgua = new THREE.FogExp2(0x0b211c, 0.045);
 scene.fog = fogNoite;
 
 /* ---------- modelos (os mesmos do Apogeu, Kenney CC0) ---------- */
@@ -969,6 +994,8 @@ function cidadeNova() {
     const b = especial(S1, lado, x0, wc, 2, 1, 'a', { acesas: 0.75, telhado: 'laje', platibanda: 1.4, portaMeio: true, semVaranda: true }); fachada(b, nome, '#f4ecd8', fundo, { alt: 3.45 }); toldo(b, cTol);
     luz(b.cx, b.y + 2.6, naFrente(b, 1.6), 0xffc070, 22, 12);
     if (nome.startsWith('Mercado')) L.comercio = { x: b.cx, y: b.y, z: b.fz };
+    if (nome.startsWith('Padaria')) L.padaria = { x: b.cx, y: b.y, z: b.fz };
+    if (nome.startsWith('Bar')) L.bar = { x: b.cx, y: b.y, z: b.fz };
   }
   // casa da Dona Iracema, fechada desde 1979
   const ira = especial(S1, 1, 46, 3, 3, 1, 'b', { velha: true, cor: new THREE.Color('#cfc6b4'), telhado: 'duas', cumeeira: 'x', semVaranda: true });
@@ -1882,7 +1909,7 @@ canvas.addEventListener('pointerup', e => {
 // As peças andam aqui como no vale; o mestre leva o grupo para cá e de volta.
 const mataCena = new THREE.Scene();
 const gMata = new THREE.Group(); mataCena.add(gMata);
-const fogMataNoite = new THREE.FogExp2(0x0c1513, 0.034), fogMataDia = new THREE.FogExp2(0x7a8580, 0.02);
+const fogMataNoite = new THREE.FogExp2(0x0c1513, 0.034), fogMataDia = new THREE.FogExp2(0x737b79, 0.02);
 let modoMata = false, mataPronta = false, salvoMata = null, chaoM = null, mataHemi, mataLua, mataVaga, mataNoiteAt = null, mataNevoaAt = null, mataLuzAntena = null, mataBolaAntena = null;
 const marcadoresM = [], nevoasM = [];
 const altC = (cena, x, z, y) => ehCen(cena) ? CEN[cena].alt(x, z, y) : cena === 'mata' ? altM(x, z) : cena === 'estrada' ? altE(x, z) : alt(x, z);
@@ -1973,12 +2000,11 @@ const ondaP = (x, w, fs) => fs.reduce((a, [f, amp, fase]) => a + amp * Math.sin(
 function texHorizonte(tipo, noite) {
   const campo = tipo === 'campo';
   const P = noite
-    ? { ceu0: '#05080a', ceu1: campo ? '#141e22' : '#121c1b', c: campo ? ['#121b1f', '#0d1517', '#0a1110'] : ['#101a19', '#0b1413', '#070d0c'], nevoa: campo ? '#0c1114' : '#0c1513' }
-    : { ceu0: campo ? '#a3adab' : '#8b9794', ceu1: campo ? '#c4cbc6' : '#b3bcb7', c: campo ? ['#76858a', '#56684f', '#435436'] : ['#7d8a89', '#5f6e69', '#3f4c44'], nevoa: campo ? '#9ea7a3' : '#7a8580' };
+    ? { ceu0: '#07090b', ceu1: campo ? '#141a1b' : '#121918', c: campo ? ['#121b1f', '#0d1517', '#0a1110'] : ['#101a19', '#0b1413', '#070d0c'], nevoa: campo ? '#0c1114' : '#0c1513' }
+    : { ceu0: campo ? '#949c9e' : '#858d8d', ceu1: campo ? '#a3a9a8' : '#9aa09f', c: campo ? ['#76858a', '#56684f', '#435436'] : ['#7d8a89', '#5f6e69', '#3f4c44'], nevoa: campo ? '#9ea7a3' : '#7a8580' };
   const fasesA = [[2, 26, 0.3], [5, 14, 1.7], [11, 6, 4.1], [23, 3, 2.2]], fasesB = [[3, 18, 2.4], [7, 9, 0.9], [17, 4, 3.3], [31, 2, 1.1]], fasesC = [[4, 9, 1.2], [9, 5, 5.0], [27, 3, 0.4], [53, 1.5, 2.7]];
   return telaTex(2048, 512, (g, w, h) => {
-    const ceu = g.createLinearGradient(0, 0, 0, 380); ceu.addColorStop(0, P.ceu0); ceu.addColorStop(1, P.ceu1); g.fillStyle = ceu; g.fillRect(0, 0, w, h);
-    if (noite) { for (let i = 0; i < 160; i++) { g.fillStyle = `rgba(220,230,235,${0.15 + rnd() * 0.4})`; g.fillRect(rnd() * w, rnd() * 240, 1, 1); } }
+    g.clearRect(0, 0, w, h); const ceu = g.createLinearGradient(0, 120, 0, 380); ceu.addColorStop(0, P.ceu1 + '00'); ceu.addColorStop(1, P.ceu1); g.fillStyle = ceu; g.fillRect(0, 0, w, h); // céu aberto em cima: o domo de nuvens aparece
     const camada = (base, fases, amp, cor, arvores, pinheiros) => {
       g.fillStyle = cor; g.beginPath(); g.moveTo(0, h);
       for (let x = 0; x <= w; x += 4) g.lineTo(x, base - amp * (0.5 + ondaP(x, w, fases) / 50));
@@ -1995,7 +2021,7 @@ function texHorizonte(tipo, noite) {
 }
 function horizonte(pai, tipo, R, H, y0) {
   const d = texHorizonte(tipo, false), n = texHorizonte(tipo, true);
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 96, 1, true), new THREE.MeshBasicMaterial({ map: n, side: THREE.BackSide, fog: false }));
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 96, 1, true), new THREE.MeshBasicMaterial({ map: n, side: THREE.BackSide, fog: false, transparent: true, depthWrite: false }));
   m.position.y = y0 + H / 2; m.userData = { d, n }; m.renderOrder = -1; pai.add(m); return m;
 }
 const HZ = { mata: null, estr: null };
@@ -2433,10 +2459,10 @@ function camerasDaMata() {
 function aplicaLuzMata() {
   mataNoiteAt = noite; mataNevoaAt = nevoaOn;
   mataCena.fog = nevoaOn ? (noite ? fogMataNoite : fogMataDia) : null;
-  mataCena.background = new THREE.Color(noite ? 0x05080a : 0x8b9794);
+  mataCena.background = new THREE.Color(noite ? 0x07090b : 0x858d8d); aplicaLuzMata.ceu ||= ceuNublado(mataCena);
   if (HZ.mata) HZ.mata.material.map = noite ? HZ.mata.userData.n : HZ.mata.userData.d;
-  mataHemi.color.set(noite ? 0x7f969a : 0xd3ddd8); mataHemi.groundColor.set(noite ? 0x14120d : 0x3a3428); mataHemi.intensity = noite ? 1.25 : 1.6;
-  mataLua.color.set(noite ? 0xb4c8d2 : 0xf0ece0); mataLua.intensity = noite ? 0.9 : 1.4;
+  mataHemi.color.set(noite ? 0x7f969a : 0xd3ddd8); mataHemi.groundColor.set(noite ? 0x14120d : 0x3a3428); mataHemi.intensity = noite ? 1.1 : 1.5;
+  mataLua.color.set(noite ? 0xa3b5c0 : 0xdfe2e1); mataLua.intensity = noite ? 0.8 : 0.9;
   mataVaga.visible = noite; nevoasM.forEach(n => n.visible = nevoaOn);
 }
 function quadroMata(t, dt) {
@@ -2498,7 +2524,7 @@ canvas.addEventListener('pointerup', e => {
 // O chão do ônibus é chão de verdade para as peças: dentro dele elas ficam na altura do piso.
 const estrCena = new THREE.Scene();
 const gEstr = new THREE.Group(); estrCena.add(gEstr);
-const fogEstrDia = new THREE.FogExp2(0x9ea7a3, 0.011), fogEstrNoite = new THREE.FogExp2(0x0c1114, 0.018), fogEstrLeve = new THREE.FogExp2(0x9ea7a3, 0.0035);
+const fogEstrDia = new THREE.FogExp2(0x8f9796, 0.011), fogEstrNoite = new THREE.FogExp2(0x0c1114, 0.018), fogEstrLeve = new THREE.FogExp2(0x8f9796, 0.0035);
 let modoEstr = false, estrPronta = false, salvoEstr = null, chaoE = null, estrHemi, estrSol, estrNoiteAt = null, estrNevoaAt = null, estrAndando = true, estrDesl = 0, estrCarroX = 0;
 const ESTR = { x0: -6.2, x1: 6.2, z0: 0.55, z1: 3.05, piso: 1.12, teto: 3.22, zb: 1.8, v: 14 };
 const E_ = { esteira: [], rodas: [], teto: null, onibus: null, carro: null, faroisL: [], luzInt: [], texCampo: null, texPista: null, texAcost: null, vidro: null, destino: null, painel: null };
@@ -2671,10 +2697,10 @@ function camerasDaEstrada() {
 function aplicaLuzEstr() {
   estrNoiteAt = noite; estrNevoaAt = nevoaOn;
   estrCena.fog = noite ? fogEstrNoite : nevoaOn ? fogEstrDia : fogEstrLeve;
-  estrCena.background = new THREE.Color(noite ? 0x05080a : 0xa3adab);
+  estrCena.background = new THREE.Color(noite ? 0x07090b : 0x949c9e); aplicaLuzEstr.ceu ||= ceuNublado(estrCena);
   if (HZ.estr) HZ.estr.material.map = noite ? HZ.estr.userData.n : HZ.estr.userData.d;
-  estrHemi.color.set(noite ? 0x6f8592 : 0xd3dad6); estrHemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); estrHemi.intensity = noite ? 0.45 : 1.35;
-  estrSol.color.set(noite ? 0xa9bccb : 0xf3eee2); estrSol.intensity = noite ? 0.35 : 1.2;
+  estrHemi.color.set(noite ? 0x6f8592 : 0xd3dad6); estrHemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); estrHemi.intensity = noite ? 0.5 : 1.3;
+  estrSol.color.set(noite ? 0x9fb0bc : 0xdfe2e1); estrSol.intensity = noite ? 0.34 : 0.8;
   for (const f of E_.faroisL) f.intensity = noite ? 14 : 0;
   for (const l of E_.luzInt) l.intensity = noite ? 1.6 : 0.3;
   if (E_.carro) E_.carro.userData.farol.intensity = noite ? 10 : 0;
@@ -2863,10 +2889,10 @@ function aplicaLuzCen(c) {
   c.luzAt = noite + '|' + nevoaOn;
   if (c.raio) { // neblina total em volta: perto se vê, longe some na névoa
     const cor = c.nevoaVerde ? (noite ? 0x0e1612 : 0x26352e) : corNevoa(); c.fogR ||= new THREE.Fog(cor, 1, 2); c.fogR.color.set(cor); const k = c.interno ? 1.6 : 1; c.fogR.near = c.raio * (nevoaOn ? 0.7 : 0.9) * k; c.fogR.far = c.raio * (nevoaOn ? 1.8 : 2.2) * k;
-    c.cena.fog = c.fogR; c.cena.background = new THREE.Color(cor); for (const p of c.paredesNevoa || []) p.material.color.set(cor);
-  } else { c.cena.fog = noite ? c.fogN : nevoaOn ? c.fogD : c.fogL; c.cena.background = new THREE.Color(noite ? 0x05080a : (c.ceu ?? 0xa3adab)); }
+    c.cena.fog = c.fogR; c.cena.background = new THREE.Color(cor); if (!c.interno) c.ceuM ||= ceuNublado(c.cena); for (const p of c.paredesNevoa || []) p.material.color.set(cor);
+  } else { c.cena.fog = noite ? c.fogN : nevoaOn ? c.fogD : c.fogL; c.cena.background = new THREE.Color(noite ? 0x07090b : (c.ceu ?? 0x949c9e)); c.ceuM ||= ceuNublado(c.cena); }
   if (c.interno) { c.hemi.intensity = noite ? 0.5 : 0.8; c.sol.intensity = noite ? 0.1 : 0.55; }
-  else { c.hemi.color.set(noite ? 0x6f8592 : 0xd3dad6); c.hemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); c.hemi.intensity = noite ? 0.6 : 1.55; c.sol.color.set(noite ? 0xa9bccb : 0xf3eee2); c.sol.intensity = noite ? 0.42 : 1.55; }
+  else { c.hemi.color.set(noite ? 0x62737c : 0xc8cecf); c.hemi.groundColor.set(noite ? 0x101211 : 0x3a3a33); c.hemi.intensity = noite ? 0.62 : 1.5; c.sol.color.set(noite ? 0x9fb0bc : 0xdfe2e1); c.sol.intensity = noite ? 0.38 : 0.95; }
   for (const x of c.luzes || []) x.l.intensity = (noite ? 1 : 0.35) * x.i;
   c.luz?.(c);
 }
@@ -3463,7 +3489,7 @@ CX.nevoaEmVolta = (c, g, R, o = {}) => {
   const teto = new THREE.Mesh(new THREE.CircleGeometry(R + 1, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, fog: false })); teto.rotation.x = Math.PI / 2; teto.position.y = 34; teto.userData.semColisao = true; g.add(teto); c.paredesNevoa.push(teto);
   c.longe = Math.min(c.longe ?? 999, R * 0.85);
 };
-const corNevoa = () => (noite ? 0x161c20 : 0xb4bcb9);
+const corNevoa = () => (noite ? 0x141a1d : 0xa4abaa);
 
 /* ---------- prédio grande com andares (porão, térreo, superior), cômodos encostados uns nos outros,
    portas entre cômodos vizinhos, escadas, janelas e mobília que se distribui pelo cômodo ---------- */
@@ -4318,13 +4344,25 @@ let noite = true, nevoaOn = true;
 function aplicaNevoa() { scene.fog = nevoaOn ? (noite ? fogNoite : fogDia) : null; nevoas.forEach(n => n.visible = nevoaOn); }
 $('#b-hora').onclick = () => {
   noite = !noite; const b = $('#b-hora'); b.setAttribute('aria-pressed', String(noite)); b.querySelector('.t').textContent = noite ? 'Noite' : 'Dia';
-  hemi.intensity = noite ? 1.0 : 1.5; hemi.color.set(noite ? 0x557a86 : 0xcfdcde); hemi.groundColor.set(noite ? 0x101512 : 0x3e3c30);
-  moon.intensity = noite ? 1.25 : 2.3; moon.color.set(noite ? 0xa8c4d8 : 0xf3ead6);
-  sky.material.uniforms.top.value.set(noite ? 0x030607 : 0x6f8b98); sky.material.uniforms.mid.value.set(noite ? 0x0b1515 : 0xa9b9bd); sky.material.uniforms.bot.value.set(noite ? 0x172322 : 0xc5ccc8);
-  stars.visible = noite; moonSprite.visible = noite; renderer.toneMappingExposure = noite ? 1.1 : 0.9;
+  // nublado sempre: luz difusa e acinzentada de dia, noite fechada sem estrelas
+  hemi.intensity = noite ? 1.05 : 1.4; hemi.color.set(noite ? 0x4f626b : 0xc3c9ca); hemi.groundColor.set(noite ? 0x0f1312 : 0x393a33);
+  moon.intensity = noite ? 1.0 : 1.0; moon.color.set(noite ? 0x9eafbb : 0xdfe2e1);
+  const U = sky.material.uniforms; U.top.value.set(noite ? 0x0a0e10 : 0x7b8487); U.mid.value.set(noite ? 0x111719 : 0x949c9e); U.bot.value.set(noite ? 0x141a1b : 0xa3a9a8);
+  U.nuvC.value.set(noite ? 0x2b3439 : 0xb9bfc0); U.nuvE.value.set(noite ? 0x0b0f12 : 0x6b7377);
+  stars.visible = false; moonSprite.visible = noite; renderer.toneMappingExposure = noite ? 1.05 : 0.84;
   if (glows) glows.visible = noite; dinamicas.forEach(l => l.visible = noite);
   aplicaNevoa();
 };
+/* madrugada: noite mais fechada, janelas apagadas; o botão de hora passa por Dia, Noite e Madrugada */
+let madr = false;
+const trocaNoite = $('#b-hora').onclick;
+function aplicaMadr() {
+  const b = $('#b-hora'); b.querySelector('.t').textContent = madr ? 'Madrugada' : noite ? 'Noite' : 'Dia'; b.classList.toggle('madr', madr);
+  if (noite) { renderer.toneMappingExposure = madr ? 0.9 : 1.05; hemi.intensity = madr ? 0.85 : 1.05; if (glows) glows.visible = !madr; }
+}
+function poePeriodo(p) { madr = p === 'madrugada'; if ((p !== 'dia') !== noite) trocaNoite(); aplicaMadr(); }
+$('#b-hora').onclick = () => poePeriodo(madr ? 'dia' : noite ? 'madrugada' : 'noite');
+$('#b-hora').title = 'Dia, noite ou madrugada (os NPCs vão para os lugares do horário)';
 $('#b-nevoa').onclick = () => { nevoaOn = !nevoaOn; $('#b-nevoa').setAttribute('aria-pressed', String(nevoaOn)); aplicaNevoa(); fogSonho.density = nevoaOn ? 0.034 : 0.012; };
 $('#b-sombra').onclick = () => { const b = $('#b-sombra'), on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(on)); renderer.shadowMap.enabled = on; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); };
 $('#b-sombra').setAttribute('aria-pressed', String(renderer.shadowMap.enabled));
@@ -4387,7 +4425,7 @@ function frame() {
   andar(dt);
   controls.update();
   colideCamera(cenaAtiva());
-  agua.material.normalMap.offset.set(t * 0.004, t * 0.003);
+  agua.material.normalMap.offset.set(t * 0.004, t * 0.003); sky.material.uniforms.uT.value = t;
   if (modoCen) {
     quadroCen(t, dt);
     try { renderer.render(CEN[modoCen].cena, camera); } catch (e) { if (!frame.avisou) { frame.avisou = true; console.error(e); } }
@@ -4669,16 +4707,26 @@ function pontoNoLugar(lug, usados) {
   }
   return null;
 }
-function arrumarNPCs(turno) {
+/* rotina dos NPCs: 'casa' = foi para casa (some para os jogadores); 'fora' = não mexe; madrugada sem lugar = casa */
+let _rotOcultos = null;
+async function arrumarNPCs(turno) {
   if (!PM || !PM.isGM() || !PM.posicoes) return 0;
-  const pos = PM.posicoes(), usados = []; let n = 0;
+  const db = window.parent.SV.db, pos = PM.posicoes(), pecas = PM.pecas(), usados = []; let n = 0, foram = 0, voltaram = 0;
+  if (!_rotOcultos) { try { _rotOcultos = (await db.get('mestre/rotinaOcultos')) || {}; } catch (e) { _rotOcultos = {}; } }
   for (const [fid, p] of Object.entries(pos)) {
-    const lug = p && p[turno]; if (!lug || lug === 'fora') continue;
+    if (!p) continue; const id = 'f_' + fid, pc = pecas[id];
+    const lug = p[turno] || (turno === 'madrugada' ? 'casa' : null); if (!lug || lug === 'fora') continue;
+    if (lug === 'casa') { if (pc && pc.visivel !== false) { _rotOcultos[id] = true; PM.setVisivel(id, false); foram++; } continue; }
     const pt = pontoNoLugar(lug, usados); if (!pt) continue;
     PM.porFicha(fid, { x: pt[0], z: pt[1], cena: '' }); n++;
+    if (pc && pc.visivel === false && _rotOcultos[id]) { delete _rotOcultos[id]; await espera(150); PM.setVisivel(id, true); voltaram++; }
   }
+  db.set('mestre/rotinaOcultos', _rotOcultos).catch(() => {});
+  avisoMarc(`${TURNO_NOME[turno]}: ${n} NPC${n === 1 ? '' : 's'} nos lugares` + (foram ? `, ${foram} foram para casa` : '') + (voltaram ? `, ${voltaram} voltaram` : '') + '.'); setTimeout(() => avisoMarc(''), 3500);
   return n;
 }
+const TURNO_NOME = { dia: 'Dia', noite: 'Noite', madrugada: 'Madrugada' };
+const turnoAtual = () => (madr ? 'madrugada' : noite ? 'noite' : 'dia');
 /* os jogadores em pé no corredor do ônibus */
 function jogadoresNoOnibus() {
   if (!PM || !PM.isGM() || !PM.fichasPJ) return;
@@ -4700,8 +4748,8 @@ async function sustoPousada(fid, pjIds) {
   try {
     const F = window.parent.SV.F;
     if (modoMata) entrarMata(false); if (modoEstr) entrarEstrada(false); if (modoRem) entrarRemanso(false); if (modoSonho) entrarSonho(false);
-    if (!noite) $('#b-hora').onclick();
-    arrumarNPCs('noite');
+    if (!noite) poePeriodo('noite');
+    arrumarNPCs(turnoAtual());
     /* a frente da pousada: a direção em que a rua está mais perto */
     const c = L.pousada; let m = null;
     for (let k = 0; k < 48; k++) { const a = (k / 48) * TAU; for (let r = 1; r < 30; r += 0.25) if (naEstrada(c.x + Math.cos(a) * r, c.z + Math.sin(a) * r)) { if (!m || r < m.r) m = { a, r }; break; } }
@@ -4787,7 +4835,7 @@ function renderLista() {
   if (!lista.length) { const p = document.createElement('p'); p.textContent = 'Nenhuma peça no mapa ainda.'; box.append(p); }
   const fora = lista.filter(s => s.dados?.tipo === 'pj' && !ondeEsta(s));
   if (gm && PM.posicoes) {
-    const turno = noite ? 'noite' : 'dia', b1 = bt('NPCs nos lugares (' + turno + ')', 'Põe cada NPC onde ele costuma estar ' + (noite ? 'à noite' : 'de dia'), () => arrumarNPCs(turno)); b1.classList.add('grupo'); box.append(b1);
+    const turno = turnoAtual(), b1 = bt('NPCs nos lugares (' + turno + ')', 'Põe cada NPC onde ele costuma estar ' + ({ dia: 'de dia', noite: 'à noite', madrugada: 'de madrugada (quase todos em casa)' })[turno], () => arrumarNPCs(turno)); b1.classList.add('grupo'); box.append(b1);
     const b2 = bt('Jogadores no ônibus', 'Põe as peças de todos os jogadores no corredor do ônibus (estrada)', () => jogadoresNoOnibus()); b2.classList.add('grupo'); box.append(b2);
     const b3 = bt(SUSTO_UI.aberto ? 'Fechar susto' : 'Susto na pousada', 'À noite, na saída da pousada: alguém observa do outro lado da rua, olha, vira a esquina e some', () => { SUSTO_UI.aberto = !SUSTO_UI.aberto; renderLista(); }); b3.classList.add('grupo'); box.append(b3);
     if (SUSTO_UI.aberto) formSusto(box, bt);
@@ -4799,7 +4847,7 @@ function renderLista() {
   add.lastChild.textContent = gm ? 'Adicionar figura' : 'Pôr a minha figura';
 }
 function estadoCena() {
-  return { susto: SUSTO, cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, cen: modoCen || '', cenEst: Object.assign({}, CEN_EST), noite: !!noite, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
+  return { susto: SUSTO, cam: CAM_TRAVA, nivel: Object.keys(NIVEIS).find(k => NIVEIS[k] === nivelAlvo) || 'normal', rem: !!modoRem, mata: !!modoMata, estr: !!modoEstr, anda: !!estrAndando, sonho: !!modoSonho, cen: modoCen || '', cenEst: Object.assign({}, CEN_EST), noite: !!noite, madr: !!madr, nevoa: !!nevoaOn, navio: !!(navio && navio.visible) };
 }
 function aplicaCena(c) {
   if (!c) return;
@@ -4819,7 +4867,7 @@ function aplicaCena(c) {
   if (c.sonho && !modoSonho) { if (modoRem) entrarRemanso(false); entrarSonho(true); }
   if (c.cen && ehCen(c.cen) && c.cen !== modoCen) entrarCen(c.cen);
   if (c.nivel && NIVEIS[c.nivel] != null && NIVEIS[c.nivel] !== nivelAlvo) document.querySelector('[data-nivel="' + c.nivel + '"]')?.onclick();
-  if (c.noite != null && !!c.noite !== noite) $('#b-hora').onclick();
+  if (c.noite != null) { const p = c.noite ? (c.madr ? 'madrugada' : 'noite') : 'dia'; if (p !== turnoAtual()) poePeriodo(p); }
   if (c.nevoa != null && !!c.nevoa !== nevoaOn) $('#b-nevoa').onclick();
   if (navio && c.navio != null && !!c.navio !== navio.visible) $('#b-navio').onclick();
 }
@@ -5027,6 +5075,17 @@ function iniciaMarcadores(gm) {
   if (PM.onPistas3d) PM.onPistas3d(sinc); if (PM.onObjetos) PM.onObjetos(sinc); if (PM.onSegredos) PM.onSegredos(sinc);
   sincMarcadores();
   if (gm) iniciaDica();
+  /* contador de dias até a cheia, no canto de cima; o mestre muda com − e + (vale para todos) */
+  window.__cheia = c => {
+    const el = $('#dias'), d = c && c.dias != null && c.dias !== '' ? +c.dias : null;
+    if (d == null && !gm) { el.hidden = true; return; }
+    el.hidden = false; el.classList.toggle('zero', d === 0);
+    const rot = d == null ? 'contador<br>desligado' : d === 0 ? 'a cheia<br>chegou' : (d === 1 ? 'dia' : 'dias') + '<br>restantes';
+    el.innerHTML = (gm ? '<button type="button" data-d="-1" aria-label="Menos um dia">−</button>' : '') + `<b>${d == null ? '–' : d}</b><small>${rot}</small>` + (gm ? '<button type="button" data-d="1" aria-label="Mais um dia">+</button>' : '');
+    el.title = gm ? 'Dias até a cheia (todos veem). Também dá para mudar na Mesa.' : 'Dias até a cheia';
+  };
+  $('#dias').addEventListener('click', e => { const b = e.target.closest('[data-d]'); if (!b || !gm || !PM.setDias) return; const c = PM.cheia && PM.cheia(); const d = c && c.dias != null && c.dias !== '' ? +c.dias : null; PM.setDias(d == null ? 30 : d + +b.dataset.d); });
+  window.__cheia(PM.cheia ? PM.cheia() : null);
 }
 function iniciaPonte() {
   const gm = PM.isGM();
@@ -5051,7 +5110,7 @@ function iniciaPonte() {
     const c0 = PM.cena(); if (c0 && c0.cam) { CAM_TRAVA = c0.cam; pinta(); }
   }
   if (gm) $('#b-anda').addEventListener('click', () => setTimeout(() => PM.setCena(estadoCena()), 0));
-  if (gm) $('#b-hora').addEventListener('click', () => setTimeout(() => { arrumarNPCs(noite ? 'noite' : 'dia'); renderLista(); }, 0)); // virou dia ou noite: cada NPC vai para o seu lugar
+  if (gm) $('#b-hora').addEventListener('click', () => setTimeout(() => { arrumarNPCs(turnoAtual()); renderLista(); }, 0)); // mudou o horário: cada NPC vai para o seu lugar (de madrugada, quase todos para casa)
   focoPend = PM._foco || null; PM._foco = null;
   let psPend = null; const off1 = PM.onPecas(ps => { const ja = psPend; psPend = ps; if (!ja) requestAnimationFrame(() => { const v = psPend; psPend = null; sincPecas(v); }); }), off2 = PM.onCena(aplicaCena);
   const off3 = PM.onFoco(id => { PM._foco = null; const s = porId.get(id); if (s) olharPeca(s); else focoPend = id; });

@@ -100,7 +100,7 @@
     if (SV.isGM) db.on('notas/' + me + '/posicoes', v => { D.posicoes = v && typeof v === 'object' ? v : {}; avisa('posicoes'); });
     db.on('notas/' + me + '/arte', v => { D.arteLib = v && typeof v === 'object' ? v : {}; avisa('arteLib'); SV.M && SV.M.sincArte && SV.M.sincArte(); });
     db.on('mesa/cena3d', v => { D.cena3d = v || null; avisa('cena3d'); });
-    db.on('mesa/cheia', v => { D.cheia = v || null; desenhaCheia(); render.mesa(); });
+    db.on('mesa/cheia', v => { D.cheia = v || null; desenhaCheia(); cheiaNoMapa(); render.mesa(); });
     /* textos secretos (pistas, notas de lugar, o Lacre): só o mestre lê; o código público só tem as chaves */
     if (SV.isGM) db.on('mestre/textos', v => { D.segredos = v && typeof v === 'object' ? v : {}; avisa('segredos'); render.mesa(); });
     db.on('mesa/regras', v => { const j = v && v.json ? v.json : null, m = (v && typeof v.modo === 'string' && v.modo) || ''; if (j !== D.regras || !D.regrasOk) { D.regras = j; D.regrasOk = true; avisa('regras'); } if (m !== D.modo) { D.modo = m; avisa('modo'); } });
@@ -405,6 +405,9 @@
     arteCompleta(id) { if (!SV.isGM) return null; const p = D.pecas[id] || D.pecasGM[id]; const x = p && D.arteLib[p.ficha || id]; return x && x.arte ? Object.assign({}, x.arte) : null; },
     caminho: id => (D.pecas[id] ? 'pecas/' : 'pecas_gm/') + id,
     segredos: () => (SV.isGM && D.segredos) || {},
+    /* dias até a cheia, também no canto do mapa; o mestre muda com − e + ali mesmo */
+    cheia: () => D.cheia || null,
+    setDias(n) { if (!SV.isGM) return; n = Math.max(0, Math.min(99, n | 0)); SV.db.set('mesa/cheia', Object.assign({ data: '', hora: '' }, D.cheia || {}, { dias: n, t: Date.now() })).catch(() => {}); },
     podeMover(id) {
       const p = D.pecas[id] || D.pecasGM[id];
       if (!p) return false;
@@ -552,7 +555,7 @@
       p.inert = k !== a;
     }
     for (const b of $('#abas').children) b.setAttribute('aria-selected', String(b.dataset.aba === a));
-    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=58' + location.search.replace('?', '&'); }
+    if (a === 'mapa' && !carregado.mapa) { carregado.mapa = true; $('#f-mapa').src = 'mapa.html?v=59' + location.search.replace('?', '&'); }
     if (a === 'fichas' && !carregado.fichas) { carregado.fichas = true; $('#f-fichas').src = 'fichas.html?v=35' + location.search.replace('?', '&'); }
     if (a === 'mesa') { SV.ls.set('visto.mesa', Date.now()); badges(); }
     if (a === 'sons') render.sons();
@@ -576,6 +579,7 @@
     el.innerHTML = `<b>${d <= 0 ? 'A cheia chegou' : d === 1 ? 'Falta 1 dia' : 'Faltam ' + d + ' dias'}</b><small>${esc([c.data, c.hora].filter(Boolean).join(' · ') || 'até a cheia')}</small>`;
     el.title = 'Dias até a cheia';
   }
+  function cheiaNoMapa() { try { $('#f-mapa').contentWindow.__cheia?.(D.cheia || null); } catch (e) {} }
   function badges() {
     const visto = SV.ls.get('visto.mesa', 0);
     let n = 0;
