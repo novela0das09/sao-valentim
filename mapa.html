@@ -412,7 +412,7 @@ const tinta = (mat, f, cor, k) => { const m = mat.clone(); m.color.multiplyScala
 
 /* ---------- texturas que você baixa (pasta texturas/) ---------- */
 // Se o arquivo não existir, o mapa usa as cores de sempre. Nada quebra.
-const TEXTURAS = ['pedra', 'tijolo', 'grama', 'lodo', 'lama', 'terra', 'calcamento', 'reboco', 'reboco_amarelo', 'reboco_velho', 'madeira', 'tabua', 'telha', 'concreto'];
+const TEXTURAS = ['pedra', 'tijolo', 'telha_barro', 'reboco_pintado', 'chao_terra', 'barro_folhas', 'grama', 'lodo', 'lama', 'terra', 'calcamento', 'reboco', 'reboco_amarelo', 'reboco_velho', 'madeira', 'tabua', 'telha', 'concreto'];
 const TEX = {};
 const texLoader = new THREE.TextureLoader();
 function carregaTex(nome) {
@@ -894,7 +894,7 @@ function ruaNS(rx, za, zb, opt = {}) {
 
 function remanso() {
   // no vale, Remanso não aparece: só a torre sai da água e a estrada velha desce para dentro do lago (o mapa da cidade afogada é à parte)
-  for (let z = -26; z > -56; z -= 14) inst('r', 'electricity-pole', -18, alt(-18, z), z, Math.PI / 2, 1, 'cinza');
+  for (let z = -26; z > -56; z -= 14) { const y = alt(-18, z); cilindro(-18, y - 0.3, z, 0.09, 0.12, 7.3, matMadeira, 8); caixa(-18, y + 6.2, z, 1.6, 0.12, 0.12, matMadeira, 0); } // postes de madeira da estrada velha que desce para o lago (um só, de pé no chão)
   // a igreja fica inteira debaixo d'água: só aparece na seca (sessão 6). Nada no lago entrega Remanso antes da hora.
   gTorre = new THREE.Group(); scene.add(gTorre);
   // a igreja de 1936: nave sem telhado e a torre que ninguém derrubou
@@ -2855,11 +2855,11 @@ async function montaInstCen(id) {
 function aplicaLuzCen(c) {
   c.luzAt = noite + '|' + nevoaOn;
   if (c.raio) { // neblina total em volta: perto se vê, longe some na névoa
-    const cor = c.nevoaVerde ? (noite ? 0x0e1612 : 0x26352e) : corNevoa(); c.fogR ||= new THREE.Fog(cor, 1, 2); c.fogR.color.set(cor); const k = c.interno ? 1.6 : 1; c.fogR.near = c.raio * (nevoaOn ? 0.55 : 0.8) * k; c.fogR.far = c.raio * (nevoaOn ? 1.35 : 1.7) * k;
+    const cor = c.nevoaVerde ? (noite ? 0x0e1612 : 0x26352e) : corNevoa(); c.fogR ||= new THREE.Fog(cor, 1, 2); c.fogR.color.set(cor); const k = c.interno ? 1.6 : 1; c.fogR.near = c.raio * (nevoaOn ? 0.7 : 0.9) * k; c.fogR.far = c.raio * (nevoaOn ? 1.8 : 2.2) * k;
     c.cena.fog = c.fogR; c.cena.background = new THREE.Color(cor); for (const p of c.paredesNevoa || []) p.material.color.set(cor);
   } else { c.cena.fog = noite ? c.fogN : nevoaOn ? c.fogD : c.fogL; c.cena.background = new THREE.Color(noite ? 0x05080a : (c.ceu ?? 0xa3adab)); }
   if (c.interno) { c.hemi.intensity = noite ? 0.5 : 0.8; c.sol.intensity = noite ? 0.1 : 0.55; }
-  else { c.hemi.color.set(noite ? 0x6f8592 : 0xd3dad6); c.hemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); c.hemi.intensity = noite ? 0.42 : 1.25; c.sol.color.set(noite ? 0xa9bccb : 0xf3eee2); c.sol.intensity = noite ? 0.32 : 1.15; }
+  else { c.hemi.color.set(noite ? 0x6f8592 : 0xd3dad6); c.hemi.groundColor.set(noite ? 0x111210 : 0x3d3b2e); c.hemi.intensity = noite ? 0.6 : 1.55; c.sol.color.set(noite ? 0xa9bccb : 0xf3eee2); c.sol.intensity = noite ? 0.42 : 1.55; }
   for (const x of c.luzes || []) x.l.intensity = (noite ? 1 : 0.35) * x.i;
   c.luz?.(c);
 }
@@ -2875,12 +2875,15 @@ function quadroCen(t, dt) {
   if (c.tetos) for (const tt of c.tetos) { // olhando de cima para dentro do cômodo, o teto (e o telhado) some
     const b = tt.userData.bb ||= new THREE.Box3().setFromObject(tt).expandByScalar(0.8), a = controls.target;
     const mira = a.x > b.min.x && a.x < b.max.x && a.z > b.min.z && a.z < b.max.z;
-    const cy = COL.tem ? COL.desejada.y : camera.position.y; tt.visible = !(mira && (cy > tt.position.y - 0.05 || (c.andares && a.y < tt.position.y - 2.2)));
+    const cy = COL.tem ? COL.desejada.y : camera.position.y, cp = camera.position, mg = Math.max(4, 0.4 * Math.max(b.max.x - b.min.x, b.max.z - b.min.z)); // de longe, o telhado fica: só some quando a câmera chega perto para olhar dentro
+    const perto = cp.x > b.min.x - mg && cp.x < b.max.x + mg && cp.z > b.min.z - mg && cp.z < b.max.z + mg;
+    tt.visible = !((mira && perto && (cy > tt.position.y - 0.05 || (c.andares && a.y < tt.position.y - 2.2))) || (c.andarSel != null && perto && b.min.y > c.andarSel + 0.8)); // andar escolhido no painel: tudo que fica acima dele some
   }
   for (const r of c.rotulosGM || []) r.visible = !SO_JOGADOR && !!c.verRotulos;
   if (c.andares) { // prédio de vários andares: olhando para um andar, os de cima somem (corte), para dar para ver dentro
     const a = controls.target, pg = c.pegada, dentro = pg && a.x > pg[0] - 0.5 && a.x < pg[2] + 0.5 && a.z > pg[1] - 0.5 && a.z < pg[3] + 0.5;
-    let mud = false; for (const A of c.andares) { const v = !dentro || A.y <= a.y + 1.2; if (A.g.visible !== v) { A.g.visible = v; mud = true; } }
+    const yRef = c.andarSel != null ? c.andarSel : a.y; // o mestre escolheu o andar no painel: o corte fica preso nele
+    let mud = false; for (const A of c.andares) { const v = c.andarSel != null ? A.y <= yRef + 0.1 : (!dentro || A.y <= yRef + 1.2); if (A.g.visible !== v) { A.g.visible = v; mud = true; } }
     if (mud) COL.lista.delete(c.cena);
   }
   c.quadro?.(c, t, dt);
@@ -2929,8 +2932,9 @@ function menuCen() {
 function painelCen() {
   const p = $('#painel-cen'); if (!p) return;
   const c = modoCen && CEN[modoCen];
-  if (!c || SO_JOGADOR || !c.painel) { p.hidden = true; p.innerHTML = ''; return; }
-  p.innerHTML = `<b>${c.curto || c.nome}</b>` + c.painel(c); p.hidden = false;
+  if (!c || SO_JOGADOR || (!c.painel && !c.andares)) { p.hidden = true; p.innerHTML = ''; return; }
+  const and = c.andares && c.andares.length > 1 ? `<div class="pc-l"><span>Andar</span><button class="btn${c.andarSel == null ? ' on' : ''}" type="button" data-andar="">Auto</button>${[...c.andares].sort((a, b) => a.y - b.y).map(A => `<button class="btn${c.andarSel === A.y ? ' on' : ''}" type="button" data-andar="${A.y}">${A.nome || A.y}</button>`).join('')}</div>` : '';
+  p.innerHTML = `<b>${c.curto || c.nome}</b>` + (c.painel ? c.painel(c) : '') + and; p.hidden = false;
 }
 /* o que o mestre muda no cenário vai para todos junto com a cena (mesa/cena3d.cenEst) */
 const CEN_EST = {};
@@ -3025,7 +3029,7 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
     monta(c) {
       const g = c.g, cn = 'c-cemiterio';
       const mGrama = CX.matTex('grama', 40, 40, 0xc8d0b8), mLama = CX.matTex('lama', 8, 8, 0xd0c8b8), mTerra = CX.matTex('terra', 3, 18, 0xd8ccb8), mCalc = CX.matTex('calcamento', 1.2, 12);
-      const mMuro = CX.matTex('pedra', 10, 1.5, 0x6e6a60), mTopo = new THREE.MeshStandardMaterial({ color: 0x4e4b44, roughness: 1 }), mFerro = new THREE.MeshStandardMaterial({ color: 0x1b1d1f, roughness: 0.55, metalness: 0.6 });
+      const mMuro = CX.matTex('pedra', 22, 2.2, 0x8e8a84), mTopo = new THREE.MeshStandardMaterial({ color: 0x4e4b44, roughness: 1 }), mFerro = new THREE.MeshStandardMaterial({ color: 0x1b1d1f, roughness: 0.55, metalness: 0.6 });
       /* o chão: uma malha grande e, na quadra das exumações, uma malha fina que mostra as covas */
       const terreno = (w, d, sw, sd, mat, cx, cz, filtro) => {
         const geo = new THREE.PlaneGeometry(w, d, sw, sd); geo.rotateX(-Math.PI / 2); const p = geo.attributes.position;
@@ -3154,19 +3158,19 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
         CX.anexo(c, g, de.x0, de.z0, de.x1 - de.x0, de.z1 - de.z0, { y: de.y, h: 3.0, parede: CX.matTex('concreto', 3, 1, 0xa8a49a), portas: [{ lado: 's', pos: 4.2, l: 2.0, h: 2.4 }], janelas: [{ lado: 'n', pos: 2, l: 1.0 }], tipo: 'oficina', placa: 'MANUTENÇÃO' });
         CX.armario(g, 28.8, de.y, -2.4, -Math.PI / 2, 0x5a6a5a); for (let i = 0; i < 3; i++) { const p = CX.cil(g, 0.02, 0.02, 1.5, 21.5 + i * 0.25, de.y, -0.5, CX.matTex('madeira', 1, 1, 0x6a4a30), 5); p.rotation.z = 0.15; }
         /* a entrada das criptas: casinha de pedra com a porta pesada; a escada desce para o subterrâneo */
-        CX.anexo(c, g, en.x0, en.z0, en.x1 - en.x0, en.z1 - en.z0, { y: en.y, h: 2.6, parede: mMuro, piso: CX.matTex('pedra', 2, 1, 0x5e5a52), portas: [{ lado: 's', pos: 1.5, l: 1.0, h: 2.1 }], buraco: [CRI.esc.x0, CRI.esc.z0, CRI.esc.x1, CRI.esc.z1], tipo: 'vazio', telha: mTopo, th: 0.9 });
+        CX.anexo(c, g, en.x0, en.z0, en.x1 - en.x0, en.z1 - en.z0, { y: en.y, h: 2.6, parede: mMuro, piso: CX.matTex('pedra', 2, 1, 0x8a867e), portas: [{ lado: 's', pos: 1.5, l: 1.0, h: 2.1 }], buraco: [CRI.esc.x0, CRI.esc.z0, CRI.esc.x1, CRI.esc.z1], tipo: 'vazio', telha: mTopo, th: 0.9 });
         { const pz = CX.caixa(g, 1.0, 2.1, 0.1, -17.0, en.y, -11.05, CX.matTex('madeira', 1, 1, 0x3a2a1e)); pz.rotation.y = -1.2; pz.position.set(-16.6, en.y + 1.05, -10.7); CX.modelo(g, 'g', 'cross', -17.5, en.y + 2.7, -11.1, 0, 0.35); }
       }
       /* as criptas e o ossário embaixo da terra: escada de pedra, porta pesada, corredor de nichos e pouca luz */
-      { const Y = CRI.y, e = CRI.esc, mP = CX.matTex('pedra', 3, 1, 0x5e5a52), w = CRI.x1 - CRI.x0, d = CRI.z1 - CRI.z0, cxr = (CRI.x0 + CRI.x1) / 2;
-        CX.sala(c, g, CRI.x0, CRI.z0, w, d, { y: Y, h: 3.05, parede: mP, piso: CX.matTex('pedra', 3, 5, 0x4e4a44), portas: [], janelas: [], teto: false, rodape: false });
+      { const Y = CRI.y, e = CRI.esc, mP = CX.matTex('pedra', 4, 1.2, 0x8a867e), w = CRI.x1 - CRI.x0, d = CRI.z1 - CRI.z0, cxr = (CRI.x0 + CRI.x1) / 2;
+        CX.sala(c, g, CRI.x0, CRI.z0, w, d, { y: Y, h: 3.05, parede: mP, piso: CX.matTex('pedra', 3, 5, 0x6a665e), portas: [], janelas: [], teto: false, rodape: false });
         CX.divisoria(g, CRI.x0, -17, CRI.x1, -17, { y: Y, h: 3.05, mat: mP, porta: (-17.5 - CRI.x0) / w, l: 1.1, ph: 2.1 });
         { const pv = new THREE.Group(); pv.position.set(-18.05, Y, -17.06); pv.rotation.y = -1.3; g.add(pv); const fe = new THREE.MeshStandardMaterial({ color: 0x2a2826, metalness: 0.6, roughness: 0.5 }); CX.caixa(pv, 1.1, 2.1, 0.14, 0.55, 0, 0, CX.matTex('madeira', 1, 1, 0x2e2018)); for (const yy of [0.3, 1.0, 1.7]) CX.caixa(pv, 1.12, 0.08, 0.17, 0.55, yy, 0, fe); CX.caixa(pv, 0.12, 0.16, 0.2, 0.95, 1.0, 0, fe); }
-        const n = Math.round((0.25 - Y) / 0.19), dz = (e.z1 - e.z0) / n, mE = CX.matTex('pedra', 1, 1, 0x6a665e);
+        const n = Math.round((0.25 - Y) / 0.19), dz = (e.z1 - e.z0) / n, mE = CX.matTex('pedra', 1, 1, 0x9a968e);
         for (let i = 0; i < n; i++) CX.caixa(g, e.x1 - e.x0, (0.25 - Y) / n * (i + 1), Math.abs(dz) + 0.01, (e.x0 + e.x1) / 2, Y, e.z0 + dz * (i + 0.5), mE, 0, false);
         const gav = new THREE.MeshStandardMaterial({ color: 0x3e3a34, roughness: 1 }), pla = new THREE.MeshStandardMaterial({ color: 0x8a8478, roughness: 1 });
         for (const [x, ry] of [[CRI.x0 + 0.12, Math.PI / 2], [CRI.x1 - 0.12, -Math.PI / 2]]) for (let k = 0; k < 11; k++) for (let j = 0; j < 4; j++) { const z = CRI.z0 + 0.6 + k * 0.68, nic = CX.caixa(g, 0.55, 0.45, 0.08, x, Y + 0.25 + j * 0.62, z, rnd() < 0.2 ? gav : pla, ry, false); nic.rotation.y = ry; }
-        CX.caixa(g, 1.0, 0.8, 2.1, cxr, Y, CRI.z0 + 1.6, mE); CX.caixa(g, 1.1, 0.12, 2.2, cxr, Y + 0.8, CRI.z0 + 1.6, CX.matTex('pedra', 1, 1, 0x7a766e)); CX.modelo(g, 'g', 'candle-multiple', cxr - 0.7, Y, CRI.z0 + 0.5, 0, 0.45);
+        CX.caixa(g, 1.0, 0.8, 2.1, cxr, Y, CRI.z0 + 1.6, mE); CX.caixa(g, 1.1, 0.12, 2.2, cxr, Y + 0.8, CRI.z0 + 1.6, CX.matTex('pedra', 1, 1, 0xa8a49c)); CX.modelo(g, 'g', 'candle-multiple', cxr - 0.7, Y, CRI.z0 + 0.5, 0, 0.45);
         for (let i = 0; i < 6; i++) CX.modelo(g, 'g', 'urn-round', cxr - 1.2 + (i % 3) * 1.2, Y, -19 - Math.floor(i / 3) * 2.2, 0, 0.7);
         const lc = new THREE.PointLight(0xffb070, 1.4, 7, 1.8); lc.position.set(cxr - 0.7, Y + 0.7, CRI.z0 + 0.6); g.add(lc); const lc2 = new THREE.PointLight(0x8090a0, 0.6, 6, 2); lc2.position.set(-17.5, Y + 2.4, -14.5); g.add(lc2);
         /* a tampa de terra por cima (some quando o mestre olha lá para dentro) */
@@ -3181,7 +3185,7 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
       /* névoa mais densa no setor antigo, nos mausoléus e na entrada das criptas (o mestre aumenta no painel) */
       c.nevoas = [];
       for (const [x, z, s] of [[16, -12, 14], [24, -20, 12], [20, -8, 10], [-9, -19, 10], [-18, -15, 9], [-26, -17, 10], [27, -16, 9]]) { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xdfe4e2, map: softTex('rgba(255,255,255,0.8)', 'rgba(255,255,255,0)', 128), transparent: true, depthWrite: false, opacity: 0.22 })); sp.userData.op = 0.22; sp.userData.semColisao = true; sp.position.set(x, altCem(x, z) + 1.4, z); sp.scale.set(s, s * 0.35, 1); g.add(sp); c.nevoas.push(sp); }
-      CX.nevoaEmVolta(c, g, 50, { y: -8 });
+      CX.nevoaEmVolta(c, g, 50, { y: -8, manchas: false });
       /* os 6 esconderijos do Coro, com número que só o mestre vê */
       [[0, 2.2, -22.4, '1'], [-11, 1.6, -10.6, '2'], [COVAS[COVA_SECA][0], 0.6, COVAS[COVA_SECA][1], '3'], [24.5, 2.4, 16.5, '4'], [-27.9, 3, -16, '5'], [25.5, 2.9, 9.6, '6']]
         .forEach(([x, y, z, n]) => CX.rotuloGM(c, g, n, x, altCem(x, z) + y, z));
@@ -3193,6 +3197,7 @@ function aplicaEstCen(o) { if (!o || typeof o !== 'object') return; let mud = fa
 /* ---------- mais ferramentas para interiores ---------- */
 Object.assign(CX, {
   telhado(c, g, cx, y, cz, w, d, h = 1.6, mat = matTelha, aoLongoDeX = true) {
+    if (mat === matTelha && TEX.telha_barro) { if (!CX._telha) { const m = CX.matTex('telha_barro', 0.22, 0.22, 0xe8dcd4); m.map.center.set(0.5, 0.5); m.map.rotation = Math.PI / 2; CX._telha = m; } mat = CX._telha; } // telha de barro de verdade
     const s = new THREE.Shape(), L = aoLongoDeX ? d : w; s.moveTo(-L / 2 - 0.35, 0); s.lineTo(L / 2 + 0.35, 0); s.lineTo(0, h); s.lineTo(-L / 2 - 0.35, 0);
     const comp = (aoLongoDeX ? w : d) + 0.7, geo = new THREE.ExtrudeGeometry(s, { depth: comp, bevelEnabled: false }); geo.translate(0, 0, -comp / 2);
     const m = new THREE.Mesh(geo, mat); m.position.set(cx, y, cz); m.rotation.y = aoLongoDeX ? Math.PI / 2 : 0; m.castShadow = true; m.receiveShadow = true; m.userData.semColisao = true; g.add(m); (c.tetos ||= []).push(m); return m;
@@ -3424,8 +3429,19 @@ CX.nevoaEmVolta = (c, g, R, o = {}) => {
   let geoC = new THREE.CircleGeometry(R + 4, 64);
   if (o.furo) { const sh = new THREE.Shape(); sh.absarc(0, 0, R + 4, 0, TAU, false); const [a0, b0, a1, b1] = o.furo, h = new THREE.Path(); h.moveTo(a0, -b0); h.lineTo(a1, -b0); h.lineTo(a1, -b1); h.lineTo(a0, -b1); h.lineTo(a0, -b0); sh.holes.push(h); geoC = new THREE.ShapeGeometry(sh, 48);
     const uv = geoC.attributes.uv, ps = geoC.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, ps.getX(i) / (2 * R + 8) + 0.5, ps.getY(i) / (2 * R + 8) + 0.5); }
-  const chao = new THREE.Mesh(geoC, o.mat || CX.matTex('terra', R / 3, R / 3, 0xb8a890)); chao.rotation.x = -Math.PI / 2; chao.position.y = o.y ?? -0.02; chao.receiveShadow = true; g.add(chao);
+  const chao = new THREE.Mesh(geoC, o.mat || CX.matTex('chao_terra', R / 2.2, R / 2.2, 0xd8d0c4)); chao.rotation.x = -Math.PI / 2; chao.position.y = o.y ?? -0.02; chao.receiveShadow = true; g.add(chao);
   if (!c.chao) c.chao = chao; else if (c.chao.isGroup) c.chao.add(chao);
+  if (o.manchas !== false) { // manchas de barro, terra mais escura e pedrinhas: o chão de fora não fica liso
+    const cv = document.createElement('canvas'); cv.width = cv.height = 128; const k = cv.getContext('2d'), gr = k.createRadialGradient(64, 64, 8, 64, 64, 64); gr.addColorStop(0, '#fff'); gr.addColorStop(0.55, '#aaa'); gr.addColorStop(1, '#000'); k.fillStyle = gr; k.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 400; i++) { k.fillStyle = `rgba(0,0,0,${rnd() * 0.5})`; k.fillRect(rnd() * 128, rnd() * 128, 3 + rnd() * 6, 3 + rnd() * 6); }
+    const alfa = new THREE.CanvasTexture(cv), [fx0, fz0, fx1, fz1] = o.furo || [0, 0, 0, 0], y0 = (o.y ?? -0.02) + 0.004;
+    const mats = ['barro_folhas', 'lama', 'chao_terra'].map((n, i) => { const m = CX.matTex(n, 1, 1, [0xc8c0b0, 0x8a7e6a, 0x8a7a66][i]); m.alphaMap = alfa; m.transparent = true; m.depthWrite = false; m.polygonOffset = true; m.polygonOffsetFactor = -1 - i; return m; });
+    for (let i = 0; i < Math.round(R * 1.4); i++) { const a = rnd() * TAU, r = Math.sqrt(rnd()) * (R - 1), x = Math.cos(a) * r, z = Math.sin(a) * r; if (o.furo && x > fx0 - 1 && x < fx1 + 1 && z > fz0 - 1 && z < fz1 + 1) continue;
+      const sz = 1.5 + rnd() * 4.5, m = new THREE.Mesh(new THREE.PlaneGeometry(sz, sz * (0.5 + rnd() * 0.6)), mats[i % 3]); m.rotation.x = -Math.PI / 2; m.rotation.z = rnd() * TAU; m.position.set(x, y0 + (i % 3) * 0.002, z); m.receiveShadow = true; m.renderOrder = 1; g.add(m); }
+    const pedras = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(0.12, 0), new THREE.MeshStandardMaterial({ color: 0x8a867c, roughness: 1, flatShading: true }), Math.round(R * 6)), q = new THREE.Object3D(); let n = 0;
+    for (let i = 0; i < R * 6; i++) { const a = rnd() * TAU, r = Math.sqrt(rnd()) * (R - 0.5), x = Math.cos(a) * r, z = Math.sin(a) * r; if (o.furo && x > fx0 - 0.3 && x < fx1 + 0.3 && z > fz0 - 0.3 && z < fz1 + 0.3) continue; q.position.set(x, y0, z); q.rotation.set(rnd() * 3, rnd() * 3, rnd() * 3); q.scale.setScalar(0.4 + rnd() * 1.4); q.scale.y *= 0.5; q.updateMatrix(); pedras.setMatrixAt(n++, q.matrix); }
+    pedras.count = n; pedras.userData.semColisao = true; pedras.receiveShadow = true; g.add(pedras);
+  }
   const grad = (a0, a1) => { const cv = document.createElement('canvas'); cv.width = 4; cv.height = 256; const k = cv.getContext('2d'), gr = k.createLinearGradient(0, 0, 0, 256); gr.addColorStop(0, `rgba(255,255,255,${a1})`); gr.addColorStop(0.55, `rgba(255,255,255,${(a0 + a1) / 2})`); gr.addColorStop(1, `rgba(255,255,255,${a0})`); k.fillStyle = gr; k.fillRect(0, 0, 4, 256); const t = new THREE.CanvasTexture(cv); return t; };
   c.paredesNevoa = [];
   for (const [r, a0, a1, op] of [[R, 1, 1, 1], [R - 2, 0.9, 0.2, 0.55], [R - 4.5, 0.75, 0.05, 0.35], [R - 7, 0.55, 0, 0.22]]) {
@@ -3460,9 +3476,9 @@ CX.mobiliar = (g, r, y, tipo) => {
     case 'cozinha': { ao('n', [0.2, 0.42], (x, z, ry) => CX.modelo(g, 'm', 'kitchenCabinet', x, y, z, ry, 1)); ao('n', [0.64], (x, z, ry) => CX.modelo(g, 'm', 'kitchenStove', x, y, z, ry, 1)); ao('n', [0.86], (x, z, ry) => CX.modelo(g, 'm', 'kitchenFridge', x, y, z, ry, 1));
       CX.mesa(g, cx, y, cz + 0.4, 1.4, 0.9); for (const [dx, dz, ry] of [[-0.5, 0.75, Math.PI], [0.5, 0.75, Math.PI], [-0.5, -0.75, 0], [0.5, -0.75, 0]]) CX.cadeira(g, cx + dx, y, cz + 0.4 + dz, ry); ao('o', [0.6], (x, z, ry) => CX.prateleira(g, x, y, z, 1.4, 1.9, ry, 'potes')); CX.modelo(g, 'm', 'trashcan', x1 - 0.4, y, z1 - 0.4, 0, 0.8); break; }
     case 'banheiro': { const b = new THREE.MeshStandardMaterial({ color: 0xe8e8e0, roughness: 0.3 }); CX.caixa(g, 0.45, 0.42, 0.6, x0 + 0.4, y, z0 + 0.5, b); CX.caixa(g, 0.55, 0.85, 0.42, x1 - 0.45, y, z0 + 0.35, b); CX.caixa(g, 0.6, 0.04, 0.02, x1 - 0.45, y + 1.6, z0 + 0.12, new THREE.MeshStandardMaterial({ color: 0xaab4b8, metalness: 0.6, roughness: 0.1 })); break; }
-    case 'deposito': { ao('n', [0.25, 0.75], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, w * 0.4), 2.2, ry, 'caixas')); ao('o', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, d * 0.4), 2.2, ry, 'caixas')); caixas(Math.round(A / 5));
-      for (let i = 0; i < Math.round(A / 18); i++) { const x = x0 + 1 + rnd() * (w - 2), z = z0 + 1 + rnd() * (d - 2), m = CX.caixa(g, 1 + rnd(), 0.8 + rnd() * 0.5, 0.7 + rnd() * 0.5, x, y, z, new THREE.MeshStandardMaterial({ color: 0xd8d4c8, roughness: 1 })); m.rotation.y = rnd(); } // móveis cobertos com lençol
-      if (A > 20) for (let i = 0; i < 3; i++) CX.cil(g, 0.28, 0.28, 0.85, x1 - 0.5 - i * 0.62, y, z1 - 0.5, CX.matTex('madeira', 1, 1, 0x6a4a30), 12); break; }
+    case 'deposito': { ao('n', [0.25, 0.75], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, w * 0.4), 2.2, ry, 'caixas')); ao('o', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, d * 0.4), 2.2, ry, 'caixas')); caixas(Math.round(A / 14));
+      CX.guardados(g, r, y, Math.round(A / 4)); // lençóis, barris, sacos, jarros e cordas
+      if (A > 20) for (let i = 0; i < 3; i++) CX.barril(g, x1 - 0.5 - i * 0.66, y, z1 - 0.5); break; }
     case 'corredor': { const ao2 = w > d ? 'n' : 'o'; ao(ao2, [0.25, 0.5, 0.75], (x, z, ry) => CX.quadro(g, x, y + 1.7, z + (ao2 === 'n' ? -0.24 : 0), ry, 0.4, 0.32)); CX.modelo(g, 'm', 'rugRectangle', cx, y, cz, w > d ? Math.PI / 2 : 0, 0.7); if (A > 10) CX.modelo(g, 'm', 'pottedPlant', x0 + 0.4, y, z0 + 0.4, 0, 0.8); break; }
     case 'maquinas': { const m = new THREE.MeshStandardMaterial({ color: 0x5a5e5a, metalness: 0.5, roughness: 0.5 }); CX.cil(g, 0.5, 0.5, 1.8, cx, y, cz, m, 16); for (let i = 0; i < 3; i++) { const t = CX.cil(g, 0.06, 0.06, d - 0.6, x0 + 0.4 + i * 0.3, y + 2.1, cz, m, 8); t.rotation.x = Math.PI / 2; t.position.y = y + 2.2; } caixas(2); break; }
     case 'loja': { ao('n', [0.2, 0.5, 0.8], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.4, w * 0.28), 2.3, ry, rnd() < 0.5 ? 'potes' : 'caixas')); ao('o', [0.35, 0.7], (x, z, ry) => CX.prateleira(g, x, y, z, 2.2, 2.3, ry, 'potes')); ao('l', [0.35, 0.7], (x, z, ry) => CX.prateleira(g, x, y, z, 2.2, 2.3, ry, 'caixas')); for (let i = 0; i < 2; i++) CX.prateleira(g, cx + (i - 0.5) * 2.6, y, cz - 0.4, 2.0, 1.6, Math.PI / 2, 'potes'); break; }
@@ -3472,15 +3488,36 @@ CX.mobiliar = (g, r, y, tipo) => {
 };
 function predio(c, o) {
   const g = c.g, W = o.w, D = o.d, X0 = -W / 2, Z0 = -D / 2, AND = o.andares; c.andares = [];
-  const parFora = o.parede || CX.matTex('reboco', W / 3, 1, 0xe2d8c4), parDentro = o.paredeDentro || CX.matTex('reboco', 3, 1, 0xe8dfcc), piso = o.piso || CX.matTex('tabua', W / 2, D / 2, 0xb59a78), pisoPorao = CX.matTex('concreto', W / 3, D / 3, 0x9a958a), parPorao = o.paredePorao || CX.matTex('concreto', W / 3, 1, 0xa8a296);
+  const parFora = o.parede || CX.matTex('reboco_pintado', W / 4, 0.8, 0xf2ead8), parDentro = o.paredeDentro || CX.matTex('reboco', 3, 1, 0xe8dfcc), piso = o.piso || CX.matTex('tabua', W / 2, D / 2, 0xb59a78), pisoPorao = o.pisoPorao || (o.paredePorao ? CX.matTex('terra', W / 2, D / 2, 0x6e6050) : CX.matTex('concreto', W / 3, D / 3, 0x9a958a)), parPorao = o.paredePorao || CX.matTex('concreto', W / 3, 1, 0xa8a296);
   const escadas = o.escadas || [];
   AND.forEach((A, ia) => {
     const gg = new THREE.Group(); g.add(gg); const porao = A.y < -0.5, H = A.h ?? (porao ? 2.7 : 3.2);
-    c.andares.push({ y: A.y, h: H, g: gg });
+    c.andares.push({ y: A.y, h: H, g: gg, nome: A.nome });
     const furo = escadas.find(e => Math.abs(e.y1 - A.y) < 0.01); // a escada que chega neste andar abre um buraco no piso dele
     const portasF = A.portas || (A.y === 0 ? [{ lado: 's', pos: W / 2, l: 1.4, h: 2.5 }] : []);
     const jan = porao ? [] : (A.janelas || ['n', 's', 'o', 'l'].flatMap(l => { const comp = l === 'n' || l === 's' ? W : D, k = Math.floor(comp / 3.2); return Array.from({ length: k }, (_, i) => ({ lado: l, pos: (i + 0.5) * comp / k, l: 1.1 })).filter(j => !portasF.some(p => p.lado === j.lado && Math.abs(p.pos - j.pos) < 1.4)); }));
     CX.sala(c, gg, X0, Z0, W, D, { y: A.y, h: H, piso: porao ? pisoPorao : (A.piso || piso), parede: porao ? parPorao : parFora, portas: portasF, janelas: jan, teto: false, buraco: furo ? [furo.x0, furo.z0, furo.x1, furo.z1] : null });
+    if (porao) { // porão: vigas de madeira no teto, esteios, pedras saltadas da parede e teias nos cantos
+      const mv = CX.matTex('madeira', 1, 4, 0x4a3426), ys = A.y + H - 0.24, esc = escadas.filter(e => e.y0 < A.y + 0.5);
+      const livre = (x, z) => !esc.some(e => x > e.x0 - 0.5 && x < e.x1 + 0.5 && z > Math.min(e.z0, e.z1) - 0.5 && z < Math.max(e.z0, e.z1) + 0.5);
+      for (let x = X0 + 0.7; x < X0 + W - 0.4; x += 1.25) CX.caixa(gg, 0.16, 0.22, D - 0.2, x, ys, 0, mv, 0, false);
+      CX.caixa(gg, W - 0.2, 0.26, 0.24, 0, ys - 0.26, 0, mv, 0, false);
+      for (let x = X0 + 2.5; x < X0 + W - 1.5; x += 3.2) if (livre(x, 0)) CX.caixa(gg, 0.2, H - 0.5, 0.2, x, A.y, 0, mv);
+      if (o.paredePorao) { const mp = o.paredePorao; for (let i = 0; i < Math.round((W + D) * 2.2); i++) { const lado = i % 4, t = rnd(), yy = A.y + 0.1 + rnd() * (H - 0.6), sz = 0.25 + rnd() * 0.4;
+          const [x, z] = lado === 0 ? [X0 + 0.2 + t * (W - 0.4), Z0 + 0.12] : lado === 1 ? [X0 + 0.2 + t * (W - 0.4), Z0 + D - 0.12] : lado === 2 ? [X0 + 0.12, Z0 + 0.2 + t * (D - 0.4)] : [X0 + W - 0.12, Z0 + 0.2 + t * (D - 0.4)];
+          if (!livre(x, z)) continue; const pd = new THREE.Mesh(new THREE.DodecahedronGeometry(sz, 0), mp); pd.scale.set(1, 0.6 + rnd() * 0.3, lado < 2 ? 0.35 : 1); if (lado >= 2) pd.scale.x = 0.35; pd.position.set(x, yy, z); pd.rotation.set(rnd(), rnd(), rnd()); pd.castShadow = true; gg.add(pd); }
+        for (let i = 0; i < 26; i++) { const x = X0 + 0.5 + rnd() * (W - 1), z = Z0 + 0.5 + rnd() * (D - 1); if (!livre(x, z)) continue; const pd = new THREE.Mesh(new THREE.DodecahedronGeometry(0.08 + rnd() * 0.16, 0), mp); pd.scale.y = 0.5; pd.position.set(x, A.y + 0.03, z); gg.add(pd); } }
+      { const cv = document.createElement('canvas'); cv.width = cv.height = 128; const k = cv.getContext('2d'); k.strokeStyle = 'rgba(230,230,225,0.55)'; k.lineWidth = 1; for (let r = 12; r < 128; r += 14) { k.beginPath(); k.arc(0, 0, r, 0, Math.PI / 2); k.stroke(); } for (let a = 0; a <= 6; a++) { k.beginPath(); k.moveTo(0, 0); k.lineTo(Math.cos(a / 6 * Math.PI / 2) * 128, Math.sin(a / 6 * Math.PI / 2) * 128); k.stroke(); }
+        const tm = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false, side: THREE.DoubleSide });
+        for (const [x, z, ry] of [[X0 + 0.15, Z0 + 0.15, 0], [X0 + W - 0.15, Z0 + 0.15, -Math.PI / 2], [X0 + 0.15, Z0 + D - 0.15, Math.PI / 2], [X0 + W - 0.15, Z0 + D - 0.15, Math.PI]]) { const t = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), tm); t.position.set(x, A.y + H - 0.8, z); t.rotation.y = ry + Math.PI / 4; t.userData.semColisao = true; gg.add(t); } }
+    }
+    if (!porao) { // fachada: peitoril em cada janela, venezianas nas casas, faixa no alto do andar
+      const mP = o.matPeitoril || CX.matTex('concreto', 1, 1, 0xd8d2c4), mV = o.venezianas ? new THREE.MeshStandardMaterial({ color: o.venezianas, roughness: 0.8 }) : null;
+      const naFace = (lado, pos, off) => lado === 'n' ? [X0 + pos, Z0 - off, 0] : lado === 's' ? [X0 + pos, Z0 + D + off, 0] : lado === 'o' ? [X0 - off, Z0 + D - pos, Math.PI / 2] : [X0 + W + off, Z0 + D - pos, Math.PI / 2];
+      for (const j of jan) { const l = j.l ?? 1.1, h0 = j.h0 ?? 0.95, hj = j.h ?? 1.2, [x, z, ry] = naFace(j.lado, j.pos, 0.1); CX.caixa(gg, l + 0.3, 0.07, 0.22, x, A.y + h0 - 0.07, z, mP, ry, false); CX.caixa(gg, l + 0.16, 0.08, 0.12, x, A.y + h0 + hj, z, mP, ry, false);
+        if (mV) for (const sg of [-1, 1]) { const [px, pz] = naFace(j.lado, j.pos + sg * (l * 0.75 + 0.04), 0.07); CX.caixa(gg, l / 2, hj + 0.06, 0.04, px, A.y + h0 - 0.03, pz, mV, ry, false); for (let k = 1; k < 6; k++) CX.caixa(gg, l / 2 - 0.06, 0.025, 0.02, px + (ry ? 0.02 * (j.lado === 'o' ? -1 : 1) : 0), A.y + h0 + k * hj / 6, pz + (ry ? 0 : 0.02 * (j.lado === 'n' ? -1 : 1)), mV, ry, false); } }
+      if (!o.semFaixa) { const mF = o.matFaixa || CX.matTex('concreto', 4, 1, 0xcfc8b8); for (const [w2, d2, x2, z2] of [[W + 0.24, 0.12, 0, Z0 - 0.06], [W + 0.24, 0.12, 0, Z0 + D + 0.06], [0.12, D + 0.24, X0 - 0.06, 0], [0.12, D + 0.24, X0 + W + 0.06, 0]]) CX.caixa(gg, w2, 0.2, d2, x2, A.y + H - 0.2, z2, mF, 0, false); }
+    }
     /* paredes entre cômodos vizinhos, com porta no meio da parede compartilhada (a não ser que diga "sem porta") */
     const R = A.comodos, feitas = new Set();
     /* a parede entre dois cômodos: 'aberto' não tem parede; 'fechado' não tem porta; 'privado' só tem porta para o corredor; 'vidro' tem mureta e vidro */
@@ -3502,11 +3539,25 @@ function predio(c, o) {
         const lp = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffd9a0, emissiveIntensity: 0.6 })); lp.position.copy(l.position); gg.add(lp); } }
     A.extra?.(gg, A.y, H);
     if (ia === AND.length - 1) { // o forro do último andar e o telhado
-      const sl = CX.caixa(g, W + 0.3, 0.14, D + 0.3, 0, A.y + H, 0, CX.matTex('reboco', 3, 3, 0xd8d0c0)); sl.userData.semColisao = true; (c.tetos ||= []).push(sl);
-      CX.telhado(c, g, 0, A.y + H + 0.14, 0, W, D, o.telhadoH ?? Math.min(3, Math.min(W, D) * 0.28), o.telha || matTelha, W >= D);
+      const th = o.telhadoH ?? Math.min(3, Math.min(W, D) * 0.28);
+      if (!A.sotao) { const sl = CX.caixa(g, W + 0.3, 0.14, D + 0.3, 0, A.y + H, 0, CX.matTex('reboco', 3, 3, 0xd8d0c0)); sl.userData.semColisao = true; (c.tetos ||= []).push(sl); }
+      else { // sótão: sem forro, a estrutura do telhado fica à vista (caibros inclinados, cumeeira e linhas)
+        const mv = CX.matTex('madeira', 1, 3, 0x6a4a30), yb = A.y + H + 0.14, aoX = W >= D, Lb = aoX ? W : D, Lc = aoX ? D : W, ang = Math.atan2(th, Lc / 2), comp = Math.hypot(th, Lc / 2);
+        for (let t = -Lb / 2 + 0.4; t < Lb / 2; t += 0.85) for (const s of [-1, 1]) { const r = CX.caixa(gg, aoX ? 0.09 : comp, 0.14, aoX ? comp : 0.09, aoX ? t : s * Lc / 4, 0, aoX ? s * Lc / 4 : t, mv, 0, false); r.position.y = yb + th / 2 - 0.12; if (aoX) r.rotation.x = s * ang; else r.rotation.z = -s * ang; }
+        CX.caixa(gg, aoX ? Lb : 0.16, 0.18, aoX ? 0.16 : Lb, 0, yb + th - 0.32, 0, mv, 0, false);
+        for (let t = -Lb / 2 + 1; t < Lb / 2; t += 1.8) CX.caixa(gg, aoX ? 0.08 : Lc * 0.42, 0.1, aoX ? Lc * 0.42 : 0.08, aoX ? t : 0, yb + th * 0.55, aoX ? 0 : t, mv, 0, false);
+      }
+      CX.telhado(c, g, 0, A.y + H + 0.14, 0, W, D, th, o.telha || matTelha, W >= D);
     }
   });
   c.pegada = [X0, Z0, X0 + W, Z0 + D];
+  { // soco (barra mais escura embaixo, com vão nas portas) e cunhais nos quatro cantos: tira o ar de caixa
+    const T0 = AND.find(A => A.y === 0) || AND[0], topo = AND[AND.length - 1].y + (AND[AND.length - 1].h ?? 3.2), mS = o.matSoco || CX.matTex(o.soco || 'pedra', W / 3, 0.25, o.socoCor ?? 0xb8b2a8), mC = o.matCunhal || mS;
+    const pts = T0.portas || [{ lado: 's', pos: W / 2, l: 1.4 }];
+    for (const [lado, comp] of [['n', W], ['s', W], ['o', D], ['l', D]]) { const vaos = pts.filter(p => p.lado === lado).map(p => [p.pos - (p.l ?? 1.1) / 2 - 0.05, p.pos + (p.l ?? 1.1) / 2 + 0.05]).sort((a, b) => a[0] - b[0]); let cur = -0.12;
+      for (const [a0, a1] of vaos.concat([[comp + 0.12, comp + 0.12]])) { if (a0 - cur > 0.05) { const m = (cur + a0) / 2, L = a0 - cur; if (lado === 'n') CX.caixa(g, L, 0.55, 0.1, X0 + m, -0.05, Z0 - 0.05, mS, 0, false); else if (lado === 's') CX.caixa(g, L, 0.55, 0.1, X0 + m, -0.05, Z0 + D + 0.05, mS, 0, false); else if (lado === 'o') CX.caixa(g, 0.1, 0.55, L, X0 - 0.05, -0.05, Z0 + D - m, mS, 0, false); else CX.caixa(g, 0.1, 0.55, L, X0 + W + 0.05, -0.05, Z0 + D - m, mS, 0, false); } cur = Math.max(cur, a1); } }
+    if (!o.semCunhal) for (const [x, z] of [[X0, Z0], [X0 + W, Z0], [X0, Z0 + D], [X0 + W, Z0 + D]]) CX.caixa(g, 0.34, topo + 0.05, 0.34, x, 0, z, mC, 0, false);
+  }
   /* escadas: degraus de um andar para o outro, ao longo de z (sobem na direção -z) */
   for (const e of escadas) { const n = Math.max(6, Math.round((e.y1 - e.y0) / 0.18)), dz = (e.z1 - e.z0) / n, m = CX.matTex('madeira', 1, 1, 0x5e4330);
     for (let i = 0; i < n; i++) CX.caixa(g, e.x1 - e.x0, (e.y1 - e.y0) / n * (i + 1), Math.abs(dz) + 0.01, (e.x0 + e.x1) / 2, e.y0, e.z1 - dz * (i + 0.5), m, 0, i % 4 === 0);
@@ -3533,7 +3584,7 @@ const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.55, 6
   const quadroNegro = (g, x, y, z, ry, w = 3) => { const p = CX.texto([''], w, 1.1, { fundo: '#24382c', borda: true, bordaCor: '#6a4a2a', brilho: 0.02 }); p.position.set(x, y + 1.55, z); p.rotation.y = ry; g.add(p); };
   const espelho = (g, x, y, z, ry, w = 0.9) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.7), new THREE.MeshStandardMaterial({ color: 0xcfd8dc, metalness: 0.9, roughness: 0.05 })); m.position.set(x, y + 1.55, z); m.rotation.y = ry; g.add(m); for (let i = 0; i < 5; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), new THREE.MeshStandardMaterial({ color: 0xfff4d8, emissive: 0xffe0a0, emissiveIntensity: 0.8 })); b.position.set(x + Math.cos(ry) * (-w / 2 + i * w / 4), y + 1.95, z - Math.sin(ry) * (-w / 2 + i * w / 4)); g.add(b); } };
   const arara = (g, x, y, z, ry = 0, L = 1.8) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.6, roughness: 0.4 }); for (const sx of [-L / 2, L / 2]) CX.cil(gg, 0.02, 0.02, 1.7, sx, 0, 0, m, 6); const b = CX.cil(gg, 0.015, 0.015, L, 0, 1.68, 0, m, 6); b.rotation.z = Math.PI / 2; b.position.y = 1.68; for (let i = 0; i < Math.floor(L / 0.18); i++) CX.caixa(gg, 0.06, 1.0, 0.45, -L / 2 + 0.1 + i * 0.18, 0.62, 0, new THREE.MeshStandardMaterial({ color: new THREE.Color().setHSL(rnd(), 0.4, 0.25 + rnd() * 0.2), roughness: 1 }), 0, false); };
-  const coberto = (g, x, y, z) => { const m = CX.caixa(g, 0.9 + rnd() * 0.8, 0.7 + rnd() * 0.6, 0.6 + rnd() * 0.5, x, y, z, new THREE.MeshStandardMaterial({ color: 0xd8d4c8, roughness: 1 })); m.rotation.y = rnd() * TAU; };
+  const coberto = (g, x, y, z) => CX.lencol(g, x, y, z, 0.9 + rnd() * 0.8, 0.7 + rnd() * 0.6, 0.6 + rnd() * 0.5, rnd() * TAU); const _cobertoVelho = (g, x, y, z) => { const m = CX.caixa(g, 0.9 + rnd() * 0.8, 0.7 + rnd() * 0.6, 0.6 + rnd() * 0.5, x, y, z, new THREE.MeshStandardMaterial({ color: 0xd8d4c8, roughness: 1 })); m.rotation.y = rnd() * TAU; };
   CX.mobiliar = (g, r, y, tipo) => {
     const [x0, z0, x1, z1] = r, w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, A = w * d;
     const P = (lado, t, rec = 0.35) => lado === 'n' ? [x0 + t * w, z0 + rec, 0] : lado === 's' ? [x0 + t * w, z1 - rec, Math.PI] : lado === 'o' ? [x0 + rec, z0 + t * d, Math.PI / 2] : [x1 - rec, z0 + t * d, -Math.PI / 2];
@@ -3563,25 +3614,25 @@ const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.55, 6
       case 'jantar': CX.mesa(g, cx, y, cz, Math.min(2.4, w - 1.2), 1.0); for (let i = 0; i < 3; i++) for (const s of [-1, 1]) CX.cadeira(g, cx - 0.8 + i * 0.8, y, cz + s * 0.75, s > 0 ? Math.PI : 0); ao('n', [0.5], (x, z, ry) => CX.modelo(g, 'm', 'kitchenCabinet', x, y, z, ry, 1)); quadros(2); break;
       case 'despensa': ao('n', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.max(1, w - 0.5), 2.0, ry, 'potes')); ao('o', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.max(1, d - 0.8), 2.0, ry, 'potes')); for (let i = 0; i < 3; i++) { const s = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 0.3, 4, 8), new THREE.MeshStandardMaterial({ color: 0xc8b890, roughness: 1 })); s.position.set(x1 - 0.4, y + 0.3, z1 - 0.4 - i * 0.4); g.add(s); } break;
       case 'lavanderia': case 'servico': CX.caixa(g, 0.7, 0.9, 0.6, x0 + 0.5, y, z0 + 0.45, new THREE.MeshStandardMaterial({ color: 0xd8d8d0, roughness: 0.4 })); CX.caixa(g, 0.6, 0.85, 0.6, x0 + 1.3, y, z0 + 0.45, new THREE.MeshStandardMaterial({ color: 0xe8e8e4, roughness: 0.3 })); { const v = CX.cil(g, 0.005, 0.005, w - 0.4, cx, y + 2.0, cz, new THREE.MeshStandardMaterial({ color: 0x888 }), 4); v.rotation.z = Math.PI / 2; v.position.y = y + 2.0; } ao('l', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(1.5, d - 0.6), 1.8, ry, 'caixas')); break;
-      case 'sotao': for (let i = 0; i < Math.round(A / 4); i++) { const x = x0 + 0.8 + rnd() * (w - 1.6), z = z0 + 0.8 + rnd() * (d - 1.6); if (rnd() < 0.5) coberto(g, x, y, z); else CX.modelo(g, 'm', 'cardboardBoxClosed', x, y, z, rnd() * TAU, 0.8 + rnd() * 0.3); }
-        CX.bau(g, cx, y, cz, rnd()); for (let x = x0 + 1; x < x1; x += 2) CX.caixa(g, 0.18, 0.18, d, x, y + 1.7, cz, CX.matTex('madeira', 1, 1, 0x5a3e2a)); break;
-      case 'porao': ao('n', [0.25, 0.75], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.4, w * 0.4), 2.0, ry, 'potes')); for (let i = 0; i < Math.round(A / 8); i++) coberto(g, x0 + 1 + rnd() * (w - 2), y, z0 + 1.5 + rnd() * (d - 2.5)); for (let i = 0; i < 4; i++) CX.cil(g, 0.27, 0.27, 0.8, x1 - 0.5, y, z0 + 0.6 + i * 0.6, CX.matTex('madeira', 1, 1, 0x5a3a24), 12); break;
+      case 'sotao': CX.guardados(g, [x0 + w * 0.15, z0 + d * 0.2, x1 - w * 0.15, z1 - d * 0.2], y, Math.round(A / 6)); CX.bau(g, cx, y, cz, rnd()); CX.modelo(g, 'm', 'chair', x0 + 1, y, z1 - 1, 0.6, 0.9); CX.modelo(g, 'm', 'lampRoundFloor', x1 - 0.8, y, z0 + 0.8, 0, 0.9);
+        { const mol = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.03, 6, 20), CX.matTex('madeira', 1, 1, 0x7a5a3c)); mol.position.set(cx + 1.2, y + 0.32, cz - 0.6); mol.rotation.set(0.2, 0.4, 0); g.add(mol); } CX.manequim(g, cx - 1.2, y, cz + 0.4, 0.5); break;
+      case 'porao': ao('n', [0.25, 0.75], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.4, w * 0.4), 2.0, ry, 'potes')); CX.guardados(g, [x0, z0 + 1, x1 - 1, z1], y, Math.round(A / 4)); for (let i = 0; i < 4; i++) CX.barril(g, x1 - 0.5, y, z0 + 0.7 + i * 0.7, 0.95); break;
       case 'quarto_ind': CX.cama(g, x0 + 1.0, y, cz, Math.PI / 2, false); CX.modelo(g, 'm', 'sideTable', x0 + 0.4, y, z0 + 0.4, 0, 0.8); CX.modelo(g, 'm', 'lampRoundTable', x0 + 0.4, y + 0.5, z0 + 0.4, 0, 0.6); ao('l', [0.3], (x, z, ry) => CX.modelo(g, 'm', 'bookcaseClosed', x, y, z, ry, 0.9)); CX.cadeira(g, x1 - 0.5, y, z1 - 0.6, Math.PI); quadros(1); break;
       case 'estudio': CX.console(g, cx, y, cz - 0.4, 0, Math.min(2.6, w - 1)); CX.cadeira(g, cx, y, cz + 0.5, Math.PI); for (const dx of [-0.8, 0.8]) CX.microfone(g, cx + dx, y + 0.86, cz - 0.1); for (let i = 0; i < 2; i++) CX.modelo(g, 'm', 'televisionVintage', cx - 0.6 + i * 1.2, y + 0.82, cz - 0.75, 0, 0.45); ao('o', [0.5], (x, z, ry) => CX.estante(g, x, y, z, Math.min(1.8, d - 0.6), 2.0, ry)); break;
       case 'cabine': CX.mesa(g, cx, y, cz, 1.2, 0.7); CX.microfone(g, cx, y + 0.8, cz); CX.cadeira(g, cx, y, cz + 0.6, Math.PI); for (let i = 0; i < 8; i++) { const [x, z, ry] = P(['n', 'o'][i % 2], 0.15 + (i >> 1) * 0.22, 0.12); const pz = CX.caixa(g, 0.5, 0.5, 0.06, x, y + 1.2 + (i % 2) * 0.6, z, new THREE.MeshStandardMaterial({ color: 0x3a3436, roughness: 1 })); pz.rotation.y = ry; } break;
       case 'tecnica': for (let i = 0; i < Math.max(2, Math.floor((w - 0.6) / 0.7)); i++) { const x = x0 + 0.5 + i * 0.7; CX.caixa(g, 0.6, 1.9, 0.6, x, y, z0 + 0.45, new THREE.MeshStandardMaterial({ color: 0x2a2c2e, metalness: 0.4, roughness: 0.5 })); for (let k = 0; k < 6; k++) { const l = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.02, 0.01), new THREE.MeshBasicMaterial({ color: [0x40ff60, 0xffb030, 0xff4040][k % 3] })); l.position.set(x - 0.2 + k * 0.08, y + 1.2 + (k % 2) * 0.3, z0 + 0.76); g.add(l); } } CX.mesa(g, cx, y, z1 - 0.8, 1.2, 0.6); CX.cadeira(g, cx, y, z1 - 0.3, Math.PI); break;
       case 'camarim': ao('n', [0.25, 0.5, 0.75], (x, z, ry) => { CX.mesa(g, x, y, z + 0.1, 1.0, 0.45); espelho(g, x, y, z - 0.23, ry); CX.cadeira(g, x, y, z + 0.6, Math.PI); }); ao('o', [0.6], (x, z, ry) => CX.modelo(g, 'm', 'bookcaseClosed', x, y, z, ry, 1)); arara(g, cx, y, z1 - 0.6, 0, Math.min(2.4, w - 1)); break;
       case 'figurinos': for (let j = 0; j < Math.max(1, Math.floor((d - 1) / 1.4)); j++) arara(g, cx, y, z0 + 0.9 + j * 1.4, 0, Math.max(1.5, w - 1.6)); ao('o', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2, d - 0.6), 2, ry, 'caixas')); break;
-      case 'oficina': CX.caixa(g, Math.min(3, w - 1), 0.9, 0.7, cx, y, z0 + 0.45, CX.matTex('madeira', 2, 1, 0x6a4a30)); for (let i = 0; i < 6; i++) CX.caixa(g, 0.04, 0.4 + rnd() * 0.3, 0.06, cx - 1.2 + i * 0.45, y + 1.3, z0 + 0.12, new THREE.MeshStandardMaterial({ color: 0x5a5a5a, metalness: 0.6, roughness: 0.4 }), 0, false); ao('l', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2, d - 0.6), 2, ry, 'caixas')); for (let i = 0; i < 6; i++) CX.caixa(g, 2 + rnd(), 0.1, 0.2, x0 + 1.4, y + i * 0.12, z1 - 0.6, CX.matTex('madeira', 1, 1, 0x8a6a48), rnd() * 0.1); break;
+      case 'oficina': CX.bancada(g, cx, y, z0 + 0.5, Math.min(2.6, w - 1)); CX.painelFerramentas(g, cx, y, z0 + 0.11, 0, Math.min(2.2, w - 1.2)); ao('l', [0.5], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2, d - 0.6), 2, ry, 'potes')); CX.carrinho(g, x0 + 1.0, y, z1 - 1.0, 0.5); CX.barril(g, x1 - 0.6, y, z1 - 0.6); CX.escadaMao(g, x0 + 0.3, y, cz, Math.PI / 2); break;
       case 'garagem': ao('n', [0.3, 0.7], (x, z, ry) => CX.prateleira(g, x, y, z, Math.min(2.2, w * 0.35), 2.2, ry, 'caixas')); CX.caixa(g, 1.8, 0.9, 0.6, x0 + 1.2, y, z1 - 0.5, CX.matTex('madeira', 2, 1, 0x6a4a30)); ao('o', [0.5], (x, z, ry) => CX.arquivo(g, x, y, z, ry)); break;
       case 'oratorio': CX.caixa(g, 1.2, 0.85, 0.5, cx, y, z0 + 0.35, CX.matTex('madeira', 1, 1, 0x4e3220)); CX.modelo(g, 'g', 'cross', cx, y + 0.85, z0 + 0.3, 0, 0.35); CX.modelo(g, 'g', 'candle-multiple', cx - 0.4, y + 0.85, z0 + 0.35, 0, 0.4); CX.quadro(g, cx, y + 1.9, z0 + 0.11, 0, 0.5, 0.6); break;
       default: base(g, r, y, tipo);
     }
   };
   /* varanda na frente (+z), sacada no andar de cima, anexo (galpão, garagem, guarita) e cerca */
-  CX.varanda = (c, g, W, D, prof = 2.2, h = 2.8, mat = CX.matTex('madeira', 1, 1, 0x6e4e36)) => { const z = D / 2 + prof / 2; CX.caixa(g, W, 0.15, prof, 0, -0.05, z, CX.matTex('tabua', W / 2, 1, 0x8a6a48)); for (let x = -W / 2 + 0.2; x <= W / 2 - 0.1; x += W / Math.max(2, Math.round(W / 3))) CX.caixa(g, 0.15, h, 0.15, x, 0, D / 2 + prof - 0.15, mat); const t = CX.caixa(g, W + 0.4, 0.1, prof + 0.3, 0, h, z, matTelha); t.rotation.x = 0.12; t.userData.semColisao = true; for (let x = -W / 2 + 0.2; x < W / 2; x += 0.25) if (Math.abs(x) > 0.9) CX.caixa(g, 0.04, 0.85, 0.04, x, 0.1, D / 2 + prof - 0.1, mat, 0, false); CX.caixa(g, W, 0.06, 0.08, 0, 0.92, D / 2 + prof - 0.1, mat, 0, false); };
+  CX.varanda = (c, g, W, D, prof = 2.2, h = 2.8, mat = CX.matTex('madeira', 1, 1, 0x6e4e36)) => { const z = D / 2 + prof / 2; CX.caixa(g, W, 0.15, prof, 0, -0.05, z, CX.matTex('tabua', W / 2, 1, 0x8a6a48)); for (let x = -W / 2 + 0.2; x <= W / 2 - 0.1; x += W / Math.max(2, Math.round(W / 3))) CX.caixa(g, 0.15, h, 0.15, x, 0, D / 2 + prof - 0.15, mat); const t = CX.caixa(g, W + 0.4, 0.1, prof + 0.3, 0, h, z, matTelha); t.rotation.x = 0.12; t.userData.semColisao = true; (c.tetos ||= []).push(t); for (let x = -W / 2 + 0.2; x < W / 2; x += 0.25) if (Math.abs(x) > 0.9) CX.caixa(g, 0.04, 0.85, 0.04, x, 0.1, D / 2 + prof - 0.1, mat, 0, false); CX.caixa(g, W, 0.06, 0.08, 0, 0.92, D / 2 + prof - 0.1, mat, 0, false); };
   CX.sacada = (g, x, y, D, w = 3, prof = 1.1) => { const m = new THREE.MeshStandardMaterial({ color: 0x2a2c2e, metalness: 0.5, roughness: 0.4 }); CX.caixa(g, w, 0.14, prof, x, y - 0.14, D / 2 + prof / 2, CX.matTex('concreto', 1, 1, 0xb8b4a8)); for (let k = 0; k <= w / 0.15; k++) CX.cil(g, 0.015, 0.015, 1.0, x - w / 2 + k * 0.15, y, D / 2 + prof - 0.05, m, 5); CX.caixa(g, w, 0.05, 0.06, x, y + 1.0, D / 2 + prof - 0.05, m, 0, false); };
-  CX.anexo = (c, g, x0, z0, w, d, o = {}) => { const Y = o.y ?? 0, s = CX.sala(c, g, x0, z0, w, d, { y: Y, buraco: o.buraco, h: o.h ?? 3, parede: o.parede || CX.matTex('tabua', w / 2, 1, 0x8a7458), piso: o.piso || CX.matTex('concreto', w / 2, d / 2, 0x9a9488), portas: o.portas || [{ lado: 's', pos: w / 2, l: o.portaL ?? 2.4, h: 2.5 }], janelas: o.janelas || [], luz: 1.3 });
+  CX.anexo = (c, g, x0, z0, w, d, o = {}) => { const Y = o.y ?? 0, s = CX.sala(c, g, x0, z0, w, d, { y: Y, buraco: o.buraco, h: o.h ?? 3, parede: o.parede || (() => { const m = CX.matTex('tabua', w / 2, 1, 0xd8c0a0); m.color.multiplyScalar(1.7); return m; })(), piso: o.piso || CX.matTex('concreto', w / 2, d / 2, 0x9a9488), portas: o.portas || [{ lado: 's', pos: w / 2, l: o.portaL ?? 2.4, h: 2.5 }], janelas: o.janelas || [], luz: 1.3 });
     CX.telhado(c, g, x0 + w / 2, Y + (o.h ?? 3) + 0.12, z0 + d / 2, w, d, o.th ?? 1.4, o.telha || new THREE.MeshStandardMaterial({ color: 0x6a6e70, roughness: 0.6, metalness: 0.3 }), w >= d); if (o.tipo) CX.mobiliar(g, [x0, z0, x0 + w, z0 + d], Y, o.tipo); if (o.placa) { const p = CX.texto([].concat(o.placa), Math.min(w * 0.7, 3.4), 0.5, { fundo: '#1d2620', cor: '#e8e2cc', fonte: 50 }); p.position.set(x0 + w / 2, Y + (o.h ?? 3) - 0.35, z0 + d + 0.11); g.add(p); } return s; };
   CX.cerca = (g, pts, h = 1.2, mat = CX.matTex('madeira', 1, 1, 0x6a5038)) => { for (let i = 0; i < pts.length - 1; i++) { const [ax, az] = pts[i], [bx, bz] = pts[i + 1], L = Math.hypot(bx - ax, bz - az), n = Math.ceil(L / 2); for (let k = 0; k <= n; k++) CX.caixa(g, 0.1, h, 0.1, ax + (bx - ax) * k / n, -0.05, az + (bz - az) * k / n, mat); for (const yy of [0.35, 0.85]) { const t = CX.caixa(g, L, 0.08, 0.04, (ax + bx) / 2, yy, (az + bz) / 2, mat, 0, false); t.rotation.y = -Math.atan2(bz - az, bx - ax); } } };
   CX.mato = (c, x0, z0, x1, z1, n = 40, evita) => { for (let i = 0; i < n; i++) { const x = x0 + rnd() * (x1 - x0), z = z0 + rnd() * (z1 - z0); if (evita && evita(x, z)) continue; inst('n', rnd() < 0.7 ? 'grass_large' : 'plant_bushDetailed', x, 0, z, rnd() * TAU, 0.35 + rnd() * 0.5, 'mato', null, c.id); } };
@@ -3593,7 +3644,7 @@ const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.55, 6
   CX.prancheta = (g, x, y, z, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const fe = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, metalness: 0.5, roughness: 0.5 }); for (const sx of [-0.55, 0.55]) CX.caixa(gg, 0.04, 0.9, 0.04, sx, 0, 0, fe); const t = CX.caixa(gg, 1.3, 0.04, 0.9, 0, 0.9, 0, new THREE.MeshStandardMaterial({ color: 0xe8e2d0, roughness: 0.8 })); t.rotation.x = -0.35;
     const pl = CX.quadro(gg, 0, 0.98, 0.02, 0, 1.0, 0.7, (k, W, H) => { k.fillStyle = '#dfe8ef'; k.fillRect(0, 0, W, H); k.strokeStyle = '#2a4a7a'; k.lineWidth = 2; for (let i = 0; i < 14; i++) { k.beginPath(); k.moveTo(W * rnd(), H * rnd()); k.lineTo(W * rnd(), H * rnd()); k.stroke(); } k.strokeRect(10, 10, W - 20, H - 20); }); pl.rotation.x = -Math.PI / 2 - 0.35; pl.position.y = 0.95; };
   CX.armario = (g, x, y, z, ry = 0, cor = 0x6a7068) => { const m = new THREE.MeshStandardMaterial({ color: cor, roughness: 0.6, metalness: 0.4 }); const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); CX.caixa(gg, 0.9, 1.95, 0.5, 0, 0, 0, m); CX.caixa(gg, 0.02, 1.8, 0.01, 0, 0.08, 0.26, new THREE.MeshStandardMaterial({ color: 0x2a2a2a })); CX.caixa(gg, 0.05, 0.12, 0.03, 0.08, 1.0, 0.27, new THREE.MeshStandardMaterial({ color: 0xb0b0a8, metalness: 0.8, roughness: 0.3 })); return gg; };
-  CX.toras = (g, x, y, z, n = 9, L = 4, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = CX.matTex('madeira', 1, 2, 0x6a4a30); let k = 0; for (let f = 0; k < n; f++) for (let i = 0; i < 4 - f && k < n; i++, k++) { const r = 0.22 + rnd() * 0.08, t = CX.cil(gg, r, r, L, -0.75 + i * 0.5 + f * 0.25, 0, 0, m, 10); t.rotation.x = Math.PI / 2; t.position.set(-0.75 + i * 0.5 + f * 0.25, 0.27 + f * 0.44, 0); } return gg; };
+  CX.toras = (g, x, y, z, n = 9, L = 4, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = CX.matTex('madeira', 1, 2, 0xb08a60); m.color.multiplyScalar(1.8); let k = 0; for (let f = 0; k < n; f++) for (let i = 0; i < 4 - f && k < n; i++, k++) { const r = 0.22 + rnd() * 0.08, t = CX.cil(gg, r, r, L, -0.75 + i * 0.5 + f * 0.25, 0, 0, m, 10); t.rotation.x = Math.PI / 2; t.position.set(-0.75 + i * 0.5 + f * 0.25, 0.27 + f * 0.44, 0); } return gg; };
   CX.tabuas = (g, x, y, z, ry = 0, n = 10) => { const m = CX.matTex('madeira', 2, 1, 0xa88a60); for (let i = 0; i < n; i++) CX.caixa(g, 3.2, 0.06, 0.25, x, y + i * 0.065, z + (i % 2) * 0.05, m, ry + (rnd() - 0.5) * 0.04, false); };
   CX.mobiliar = (g, r, y, tipo) => {
     const [x0, z0, x1, z1] = r, w = x1 - x0, d = z1 - z0, cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, A = w * d;
@@ -3621,14 +3672,144 @@ const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.55, 6
   };
 }
 
+
+/* ---------- fachadas: letreiros pintados na parede, letras em relevo, toldos, placas penduradas, marquises ---------- */
+{
+  const _fonts = { serif: 'Georgia, "Times New Roman", serif', bastao: '"Arial Black", "Helvetica Neue", Arial, sans-serif', condensada: 'Impact, "Arial Narrow", sans-serif', script: '"Brush Script MT", "Segoe Script", cursive', maquina: '"Courier New", monospace', classica: '"Times New Roman", Times, serif' };
+  /* letreiro: o texto fica direto na parede (fundo transparente), com sombra, contorno e desgaste de tinta velha */
+  CX.letreiro = (linhas, o = {}) => {
+    const L = [].concat(linhas), W = o.px || 1024, H = Math.round(W * (o.h || 0.6) / (o.w || 3)), cv = document.createElement('canvas'); cv.width = W; cv.height = H; const k = cv.getContext('2d');
+    const tam = o.tam || L.map((_, i) => (i ? 0.55 : 1)), soma = tam.reduce((a, b) => a + b, 0), base = H * 0.86 / soma;
+    let y = H * 0.07; L.forEach((t, i) => { const fs = base * tam[i], fam = _fonts[(o.fontes || [])[i] || o.fonte || 'serif'] || o.fonte; k.font = `${(o.pesos || [])[i] || o.peso || 'bold'} ${fs * 0.86}px ${fam}`; k.textAlign = 'center'; k.textBaseline = 'middle';
+      const cx = W / 2, cy = y + fs / 2; let txt = t; const larg = k.measureText(txt).width; if (larg > W * 0.96) { k.save(); k.translate(cx, cy); k.scale(W * 0.96 / larg, 1); k.translate(-cx, -cy); }
+      if (o.sombra !== false) { k.fillStyle = o.corSombra || 'rgba(0,0,0,0.45)'; k.fillText(txt, cx + fs * 0.05, cy + fs * 0.06); }
+      if (o.contorno) { k.lineWidth = fs * 0.08; k.strokeStyle = o.contorno; k.strokeText(txt, cx, cy); }
+      k.fillStyle = (o.cores || [])[i] || o.cor || '#2a1a10'; k.fillText(txt, cx, cy); if (larg > W * 0.96) k.restore(); y += fs; });
+    if (o.desgaste !== 0) { k.globalCompositeOperation = 'destination-out'; for (let i = 0; i < (o.desgaste ?? 0.5) * 2500; i++) { k.fillStyle = `rgba(0,0,0,${0.2 + rnd() * 0.8})`; const r = rnd() * 3 + 0.5; k.fillRect(rnd() * W, rnd() * H, r * (1 + rnd() * 3), r); } k.globalCompositeOperation = 'source-over'; }
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(o.w || 3, o.h || 0.6), new THREE.MeshStandardMaterial({ map: t, transparent: true, alphaTest: 0.05, roughness: o.brilho ? 0.35 : 0.9, metalness: o.metal || 0, polygonOffset: true, polygonOffsetFactor: -2, depthWrite: false }));
+    m.userData.semColisao = true; return m;
+  };
+  /* letras em relevo: a letra de metal e a sombra dela na parede, um pouco atrás */
+  CX.letras = (g, linhas, x, y, z, w, h, o = {}, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg);
+    const sb = CX.letreiro(linhas, Object.assign({}, o, { w, h, cor: 'rgba(0,0,0,0.55)', cores: null, contorno: null, sombra: false, desgaste: 0 })); sb.position.set(0.04, -0.05, 0.005); gg.add(sb);
+    const fr = CX.letreiro(linhas, Object.assign({ metal: 0.6, brilho: true }, o, { w, h, sombra: false, desgaste: o.desgaste ?? 0.05 })); fr.position.z = 0.05; gg.add(fr); return gg; };
+  /* toldo listrado, inclinado, com a barra recortada na frente */
+  CX.toldo = (g, x, y, z, w, prof = 1.6, cores = ['#2e5a3e', '#e8e0c8'], ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg);
+    const cv = document.createElement('canvas'); cv.width = 512; cv.height = 64; const k = cv.getContext('2d'); const n = Math.max(6, Math.round(w / 0.5)); for (let i = 0; i < n; i++) { k.fillStyle = cores[i % 2]; k.fillRect(i * 512 / n, 0, 512 / n + 1, 64); }
+    k.fillStyle = 'rgba(60,40,20,0.18)'; for (let i = 0; i < 300; i++) k.fillRect(rnd() * 512, rnd() * 64, 2 + rnd() * 6, 1 + rnd() * 3);
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const mt = new THREE.MeshStandardMaterial({ map: t, side: THREE.DoubleSide, roughness: 0.95 });
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, prof, 1, 4), mt); const pp = p.geometry.attributes.position; for (let i = 0; i < pp.count; i++) pp.setZ(i, Math.sin((pp.getY(i) / prof + 0.5) * Math.PI) * 0.06); p.geometry.computeVertexNormals();
+    p.rotation.x = -Math.PI / 2 + 0.42; p.position.set(0, -Math.sin(0.42 + 0.05) * prof / 2, prof / 2 * Math.cos(0.42)); p.castShadow = true; p.userData.semColisao = true; gg.add(p);
+    const cv2 = document.createElement('canvas'); cv2.width = 512; cv2.height = 48; const k2 = cv2.getContext('2d'); for (let i = 0; i < n; i++) { k2.fillStyle = cores[i % 2]; k2.beginPath(); const a = i * 512 / n, b = (i + 1) * 512 / n; k2.moveTo(a, 0); k2.lineTo(b, 0); k2.lineTo(b, 26); k2.quadraticCurveTo((a + b) / 2, 52, a, 26); k2.fill(); }
+    const t2 = new THREE.CanvasTexture(cv2); t2.colorSpace = THREE.SRGBColorSpace; const ba = new THREE.Mesh(new THREE.PlaneGeometry(w, 0.32), new THREE.MeshStandardMaterial({ map: t2, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide })); ba.position.set(0, -Math.sin(0.42) * prof - 0.16, prof * Math.cos(0.42)); ba.userData.semColisao = true; gg.add(ba);
+    for (const sx of [-w / 2 + 0.05, w / 2 - 0.05]) { const br = CX.caixa(gg, 0.03, 0.03, prof * 1.05, sx, -Math.sin(0.42) * prof / 2, prof / 2, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.6 }), 0, false); br.rotation.x = 0.42; }
+    return gg; };
+  /* placa pendurada num braço de ferro, com as duas correntes */
+  CX.placaPend = (g, x, y, z, linhas, o = {}, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const fe = new THREE.MeshStandardMaterial({ color: 0x1e1e1e, metalness: 0.6, roughness: 0.5 }), L = o.braco || 1.3, w = o.w || 1.1, h = o.h || 0.6;
+    CX.caixa(gg, 0.05, 0.05, L, 0, 0, L / 2, fe, 0, false); const ap = CX.caixa(gg, 0.04, 0.04, L * 0.7, 0, -0.32, L * 0.35, fe, 0, false); ap.rotation.x = -0.45; ap.position.y = -0.16; CX.caixa(gg, 0.12, 0.5, 0.03, 0, -0.35, 0.02, fe, 0, false);
+    for (const sx of [-w * 0.35, w * 0.35]) CX.cil(gg, 0.008, 0.008, 0.18, sx * 0 + 0, -0.18, L - 0.25 + sx * 0.6, fe, 4);
+    const tab = new THREE.Group(); tab.position.set(0, -0.2 - h / 2, L - 0.25); gg.add(tab); CX.caixa(tab, 0.05, h, w, 0, -h / 2, 0, CX.matTex('madeira', 1, 1, o.madeira || 0x5a3e2a));
+    for (const s of [-1, 1]) { const f = CX.letreiro(linhas, Object.assign({ w: w * 0.92, h: h * 0.86, sombra: false }, o)); f.position.set(s * 0.03, 0, 0); f.rotation.y = s * Math.PI / 2; tab.add(f); }
+    if (o.moldura) { const mm = new THREE.MeshStandardMaterial({ color: o.moldura, metalness: 0.5, roughness: 0.4 }); for (const yy of [-h / 2, h / 2]) CX.caixa(tab, 0.07, 0.04, w + 0.04, 0, yy - 0.02, 0, mm, 0, false); }
+    return gg; };
+  CX.lampiao = (c, g, x, y, z, cor = 0xffd9a0) => { const fe = new THREE.MeshStandardMaterial({ color: 0x1e1e1e, metalness: 0.6 }); CX.caixa(g, 0.04, 0.04, 0.35, x, y, z + 0.17, fe, 0, false); const gl = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), new THREE.MeshStandardMaterial({ color: 0xfff4e0, emissive: cor, emissiveIntensity: 0.7, transparent: true, opacity: 0.9 })); gl.position.set(x, y - 0.12, z + 0.35); g.add(gl);
+    const l = new THREE.PointLight(cor, 0, 7, 1.8); l.position.copy(gl.position); g.add(l); (c.luzes ||= []).push({ l, i: 1.2 }); return gl; };
+  CX.mastro = (g, x, z, cores = ['#2a7a3a', '#e8c020', '#c03028'], h = 6.5) => { CX.cil(g, 0.04, 0.05, h, x, 0, z, new THREE.MeshStandardMaterial({ color: 0xd8d8d0, metalness: 0.6, roughness: 0.4 }), 8); const cv = document.createElement('canvas'); cv.width = 96; cv.height = 64; const k = cv.getContext('2d'); cores.forEach((c, i) => { k.fillStyle = c; k.fillRect(0, i * 64 / cores.length, 96, 64 / cores.length + 1); });
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; const geo = new THREE.PlaneGeometry(1.2, 0.8, 8, 1), p = geo.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, Math.sin((p.getX(i) + 0.6) * 4) * 0.06 * (p.getX(i) + 0.6)); geo.computeVertexNormals(); const b = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: t, side: THREE.DoubleSide, roughness: 0.9 })); b.position.set(x + 0.62, h - 0.5, z); b.userData.semColisao = true; g.add(b); };
+  CX.marquise = (g, x, y, z, w, prof = 1.4, mat) => { const m = mat || CX.matTex('concreto', 2, 1, 0xd8d4c8); const s = CX.caixa(g, w, 0.14, prof, x, y, z + prof / 2, m); s.userData.semColisao = true; CX.caixa(g, w + 0.04, 0.22, 0.08, x, y - 0.06, z + prof, m, 0, false); return s; };
+  CX.frontao = (g, x, y, z, w, h, mat, prof = 0.4) => { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(0, h); sh.lineTo(-w / 2, 0); const geo = new THREE.ExtrudeGeometry(sh, { depth: prof, bevelEnabled: false }); const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.userData.semColisao = true; g.add(m);
+    CX.caixa(g, w + 0.3, 0.16, prof + 0.12, x, y - 0.16, z + prof / 2, mat, 0, false); return m; };
+  CX.cruzVerde = (c, g, x, y, z) => { const m = new THREE.MeshStandardMaterial({ color: 0x1e8a3e, emissive: 0x2aff6a, emissiveIntensity: 0.5, roughness: 0.4 }); const gg = new THREE.Group(); gg.position.set(x, y, z); g.add(gg); CX.caixa(gg, 0.6, 0.2, 0.12, 0, 0.2, 0, m, 0, false); CX.caixa(gg, 0.2, 0.6, 0.12, 0, 0, 0, m, 0, false); const l = new THREE.PointLight(0x40ff80, 0, 5, 2); l.position.set(x, y + 0.3, z + 0.4); g.add(l); (c.luzes ||= []).push({ l, i: 0.8 }); return gg; };
+  /* letreiro de teatro com lâmpadas em volta */
+  CX.marquee = (c, g, x, y, z, w, h, linhas, o = {}) => { const gg = new THREE.Group(); gg.position.set(x, y, z); g.add(gg); CX.caixa(gg, w, h, 0.25, 0, 0, 0.12, new THREE.MeshStandardMaterial({ color: o.fundo || 0x3a1018, roughness: 0.6 }));
+    const f = CX.letreiro(linhas, Object.assign({ w: w * 0.86, h: h * 0.7, cor: '#f2d28a', contorno: '#5a2a10', desgaste: 0.1, fonte: 'classica' }, o)); f.position.set(0, h / 2, 0.26); gg.add(f);
+    const bm = new THREE.MeshStandardMaterial({ color: 0xfff0c0, emissive: 0xffd070, emissiveIntensity: 0.9 }); const bg = new THREE.SphereGeometry(0.045, 8, 6);
+    for (let i = 0; i <= Math.round(w / 0.25); i++) for (const yy of [0.06, h - 0.06]) { const b = new THREE.Mesh(bg, bm); b.position.set(-w / 2 + i * w / Math.round(w / 0.25), yy, 0.27); gg.add(b); }
+    for (let i = 1; i < Math.round(h / 0.25); i++) for (const xx of [-w / 2 + 0.06, w / 2 - 0.06]) { const b = new THREE.Mesh(bg, bm); b.position.set(xx, i * h / Math.round(h / 0.25), 0.27); gg.add(b); }
+    const l = new THREE.PointLight(0xffd070, 0, 9, 1.8); l.position.set(0, h / 2, 1.2); gg.add(l); (c.luzes ||= []).push({ l, i: 1.5 }); return gg; };
+  /* móvel coberto com lençol: forma macia e caída, nada de caixa branca */
+  CX.lencol = (g, x, y, z, w = 1.2, h = 1.0, d = 0.7, ry = 0, cor = 0xd8d2c2) => { const geo = new THREE.BoxGeometry(w, h, d, 8, 6, 8), p = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i); const ty = (v.y + h / 2) / h, sx = v.x / (w / 2), sz = v.z / (d / 2); const r = Math.max(Math.abs(sx), Math.abs(sz));
+      const arred = ty > 0.7 ? 1 - (ty - 0.7) * 0.35 * r : 1; const saia = ty < 0.35 ? 1 + (0.35 - ty) * 0.45 : 1; v.x *= arred * saia; v.z *= arred * saia;
+      if (ty > 0.95) v.y -= (sx * sx + sz * sz) * 0.06 * h; v.x += (rnd() - 0.5) * 0.03; v.z += (rnd() - 0.5) * 0.03; v.y += ty > 0.02 && ty < 0.98 ? Math.sin(sx * 9 + sz * 7) * 0.012 : 0; p.setXYZ(i, v.x, v.y, v.z); }
+    geo.computeVertexNormals(); const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: cor, roughness: 1 })); m.position.set(x, y + h / 2, z); m.rotation.y = ry; m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+  CX.barril = (g, x, y, z, s = 1) => { const geo = new THREE.CylinderGeometry(0.3 * s, 0.3 * s, 0.9 * s, 16, 6), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const k = 1 + 0.12 * Math.cos(p.getY(i) / (0.45 * s) * Math.PI / 2); p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k); } geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, CX.matTex('madeira', 1, 1, 0x6a4a30)); m.position.set(x, y + 0.45 * s, z); m.castShadow = true; g.add(m); const fe = new THREE.MeshStandardMaterial({ color: 0x3a3a38, metalness: 0.6, roughness: 0.5 }); for (const yy of [-0.3, 0.3]) { const a = new THREE.Mesh(new THREE.TorusGeometry(0.33 * s, 0.015, 4, 20), fe); a.rotation.x = Math.PI / 2; a.position.set(x, y + (0.45 + yy) * s, z); g.add(a); } return m; };
+  CX.saco = (g, x, y, z, ry = 0) => { const geo = new THREE.SphereGeometry(0.3, 12, 8), p = geo.attributes.position; for (let i = 0; i < p.count; i++) { const yy = p.getY(i); p.setXYZ(i, p.getX(i) * (yy > 0.15 ? 0.8 : 1.1), yy < 0 ? yy * 0.55 : yy * 1.25, p.getZ(i) * (yy > 0.15 ? 0.7 : 0.95)); } geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xb8a47c, roughness: 1 })); m.position.set(x, y + 0.17, z); m.rotation.set(0, ry, (rnd() - 0.5) * 0.4); m.castShadow = true; g.add(m); return m; };
+  CX.jarro = (g, x, y, z, s = 1, cor = 0x8a5a3a) => { const pts = [[0, 0], [0.12, 0.01], [0.17, 0.12], [0.16, 0.26], [0.08, 0.36], [0.07, 0.42], [0.09, 0.44]].map(([a, b]) => new THREE.Vector2(a * s, b * s)); const m = new THREE.Mesh(new THREE.LatheGeometry(pts, 14), new THREE.MeshStandardMaterial({ color: cor, roughness: 0.8 })); m.position.set(x, y, z); m.castShadow = true; g.add(m); return m; };
+  CX.corda = (g, x, y, z) => { const m = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.04, 6, 18), new THREE.MeshStandardMaterial({ color: 0xa08a5a, roughness: 1 })); m.rotation.x = Math.PI / 2; m.position.set(x, y + 0.04, z); g.add(m); const m2 = m.clone(); m2.scale.setScalar(0.85); m2.position.y += 0.07; g.add(m2); };
+  /* guardados de porão e depósito: lençóis, barris, sacos, jarros, cordas e caixas soltas, com os cantos livres */
+  CX.guardados = (g, r, y, n = 10, livre = () => true) => { const [x0, z0, x1, z1] = r, w = x1 - x0, d = z1 - z0;
+    for (let i = 0; i < n; i++) { const x = x0 + 0.7 + rnd() * (w - 1.4), z = z0 + 0.7 + rnd() * (d - 1.4); if (!livre(x, z)) continue; const k = rnd();
+      if (k < 0.3) CX.lencol(g, x, y, z, 0.9 + rnd() * 1.0, 0.7 + rnd() * 0.7, 0.6 + rnd() * 0.5, rnd() * TAU, [0xd8d2c2, 0xc8c0ae, 0xbcb4a0][i % 3]);
+      else if (k < 0.48) { CX.barril(g, x, y, z, 0.9 + rnd() * 0.2); if (rnd() < 0.4) CX.barril(g, x + 0.65, y, z + (rnd() - 0.5) * 0.3, 0.9); }
+      else if (k < 0.62) { for (let j = 0; j < 2 + Math.floor(rnd() * 3); j++) CX.saco(g, x + (j % 2) * 0.45, y + Math.floor(j / 2) * 0.32, z + (rnd() - 0.5) * 0.2, rnd() * TAU); }
+      else if (k < 0.76) { for (let j = 0; j < 3; j++) CX.jarro(g, x + j * 0.35, y, z + (rnd() - 0.5) * 0.3, 0.8 + rnd() * 0.6, [0x8a5a3a, 0x6a6a5a, 0x5a3a2a][j]); }
+      else if (k < 0.84) CX.corda(g, x, y, z);
+      else if (k < 0.92) CX.bau(g, x, y, z, rnd() * TAU);
+      else CX.modelo(g, 'm', 'cardboardBoxClosed', x, y, z, rnd() * TAU, 0.8 + rnd() * 0.3); } };
+}
+
+/* ---------- galpões e oficinas com vida: bancada de verdade, ferramentas na parede, carrinho de mão, feno, lenha empilhada ---------- */
+{
+  CX.zinco = (rx = 4, ry = 1) => { if (!CX._zincoTex) { const cv = document.createElement('canvas'); cv.width = 256; cv.height = 64; const k = cv.getContext('2d'); for (let i = 0; i < 16; i++) { const gr = k.createLinearGradient(i * 16, 0, i * 16 + 16, 0); gr.addColorStop(0, '#8a8e90'); gr.addColorStop(0.5, '#d8dcdc'); gr.addColorStop(1, '#7a7e80'); k.fillStyle = gr; k.fillRect(i * 16, 0, 16, 64); }
+      k.fillStyle = 'rgba(120,70,30,0.25)'; for (let i = 0; i < 120; i++) k.fillRect(rnd() * 256, rnd() * 64, 2 + rnd() * 10, 1 + rnd() * 4); const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; CX._zincoTex = t; }
+    const t = CX._zincoTex.clone(); t.repeat.set(rx, ry); t.needsUpdate = true; return new THREE.MeshStandardMaterial({ map: t, metalness: 0.5, roughness: 0.45, color: 0xcfd2d2 }); };
+  CX.ferramenta = (g, tipo, x, y, z, ry = 0, deitado = false) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; if (deitado) gg.rotation.z = Math.PI / 2; g.add(gg);
+    const cabo = CX.matTex('madeira', 1, 1, 0x9a7a50), fe = new THREE.MeshStandardMaterial({ color: 0x5a5c5e, metalness: 0.7, roughness: 0.4 });
+    if (tipo === 'machado') { CX.cil(gg, 0.022, 0.026, 0.85, 0, 0, 0, cabo, 6); CX.caixa(gg, 0.2, 0.12, 0.03, 0.07, 0.72, 0, fe, 0, false); }
+    else if (tipo === 'pa') { CX.cil(gg, 0.02, 0.02, 1.0, 0, 0.25, 0, cabo, 6); const l = CX.caixa(gg, 0.24, 0.3, 0.02, 0, 0, 0, fe, 0, false); }
+    else if (tipo === 'enxada') { CX.cil(gg, 0.02, 0.02, 1.2, 0, 0, 0, cabo, 6); CX.caixa(gg, 0.22, 0.16, 0.02, 0, 1.12, 0.06, fe, 0, false); }
+    else if (tipo === 'serrote') { CX.caixa(gg, 0.55, 0.14, 0.01, 0, 0, 0, fe, 0, false); CX.caixa(gg, 0.12, 0.12, 0.03, -0.32, 0, 0, cabo, 0, false); }
+    else if (tipo === 'martelo') { CX.cil(gg, 0.015, 0.015, 0.32, 0, 0, 0, cabo, 6); CX.caixa(gg, 0.13, 0.04, 0.04, 0, 0.32, 0, fe, 0, false); }
+    else if (tipo === 'foice') { CX.cil(gg, 0.02, 0.02, 0.6, 0, 0, 0, cabo, 6); const f = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.012, 4, 12, Math.PI), fe); f.position.set(0.18, 0.6, 0); gg.add(f); }
+    return gg; };
+  CX.bancada = (g, x, y, z, w = 2.4, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const md = CX.matTex('tabua', 2, 1, 0xb08a60), pe = CX.matTex('madeira', 1, 1, 0x7a5a3a);
+    CX.caixa(gg, w, 0.07, 0.7, 0, 0.86, 0, md); for (const sx of [-w / 2 + 0.08, w / 2 - 0.08]) for (const sz of [-0.28, 0.28]) CX.caixa(gg, 0.08, 0.86, 0.08, sx, 0, sz, pe); CX.caixa(gg, w - 0.1, 0.04, 0.6, 0, 0.25, 0, md, 0, false);
+    const fe = new THREE.MeshStandardMaterial({ color: 0x3a4a5a, metalness: 0.6, roughness: 0.4 }); CX.caixa(gg, 0.18, 0.12, 0.12, w / 2 - 0.2, 0.93, 0.3, fe); CX.cil(gg, 0.01, 0.01, 0.3, w / 2 - 0.2, 1.0, 0.4, fe, 5);
+    CX.ferramenta(gg, 'martelo', -0.3, 0.92, 0.1, 0.4, true); CX.ferramenta(gg, 'serrote', 0.3, 0.91, -0.1, 0.2, true); for (let i = 0; i < 2; i++) CX.jarro(gg, -w / 2 + 0.25 + i * 0.25, 0.9, -0.2, 0.5, 0x3a4a3a);
+    for (let i = 0; i < 4; i++) CX.saco(gg, -w / 2 + 0.4 + i * 0.5, 0.29, 0.05, rnd()); return gg; };
+  CX.painelFerramentas = (g, x, y, z, ry = 0, w = 2) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); CX.caixa(gg, w, 1.1, 0.03, 0, 1.15, 0, CX.matTex('tabua', 1, 1, 0xc8a878), 0, false);
+    ['serrote', 'martelo', 'foice', 'machado', 'martelo'].forEach((t, i) => CX.ferramenta(gg, t, -w / 2 + 0.3 + i * (w - 0.5) / 4, 1.3, 0.05, 0)); return gg; };
+  CX.carrinho = (g, x, y, z, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = new THREE.MeshStandardMaterial({ color: 0x3a6a4a, metalness: 0.5, roughness: 0.5 });
+    const caç = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.3, 0.32, 4, 1, true), m); caç.rotation.y = Math.PI / 4; caç.scale.set(1, 1, 1.4); caç.position.set(0, 0.5, 0); caç.material.side = THREE.DoubleSide; gg.add(caç);
+    const r = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.05, 6, 14), new THREE.MeshStandardMaterial({ color: 0x1a1a1a })); r.rotation.y = Math.PI / 2; r.position.set(0, 0.2, 0.62); gg.add(r);
+    for (const sx of [-0.22, 0.22]) { const c = CX.cil(gg, 0.02, 0.02, 1.3, sx, 0.4, -0.1, CX.matTex('madeira', 1, 1, 0x9a7a50), 5); c.rotation.x = Math.PI / 2 - 0.25; c.position.set(sx, 0.48, -0.05); } return gg; };
+  CX.feno = (g, x, y, z, ry = 0) => { if (!CX._fenoMat) { const cv = document.createElement('canvas'); cv.width = 128; cv.height = 64; const k = cv.getContext('2d'); k.fillStyle = '#c8a850'; k.fillRect(0, 0, 128, 64); for (let i = 0; i < 400; i++) { k.strokeStyle = ['#e0c070', '#a88838', '#d8b860'][i % 3]; k.beginPath(); const a = rnd() * 128, b = rnd() * 64; k.moveTo(a, b); k.lineTo(a + (rnd() - 0.5) * 20, b + (rnd() - 0.5) * 6); k.stroke(); }
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; CX._fenoMat = new THREE.MeshStandardMaterial({ map: t, roughness: 1 }); }
+    const geo = new THREE.BoxGeometry(1.0, 0.45, 0.5, 4, 2, 2), p = geo.attributes.position; for (let i = 0; i < p.count; i++) p.setXYZ(i, p.getX(i) * (1 + (rnd() - 0.5) * 0.04), p.getY(i) * (1 + (rnd() - 0.5) * 0.08), p.getZ(i) * (1 + (rnd() - 0.5) * 0.06)); geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, CX._fenoMat); m.position.set(x, y + 0.225, z); m.rotation.y = ry; m.castShadow = true; g.add(m); for (const sx of [-0.25, 0.25]) { const b = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.008, 3, 12), new THREE.MeshStandardMaterial({ color: 0x8a6a3a })); b.scale.set(1, 0.9, 0.95); b.rotation.y = Math.PI / 2 + ry; b.position.set(x + Math.cos(ry) * sx, y + 0.225, z - Math.sin(ry) * sx); g.add(b); } };
+  CX.lenha = (g, x, y, z, w = 2.4, h = 1.0, ry = 0) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); const m = CX.matTex('madeira', 1, 1, 0x8a6a48), topo = new THREE.MeshStandardMaterial({ color: 0xc8a070, roughness: 1 });
+    for (let yy = 0.09; yy < h; yy += 0.17) for (let xx = -w / 2 + 0.09; xx < w / 2; xx += 0.17 + rnd() * 0.02) { const r = 0.07 + rnd() * 0.02, t = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.5, 7), [m, topo, topo]); t.rotation.x = Math.PI / 2; t.position.set(xx, yy, (rnd() - 0.5) * 0.06); t.castShadow = true; gg.add(t); }
+    for (const sx of [-w / 2 - 0.05, w / 2 + 0.05]) CX.caixa(gg, 0.08, h + 0.1, 0.08, sx, 0, 0, CX.matTex('madeira', 1, 1, 0x5a3e2a)); return gg; };
+  CX.escadaMao = (g, x, y, z, ry = 0, h = 2.6) => { const gg = new THREE.Group(); gg.position.set(x, y, z); gg.rotation.y = ry; g.add(gg); gg.rotation.x = -0.25; const m = CX.matTex('madeira', 1, 1, 0xa88a5a); for (const sx of [-0.22, 0.22]) CX.caixa(gg, 0.05, h, 0.05, sx, 0, 0, m); for (let yy = 0.3; yy < h; yy += 0.32) CX.caixa(gg, 0.44, 0.04, 0.04, 0, yy, 0, m, 0, false); return gg; };
+  /* o galpão inteiro: estrutura de madeira à vista, portões abertos, piso de terra com palha, e tudo arrumado como galpão de colono */
+  CX.galpao = (c, g, x0, z0, w, d, o = {}) => { const H = o.h ?? 3.4, base = o.cor ?? 0xd8b890;
+    const pm = CX.matTex('tabua', w / 1.6, 1.2, base); pm.color.multiplyScalar(1.9); CX.anexo(c, g, x0, z0, w, d, { h: H, parede: pm, piso: CX.matTex('chao_terra', w / 3, d / 3, 0xb8a890), portas: o.portas || [{ lado: 's', pos: w / 2, l: Math.min(3, w * 0.4), h: 2.8 }], janelas: o.janelas || [{ lado: 'l', pos: d / 2, l: 0.9, h0: 1.3, h: 0.8 }], tipo: 'vazio', telha: CX.zinco(w / 1.2, 1), th: o.th ?? 1.3 });
+    const mv = CX.matTex('madeira', 1, 2, 0x5a3e2a); for (let x = x0 + 0.5; x < x0 + w; x += 0.9) for (const z of [z0 - 0.1, z0 + d + 0.1]) if (!(z > z0 && Math.abs(x - (x0 + w / 2)) < Math.min(3, w * 0.4) / 2 + 0.1)) CX.caixa(g, 0.07, H, 0.05, x, 0, z, mv, 0, false); // ripas por fora
+    for (let x = x0 + 1; x < x0 + w; x += 1.6) CX.caixa(g, 0.14, 0.16, d, x, H - 0.2, z0 + d / 2, mv, 0, false); // tesouras do telhado
+    const pl = (o.portas || [{ lado: 's', pos: w / 2, l: Math.min(3, w * 0.4) }])[0], lp = pl.l ?? 2.4; if (pl.lado === 's') for (const s of [-1, 1]) { const f = new THREE.Group(); f.position.set(x0 + pl.pos + s * lp / 2, 0, z0 + d + 0.1); f.rotation.y = s * 1.9; g.add(f); CX.caixa(f, lp / 2, 2.7, 0.06, -s * lp / 4, 0, 0, pm); for (const yy of [0.4, 1.3, 2.2]) CX.caixa(f, lp / 2 - 0.05, 0.1, 0.04, -s * lp / 4, yy, 0.04, mv, 0, false); }
+    for (let i = 0; i < 25; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(0.2 + rnd() * 0.4, 7), new THREE.MeshStandardMaterial({ color: 0xd8c070, roughness: 1, transparent: true, opacity: 0.8 })); p.rotation.x = -Math.PI / 2; p.position.set(x0 + 0.5 + rnd() * (w - 1), 0.012, z0 + 0.5 + rnd() * (d - 1)); g.add(p); } // palha no chão
+    CX.bancada(g, x0 + w * 0.35, 0, z0 + 0.5, Math.min(2.6, w * 0.35)); CX.painelFerramentas(g, x0 + w * 0.35, 0, z0 + 0.11, 0, Math.min(2.4, w * 0.3));
+    CX.prateleira(g, x0 + w - 0.4, 0, z0 + d * 0.4, Math.min(2.2, d * 0.4), 2, -Math.PI / 2, 'potes'); CX.carrinho(g, x0 + w * 0.7, 0, z0 + d * 0.62, 0.6); CX.escadaMao(g, x0 + 0.3, 0, z0 + d * 0.5, Math.PI / 2);
+    for (let i = 0; i < 4; i++) CX.feno(g, x0 + 0.8 + (i % 2) * 1.05, Math.floor(i / 2) * 0.45, z0 + d - 1.0, 0); CX.barril(g, x0 + w - 0.6, 0, z0 + d - 0.7); CX.corda(g, x0 + w - 1.4, 0, z0 + d - 0.6);
+    for (const [t, dx] of [['pa', 0], ['enxada', 0.25], ['foice', 0.5]]) { const f = CX.ferramenta(g, t, x0 + 0.15, 0.05, z0 + 1 + dx, Math.PI / 2); f.rotation.z = -0.15; }
+    { const gl = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), new THREE.MeshStandardMaterial({ color: 0xfff0d0, emissive: 0xffc070, emissiveIntensity: 0.8 })); gl.position.set(x0 + w / 2, H - 0.6, z0 + d / 2); g.add(gl); CX.cil(g, 0.005, 0.005, 0.4, x0 + w / 2, H - 0.55, z0 + d / 2, new THREE.MeshStandardMaterial({ color: 0x222 }), 4); }
+    if (o.lenha !== false) CX.lenha(g, x0 + w + 0.45, 0, z0 + d / 2, Math.min(3, d - 1), 1.1, Math.PI / 2); // lenha empilhada encostada do lado de fora
+  };
+}
+
 /* ---------- os lugares de investigação em escala grande: cada prédio com a sua planta ---------- */
 const INT = def => cenario(Object.assign({ grupo: 'Investigação', interno: false, longe: 60, polar: 0.62, alt: () => 0, luz: () => {} }, def));
 function montaPredio(c, o) {
-  const r = predio(c, o), rec = o.recuo || 0, R = o.raio || Math.max(r.W, r.D) / 2 + 9 + rec;
-  CX.nevoaEmVolta(c, c.g, R, { mat: o.chaoFora || CX.matTex('terra', R / 3, R / 3, 0xb8a890), furo: [-r.W / 2 + 0.05, -r.D / 2 + 0.05, r.W / 2 - 0.05, r.D / 2 - 0.05] });
+  const r = predio(c, o), rec = o.recuo || 0, R = (o.raio || Math.max(r.W, r.D) / 2 + 9 + rec) + 12; // névoa mais afastada: dá para ver o prédio inteiro de longe
+  CX.nevoaEmVolta(c, c.g, R, { mat: o.chaoFora || CX.matTex('chao_terra', R / 2.2, R / 2.2, 0xd8d0c4), furo: [-r.W / 2 + 0.05, -r.D / 2 + 0.05, r.W / 2 - 0.05, r.D / 2 - 0.05] });
   if (o.rua !== false) { const rua = new THREE.Mesh(new THREE.PlaneGeometry(2 * R, 5), o.matRua || CX.matTex('calcamento', R / 1.5, 2)); rua.rotation.x = -Math.PI / 2; rua.position.set(0, 0.0, r.D / 2 + 4.5 + rec); rua.receiveShadow = true; c.g.add(rua); }
   { const cal = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2 + rec), CX.matTex('calcamento', 1, 1, 0xb0a898)); cal.rotation.x = -Math.PI / 2; cal.position.set(o.portaX ?? 0, 0.01, r.D / 2 + 1 + rec / 2); c.g.add(cal); }
   o.depois?.(c, c.g, r);
+  o.fachada?.(c, c.g, r);
   return r;
 }
 const AN = (nome, y, h, comodos, mais = {}) => Object.assign({ nome, y, h, comodos }, mais);
@@ -3642,7 +3823,10 @@ INT({
   nota: 'Térreo: recepção com balcão, sala de espera, gabinete do prefeito, secretaria, sala de reuniões, arquivo, banheiro, copa e corredor. Andar de cima: contabilidade, obras, administração, almoxarifado e o arquivo antigo (barragem, desapropriações, Remanso). As pistas do Caderno de Enigmas ficam nos arquivos e no gabinete: marque cada uma com um ponto amarelo.',
   cams: camsPredio(24, 16, AND, [['Recepção', { pos: [0, 1.7, 7], alvo: [0, 1.2, 3] }], ['Gabinete', { pos: [5, 1.8, 3], alvo: [9, 1, 6] }], ['Arquivo antigo', { pos: [-3, 5.3, 0], alvo: [-7, 4.3, -5] }]]),
   monta(c) {
-    montaPredio(c, { w: 24, d: 16, placa: ['PREFEITURA MUNICIPAL', 'e Cartório de Registro Civil'], parede: CX.matTex('reboco_amarelo', 8, 1, 0xf0e6c8),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11, mf = CX.matTex('reboco_pintado', 2, 0.6, 0xffe4a8); CX.frontao(g, 0, 6.85, r.D / 2 - 0.25, 9, 1.7, mf); CX.letras(g, ['PREFEITURA MUNICIPAL'], 0, 3.0, Z, 8.5, 0.55, { fonte: 'classica', cor: '#6a4a1a', metal: 0.3 }); CX.marquise(g, 0, 2.62, r.D / 2 + 0.1, 3.4, 1.5); for (let i = 0; i < 3; i++) CX.caixa(g, 3.4 - i * 0.3, 0.17 * (i + 1), 0.4, 0, 0, r.D / 2 + 1.2 - i * 0.4, CX.matTex('concreto', 1, 1, 0xd8d2c4));
+        { const b = CX.caixa(g, 1.0, 0.45, 0.04, 2.1, 1.35, Z, new THREE.MeshStandardMaterial({ color: 0x6a4a2a, metalness: 0.7, roughness: 0.35 }), 0, false); const t = CX.letreiro(['CARTÓRIO DE', 'REGISTRO CIVIL'], { w: 0.9, h: 0.36, cor: '#e8d8a8', fonte: 'classica', sombra: false, desgaste: 0 }); t.position.set(2.1, 1.58, Z + 0.025); g.add(t); }
+        CX.mastro(g, -3.6, r.D / 2 + 4.2); CX.mastro(g, 3.6, r.D / 2 + 4.2, ['#2a5a2a', '#d8c040', '#2a3a8a']); CX.lampiao(c, g, -1.4, 2.5, Z); CX.lampiao(c, g, 1.4, 2.5, Z); },
+       w: 24, d: 16, parede: CX.matTex('reboco_pintado', 6, 0.8, 0xffe4a8),
       escadas: [{ x0: 10.2, x1: 11.8, z0: -7.6, z1: -2.6, y0: 0, y1: 3.5 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-12, 2, -4, 8, 'espera'], [-4, 2, 4, 8, 'recepcao'], [4, 2, 12, 8, 'gabinete'], [-12, -2, 12, 2, 'corredor'], [-12, -8, -5, -2, 'escritorio'], [-5, -8, 1, -2, 'reunioes'], [1, -8, 5, -2, 'arquivo'], [5, -8, 7.5, -5, 'banheiro'], [5, -5, 7.5, -2, 'copa'], [7.5, -8, 12, -2, 'vazio']],
@@ -3659,7 +3843,9 @@ INT({
   nota: 'Recepção com espera, consultório, sala de enfermagem, procedimentos, farmácia e estoque, banheiro e a sala dos funcionários. Os registros de atendimento antigos ficam no arquivo da farmácia.',
   cams: camsPredio(20, 12, AND, [['Recepção', { pos: [-3, 1.7, 5], alvo: [-4, 1, 2] }], ['Procedimentos', { pos: [-2.5, 2, 0], alvo: [-2.5, 1, -4] }]]),
   monta(c) {
-    montaPredio(c, { w: 20, d: 12, placa: ['POSTO DE SAÚDE', 'São Valentim do Vale'], placaFundo: '#1e4a3a', parede: CX.matTex('reboco', 7, 1, 0xf2f0e8), piso: CX.matTex('concreto', 7, 4, 0xd8d8d0),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; CX.caixa(g, r.W + 0.2, 0.75, 0.06, 0, 2.62, Z - 0.02, new THREE.MeshStandardMaterial({ color: 0xf4f4ee, roughness: 0.8 }), 0, false); CX.caixa(g, r.W + 0.2, 0.08, 0.07, 0, 2.62, Z, new THREE.MeshStandardMaterial({ color: 0x1e6a4a }), 0, false);
+        const t = CX.letreiro(['POSTO DE SAÚDE'], { w: 6, h: 0.6, cor: '#1e6a4a', fonte: 'bastao', desgaste: 0.15 }); t.position.set(1.5, 3.0, Z + 0.06); g.add(t); CX.marquise(g, 0, 2.55, r.D / 2 + 0.1, 3.6, 1.6); CX.cruzVerde(c, g, -3.2, 2.85, Z + 0.06); CX.lampiao(c, g, 1.6, 2.4, Z, 0xe8f4ff); },
+       w: 20, d: 12, parede: CX.matTex('reboco_pintado', 5, 0.8, 0xffffff), piso: CX.matTex('concreto', 7, 4, 0xd8d8d0),
       andares: [Object.assign(AND[0], { comodos: [[-10, 1, 2, 6, 'recepcao'], [2, 1, 10, 6, 'consultorio'], [-10, -1, 10, 1, 'corredor'], [-10, -6, -5, -1, 'enfermagem'], [-5, -6, 0, -1, 'procedimentos'], [0, -6, 5, -1, 'farmacia'], [5, -6, 7.5, -1, 'banheiro'], [7.5, -6, 10, -1, 'copa']],
         extra(g, y) { const cr = CX.texto(['+'], 0.5, 0.5, { fundo: '#c82a2a', cor: '#ffffff', fonte: 120 }); cr.position.set(-7, 2.4, 6.12); g.add(cr); for (let i = 0; i < 4; i++) CX.quadro(g, -9.88, y + 1.6, -2 - i * 0.9, Math.PI / 2, 0.5, 0.65); } })] });
   },
@@ -3673,7 +3859,9 @@ INT({
   raio: 34,
   cams: camsPredio(30, 16, AND, [['O pátio', { pos: [0, 6, -26], alvo: [0, 0, -14] }], ['Biblioteca', { pos: [0, 5.2, 1], alvo: [0, 4, 5] }]]),
   monta(c) {
-    montaPredio(c, { w: 30, d: 16, raio: 34, placa: ['ESCOLA MUNICIPAL', 'de Ensino Fundamental'], placaFundo: '#24384a', parede: CX.matTex('reboco', 10, 1, 0xe8dcc0),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; const t = CX.letreiro(['ESCOLA MUNICIPAL DE ENSINO FUNDAMENTAL'], { w: 13, h: 0.55, cor: '#24486a', fonte: 'classica', desgaste: 0.35 }); t.position.set(0, 6.05, Z); g.add(t);
+        CX.marquise(g, 0, 2.7, r.D / 2 + 0.1, 4.2, 1.8, CX.matTex('concreto', 2, 1, 0xc8d8e0)); for (const x of [-1.9, 1.9]) CX.cil(g, 0.08, 0.08, 2.7, x, 0, r.D / 2 + 1.75, CX.matTex('concreto', 1, 1, 0xc8d8e0), 10); CX.mastro(g, 6, r.D / 2 + 3.6); const s2 = CX.letreiro(['bem-vindos'], { w: 2.2, h: 0.4, cor: '#a83a2a', fonte: 'script', desgaste: 0.3 }); s2.position.set(0, 3.15, Z); g.add(s2); },
+       w: 30, d: 16, raio: 34, parede: CX.matTex('reboco_pintado', 7.5, 0.8, 0xffeccc),
       escadas: [{ x0: 12.6, x1: 14.2, z0: -7.6, z1: -2.6, y0: 0, y1: 3.4 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-15, 3, -9, 8, 'sala_aula'], [-9, 3, -3, 8, 'gabinete'], [-3, 3, 3, 8, 'recepcao'], [3, 3, 9, 8, 'escritorio'], [9, 3, 15, 8, 'sala_aula'], [-15, -1, 15, 3, 'corredor'], [-15, -8, -8, -1, 'refeitorio'], [-8, -8, -4, -1, 'cozinha'], [-4, -8, 0, -1, 'banheiro'], [0, -8, 3, -1, 'banheiro'], [3, -8, 8, -1, 'deposito'], [8, -8, 15, -1, 'vazio']],
@@ -3697,7 +3885,10 @@ INT({
   raio: 28,
   cams: camsPredio(24, 16, AND, [['As celas', { pos: [-6, 1.8, 0.5], alvo: [-6, 1, -5] }], ['Interrogatório', { pos: [1, 2.4, -1.6], alvo: [1.2, 1, -5] }], ['A garagem', { pos: [8, 3.5, -10], alvo: [8, 1, -14] }], ['Gabinete do delegado', { pos: [-7, 5.3, 1], alvo: [-8, 4, 5] }]]),
   monta(c) {
-    montaPredio(c, { w: 24, d: 16, raio: 28, placa: ['DELEGACIA DE POLÍCIA', 'Brigada Militar'], placaFundo: '#1a2a3a', parede: CX.matTex('concreto', 7, 1, 0xd0ccc0), piso: CX.matTex('concreto', 7, 5, 0xa8a49a), portaX: -7.5,
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; for (const [yy, cor] of [[2.5, 0x1e3a6a], [2.62, 0xf0f0f0]]) CX.caixa(g, r.W + 0.2, 0.12, 0.06, 0, yy, Z - 0.02, new THREE.MeshStandardMaterial({ color: cor }), 0, false); CX.letras(g, ['DELEGACIA DE POLÍCIA'], 1.5, 3.0, Z, 8, 0.5, { fonte: 'bastao', cor: '#e8ecf0', metal: 0.5 });
+        { const d = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 24), new THREE.MeshStandardMaterial({ color: 0x1e3a6a, metalness: 0.4 })); d.rotation.x = Math.PI / 2; d.position.set(-7.5, 3.0, Z + 0.03); g.add(d); const e = CX.letreiro(['★'], { w: 0.6, h: 0.6, cor: '#d8b848', fonte: 'bastao', sombra: false, desgaste: 0 }); e.position.set(-7.5, 3.0, Z + 0.07); g.add(e); }
+        CX.lampiao(c, g, -6.3, 2.45, Z, 0x4a7aff); const b = CX.letreiro(['BRIGADA MILITAR'], { w: 2.6, h: 0.32, cor: '#2a5a2a', fonte: 'bastao', desgaste: 0.1 }); b.position.set(-4.0, 1.9, Z); g.add(b); },
+       w: 24, d: 16, raio: 28, parede: CX.matTex('reboco_pintado', 5.5, 0.8, 0xe4e8ee), piso: CX.matTex('concreto', 7, 5, 0xa8a49a), portaX: -7.5,
       escadas: [{ x0: 10.2, x1: 11.8, z0: -7.6, z1: -2.6, y0: 0, y1: 3.5 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-12, 2, -3, 8, 'recepcao'], [-3, 2, 3, 8, 'escritorio'], [3, 2, 12, 8, 'investigadores'], [-12, -1, 12, 2, 'corredor'], [-12, -8, -1, -1, 'celas', 'privado'], [-1, -8, 3.5, -1, 'interrogatorio'], [3.5, -8, 6.5, -1, 'arquivo'], [6.5, -8, 9, -5, 'banheiro', 'privado'], [6.5, -5, 9, -1, 'copa'], [9, -8, 12, -1, 'vazio']],
@@ -3716,7 +3907,7 @@ INT({
 
 /* ---------- as casas: cada uma com a sua arquitetura ---------- */
 /* Casa da Iracema: fechada desde 1979, mato, portão velho; sótão por escada estreita e porão de pedra pela cozinha */
-{ const AND = [AN('Porão', -2.5, 2.3), AN('Térreo', 0, 3.0), AN('Sótão', 3.1, 2.2)];
+{ const AND = [AN('Porão', -2.5, 2.3), AN('Térreo', 0, 3.0), AN('Sótão', 3.1, 1.2, null, { sotao: true })];
 INT({
   id: 'c-iracema', nome: 'Casa da Iracema', para: 'a casa da Iracema', curto: 'Casa da Iracema', em: 'na casa da Iracema', dica: 'fechada desde 1979 · sótão e porão de pedra',
   nota: 'Casa fechada desde 1979: janelas com tábuas, mato alto e o portão velho. Térreo: varanda, sala de estar, sala de jantar, cozinha (o alçapão do porão de pedra fica nela), despensa, quarto principal, banheiro, corredor e o depósito (com a escada estreita do sótão). O calendário com as cruzes está na parede da cozinha. Poucos itens, mas alguns importantes.',
@@ -3724,7 +3915,7 @@ INT({
   cams: camsPredio(14, 12, AND, [['Cozinha', { pos: [1, 1.7, -1.8], alvo: [2, 1, -5] }], ['Porão de pedra', { pos: [0, -0.8, 2], alvo: [-3, -2.1, -3] }], ['Sótão', { pos: [0, 4.6, 3], alvo: [0, 3.3, -2] }]]),
   monta(c) {
     const madVelha = CX.matTex('madeira', 1, 1, 0x4a3a2a);
-    montaPredio(c, { w: 14, d: 12, raio: 22, recuo: 3, parede: CX.matTex('reboco_velho', 5, 1, 0xc8cdb8), paredeDentro: CX.matTex('reboco_velho', 3, 1, 0xd8d4c0), paredePorao: CX.matTex('pedra', 5, 1, 0x8a8478), matRua: CX.matTex('terra', 10, 2), telha: new THREE.MeshStandardMaterial({ color: 0x4a2a22, roughness: 1, flatShading: true }),
+    montaPredio(c, { w: 14, d: 12, raio: 22, recuo: 3, venezianas: 0x5a6a50, socoCor: 0x9a968e, parede: CX.matTex('reboco_velho', 5, 1, 0xc8cdb8), paredeDentro: CX.matTex('reboco_velho', 3, 1, 0xd8d4c0), paredePorao: CX.matTex('pedra', 6, 1, 0xb0aaa0), matRua: CX.matTex('terra', 10, 2), telha: new THREE.MeshStandardMaterial({ color: 0x4a2a22, roughness: 1, flatShading: true }),
       escadas: [{ x0: -6.6, x1: -5.7, z0: 1.3, z1: 4.9, y0: 0, y1: 3.1 }, { x0: 3.3, x1: 4.2, z0: -5.2, z1: -2.0, y0: -2.5, y1: 0 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-7, -6, 2, 6, 'porao'], [2, -6, 7, 6, 'vazio', 'aberto']], janelas: [], extra(g, y) { for (let i = 0; i < 3; i++) CX.prateleira(g, 6.6, y, 1 + i * 1.6, 1.4, 1.9, -Math.PI / 2, 'potes'); CX.bau(g, 5, y, 4.5, 0.3); } }),
@@ -3736,7 +3927,7 @@ INT({
             for (const x of [-5.25, -1.75, 1.75, 5.25]) tabuasJanela(g, x, y, 6.14);
             for (let i = 0; i < 18; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(0.2 + rnd() * 0.4, 7), new THREE.MeshStandardMaterial({ color: 0x8a8070, roughness: 1, transparent: true, opacity: 0.5 })); p.rotation.x = -Math.PI / 2; p.position.set(-6 + rnd() * 12, y + 0.005, -5 + rnd() * 10); g.add(p); } // poeira e manchas
           } }),
-        Object.assign(AND[2], { comodos: [[-7, -6, -4.6, 6, 'vazio', 'aberto'], [-4.6, -6, 7, 6, 'sotao']], janelas: [{ lado: 'l', pos: 6, l: 0.8, h: 0.7, h0: 0.9 }] })],
+        Object.assign(AND[2], { comodos: [[-7, -6, -4.6, 6, 'vazio', 'aberto'], [-4.6, -6, 7, 6, 'sotao']], janelas: [{ lado: 'l', pos: 6, l: 0.8, h: 0.6, h0: 0.3 }] })],
       depois(c, g) {
         CX.varanda(c, g, 14, 12, 2.2, 2.7, madVelha);
         CX.cerca(g, [[-10, 12], [-1.2, 12]], 1.1, madVelha); CX.cerca(g, [[1.2, 12], [10, 12], [10, -9], [-10, -9], [-10, 12]], 1.1, madVelha);
@@ -3754,7 +3945,7 @@ INT({
   raio: 25,
   cams: camsPredio(16, 13, AND, [['Parede das fotos', { pos: [-3, 1.7, 3.5], alvo: [-7.9, 1.5, 4] }], ['Quarto da Nonna', { pos: [-5.5, 1.7, 0], alvo: [-6, 1, -4] }], ['O quintal', { pos: [0, 4, -20], alvo: [0, 0, -11] }]]),
   monta(c) {
-    montaPredio(c, { w: 16, d: 13, raio: 25, recuo: 2.4, parede: CX.matTex('tabua', 5, 1, 0xd8c8a8), paredeDentro: CX.matTex('reboco', 3, 1, 0xf0e2c4), matRua: CX.matTex('terra', 10, 2),
+    montaPredio(c, { w: 16, d: 13, raio: 25, recuo: 2.4, venezianas: 0x2e5a3e, matFaixa: CX.matTex('madeira', 4, 1, 0x6a4a30), parede: (() => { const m = CX.matTex('tabua', 5, 1, 0xd8c8a8); m.color.multiplyScalar(1.7); return m; })(), paredeDentro: CX.matTex('reboco', 3, 1, 0xf0e2c4), matRua: CX.matTex('terra', 10, 2),
       escadas: [{ x0: 6.6, x1: 7.6, z0: 1.0, z1: 5.6, y0: 0, y1: 3.1 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-8, 1.5, 1, 6.5, 'sala'], [1, 1.5, 5.5, 6.5, 'jantar'], [5.5, -0.5, 8, 6.5, 'vazio'], [-8, -0.5, 5.5, 1.5, 'corredor'], [-8, -6.5, -3.5, -0.5, 'quarto'], [-3.5, -6.5, -1.5, -0.5, 'banheiro', 'privado'], [-1.5, -6.5, 4.5, -0.5, 'cozinha'], [4.5, -6.5, 8, -3.5, 'lavanderia'], [4.5, -3.5, 8, -0.5, 'despensa']],
@@ -3787,7 +3978,7 @@ INT({
   nota: 'Térreo: sala, escritório, hall da escada, cozinha, banheiro, área de serviço e o depósito (onde fica o taco). Andar de cima: o quarto do casal com a sacada para a rua, mais dois quartos, banheiro e um quartinho de guardados. As fotografias e os papéis de família ficam numa caixa no escritório.',
   cams: camsPredio(14, 11, AND, [['A sacada', { pos: [-2.5, 5, 12], alvo: [-2.5, 3.6, 5] }], ['Escritório', { pos: [3, 1.7, 1.2], alvo: [5, 1, 4] }]]),
   monta(c) {
-    montaPredio(c, { w: 14, d: 11, placa: null, parede: CX.matTex('reboco', 5, 1, 0xd4a890), paredeDentro: CX.matTex('reboco', 3, 1, 0xeee6d8), piso: CX.matTex('tabua', 6, 5, 0x9a7a58), telhadoH: 2.2,
+    montaPredio(c, { w: 14, d: 11, placa: null, soco: 'tijolo', socoCor: 0xffffff, matCunhal: CX.matTex('tijolo', 0.2, 3, 0xffffff), parede: CX.matTex('reboco_pintado', 3.5, 0.8, 0xf0c8b0), paredeDentro: CX.matTex('reboco', 3, 1, 0xeee6d8), piso: CX.matTex('tabua', 6, 5, 0x9a7a58), telhadoH: 2.2,
       escadas: [{ x0: 0.2, x1: 1.4, z0: -5.0, z1: -0.6, y0: 0, y1: 3.1 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-7, 0.5, 2, 5.5, 'sala'], [2, 0.5, 7, 5.5, 'escritorio'], [-1, -5.5, 2, 0.5, 'vazio'], [-7, -5.5, -1, 0.5, 'cozinha'], [2, -5.5, 4.5, -2.5, 'banheiro', 'privado'], [2, -2.5, 4.5, 0.5, 'lavanderia'], [4.5, -5.5, 7, 0.5, 'deposito']], portas: [{ lado: 's', pos: 7, l: 1.2, h: 2.4 }, { lado: 'n', pos: 3, l: 1.0, h: 2.2 }],
@@ -3798,22 +3989,21 @@ INT({
 }); }
 
 /* Casa dos Dal Molin: velha, de pedra e madeira, um andar, sótão pequeno e o galpão externo */
-{ const AND = [AN('Térreo', 0, 2.9), AN('Sótão', 3.0, 2.0)];
+{ const AND = [AN('Térreo', 0, 2.9), AN('Sótão', 3.0, 1.1, null, { sotao: true })];
 INT({
   id: 'c-dalmolin', nome: 'Casa dos Dal Molin', para: 'a casa dos Dal Molin', curto: 'Casa Dal Molin', em: 'na casa dos Dal Molin', dica: 'casa velha, sótão e galpão · lembranças de família',
   nota: 'Casa antiga de pedra e madeira. Térreo: sala, dois quartos, corredor, cozinha com fogão a lenha, banheiro e o vão da escada do sótão. Sótão pequeno e baixo, cheio de guardados. Do lado, o galpão externo de madeira com a bancada e as ferramentas.',
   raio: 27,
   cams: camsPredio(13, 10, AND, [['Cozinha', { pos: [-2, 1.7, 0], alvo: [-4, 1, -4] }], ['O galpão', { pos: [13, 3, 6], alvo: [13, 1, -2] }]]),
   monta(c) {
-    montaPredio(c, { w: 13, d: 10, raio: 27, parede: CX.matTex('pedra', 4, 1, 0x9a9080), paredeDentro: CX.matTex('reboco_velho', 3, 1, 0xd8ccb0), piso: CX.matTex('tabua', 5, 4, 0x7a5a3c), matRua: CX.matTex('terra', 10, 2), telhadoH: 3.4,
+    montaPredio(c, { w: 13, d: 10, raio: 27, venezianas: 0x5a3a24, socoCor: 0x9a968e, semFaixa: true, parede: CX.matTex('pedra', 5, 1.2, 0xe8e0d4), paredeDentro: CX.matTex('reboco_velho', 3, 1, 0xd8ccb0), piso: CX.matTex('tabua', 5, 4, 0x7a5a3c), matRua: CX.matTex('terra', 10, 2), telhadoH: 3.4,
       escadas: [{ x0: 5.1, x1: 6.0, z0: -4.6, z1: -1.3, y0: 0, y1: 3.0 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-6.5, 0.5, 1.5, 5, 'sala'], [1.5, 0.5, 6.5, 5, 'quarto'], [-6.5, -1.5, 4.5, 0.5, 'corredor'], [4.5, -5, 6.5, 0.5, 'vazio'], [-6.5, -5, -1, -1.5, 'cozinha'], [-1, -5, 3, -1.5, 'quarto'], [3, -5, 4.5, -1.5, 'banheiro', 'privado']],
-          extra(g, y) { const f = CX.caixa(g, 1.4, 0.85, 0.7, -2.0, y, -4.5, CX.matTex('tijolo', 1, 1, 0x8a4a30)); CX.cil(g, 0.12, 0.12, 2.2, -2.3, y + 0.85, -4.7, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.5 }), 8); for (let i = 0; i < 6; i++) CX.quadro(g, -6.38, y + 1.5 + (i % 2) * 0.5, 1.5 + i * 0.55, Math.PI / 2, 0.3, 0.38); CX.modelo(g, 'g', 'cross', 0, y + 2.1, 4.88, Math.PI, 0.3); } }),
-        Object.assign(AND[1], { comodos: [[-6.5, -5, 4.5, 5, 'sotao'], [4.5, -5, 6.5, 5, 'vazio', 'aberto']], janelas: [{ lado: 'o', pos: 5, l: 0.7, h: 0.6, h0: 0.8 }] })],
+          extra(g, y) { const f = CX.caixa(g, 1.4, 0.85, 0.7, -2.0, y, -4.5, CX.matTex('tijolo', 0.6, 0.4, 0xe8d8d0)); CX.cil(g, 0.12, 0.12, 2.2, -2.3, y + 0.85, -4.7, new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.5 }), 8); for (let i = 0; i < 6; i++) CX.quadro(g, -6.38, y + 1.5 + (i % 2) * 0.5, 1.5 + i * 0.55, Math.PI / 2, 0.3, 0.38); CX.modelo(g, 'g', 'cross', 0, y + 2.1, 4.88, Math.PI, 0.3); } }),
+        Object.assign(AND[1], { comodos: [[-6.5, -5, 4.5, 5, 'sotao'], [4.5, -5, 6.5, 5, 'vazio', 'aberto']], janelas: [{ lado: 'o', pos: 5, l: 0.7, h: 0.55, h0: 0.25 }] })],
       depois(c, g) {
-        CX.anexo(c, g, 9, -6, 8, 8, { h: 3.2, parede: CX.matTex('tabua', 4, 1, 0x7a6448), piso: CX.matTex('terra', 3, 3, 0x7a6a58), portas: [{ lado: 's', pos: 4, l: 2.6, h: 2.6 }], tipo: 'oficina', telha: new THREE.MeshStandardMaterial({ color: 0x6a6e70, roughness: 0.7, metalness: 0.4 }) });
-        CX.toras(g, 13, 0, 4.2, 10, 2.4, 0); CX.mato(c, -12, -12, 20, 12, 60, (x, z) => (Math.abs(x) < 7 && Math.abs(z) < 5.5) || (x > 8.5 && x < 17.5 && z > -6.5 && z < 6) || z > 7);
+        CX.galpao(c, g, 9, -6, 8, 8, { h: 3.3 }); CX.mato(c, -12, -12, 20, 12, 60, (x, z) => (Math.abs(x) < 7 && Math.abs(z) < 5.5) || (x > 8.5 && x < 17.5 && z > -6.5 && z < 6) || z > 7);
       } });
   },
 }); }
@@ -3826,14 +4016,14 @@ INT({
   raio: 26,
   cams: camsPredio(12, 10, AND, [['Área externa', { pos: [3, 3, -6], alvo: [0, 0.5, -10] }], ['O galpão', { pos: [-2, 2.5, -9.5], alvo: [-2, 1, -14] }]]),
   monta(c) {
-    montaPredio(c, { w: 12, d: 10, raio: 26, parede: CX.matTex('reboco', 4, 1, 0xe8e0c8), piso: CX.matTex('concreto', 4, 4, 0xb8a890), matRua: CX.matTex('terra', 10, 2), telhadoH: 1.8,
+    montaPredio(c, { w: 12, d: 10, raio: 26, venezianas: 0x3a5a7a, soco: 'concreto', socoCor: 0x9a958a, parede: CX.matTex('reboco_pintado', 3, 0.8, 0xf4ecd8), piso: CX.matTex('concreto', 4, 4, 0xb8a890), matRua: CX.matTex('terra', 10, 2), telhadoH: 1.8,
       andares: [Object.assign(AND[0], { comodos: [[-6, 0.5, 1, 5, 'sala'], [1, 0.5, 6, 5, 'cozinha', 'aberto'], [-6, -1, 6, 0.5, 'corredor'], [-6, -5, -1.5, -1, 'quarto'], [-1.5, -5, 2.5, -1, 'quarto'], [2.5, -5, 4.2, -1, 'banheiro', 'privado'], [4.2, -5, 6, -1, 'lavanderia']],
         portas: [{ lado: 's', pos: 6, l: 1.1, h: 2.3 }, { lado: 'n', pos: 11.1, l: 1.0, h: 2.2 }] })],
       depois(c, g) {
         const pt = new THREE.Mesh(new THREE.PlaneGeometry(12, 4), CX.matTex('concreto', 4, 2, 0xa8a49a)); pt.rotation.x = -Math.PI / 2; pt.position.set(0, 0.005, -7); g.add(pt);
-        CX.caixa(g, 1.2, 1.0, 0.8, -4, 0, -8.4, CX.matTex('tijolo', 1, 1, 0x8a4a30)); CX.caixa(g, 0.6, 1.2, 0.6, -4, 1.0, -8.5, CX.matTex('tijolo', 1, 1, 0x7a4028)); CX.mesa(g, 1, 0, -7, 2, 0.9); for (const s of [-0.65, 0.65]) CX.caixa(g, 2, 0.45, 0.3, 1, 0, -7 + s, CX.matTex('madeira', 2, 1, 0x7a5a3c));
-        CX.toras(g, 5, 0, -8.5, 9, 1.4, 0);
-        CX.anexo(c, g, -6, -15, 8, 5.6, { h: 3, parede: CX.matTex('tabua', 4, 1, 0x8a7458), piso: CX.matTex('terra', 3, 2, 0x7a6a58), portas: [{ lado: 's', pos: 4, l: 2.2, h: 2.4 }], tipo: 'oficina' });
+        CX.caixa(g, 1.2, 1.0, 0.8, -4, 0, -8.4, CX.matTex('tijolo', 0.6, 0.4, 0xe8d8d0)); CX.caixa(g, 0.6, 1.2, 0.6, -4, 1.0, -8.5, CX.matTex('tijolo', 0.6, 0.4, 0xe8d8d0)); CX.mesa(g, 1, 0, -7, 2, 0.9); for (const s of [-0.65, 0.65]) CX.caixa(g, 2, 0.45, 0.3, 1, 0, -7 + s, CX.matTex('madeira', 2, 1, 0x7a5a3c));
+        CX.lenha(g, 5, 0, -8.6, 2.6, 1.0, 0);
+        CX.galpao(c, g, -6, -15, 8, 5.6, { h: 3.0, lenha: false, cor: 0xe0c49a });
         CX.caixa(g, 0.5, 0.3, 0.4, -5.2, 0.9, -14.4, CX.matTex('madeira', 1, 1, 0x6a4a30)); // a caixa de materiais
         CX.cerca(g, [[-9, 6], [-9, -17], [9, -17], [9, 6]], 1.1);
       } });
@@ -3849,7 +4039,9 @@ INT({
   nota: 'Térreo: recepção com o livro de hóspedes, sala comum, cozinha, dois quartos, banheiros, lavanderia, depósito e a escada. Andar de cima: corredor com sete quartos separados e um banheiro. Cada quarto só abre para o corredor.',
   cams: camsPredio(22, 14, AND, [['Recepção', { pos: [0, 1.7, 6], alvo: [0, 1.1, 3] }], ['Corredor dos quartos', { pos: [-9, 5, 0.5], alvo: [6, 4, 0.5] }]]),
   monta(c) {
-    montaPredio(c, { w: 22, d: 14, placa: ['POUSADA DA LÚCIA'], placaFundo: '#3a2a1a', parede: CX.matTex('reboco', 7, 1, 0xf0e0c0), recuo: 2,
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; CX.cil(g, 0.07, 0.08, 2.9, 7.2, 0, r.D / 2 + 3.9, CX.matTex('madeira', 1, 1, 0x5a3e2a), 8); CX.placaPend(g, 7.2, 2.75, r.D / 2 + 3.9, ['Pousada da Lúcia', 'quartos · café da manhã'], { w: 1.6, h: 0.8, braco: 1.3, cor: '#f2e2b8', fonte: 'script', fontes: ['script', 'serif'], tam: [1, 0.45], madeira: 0x6a3a22, moldura: 0x2a2a2a, desgaste: 0.2 }, -Math.PI / 2);
+        const t = CX.letreiro(['POUSADA'], { w: 3.6, h: 0.55, cor: '#6a3a2a', fonte: 'classica', desgaste: 0.4 }); t.position.set(0, 6.0, Z); g.add(t); CX.lampiao(c, g, -1.0, 2.3, Z); CX.lampiao(c, g, 1.0, 2.3, Z); },
+       w: 22, d: 14, venezianas: 0x6a3a2a, parede: CX.matTex('reboco_pintado', 5.5, 0.8, 0xfff0d0), recuo: 2,
       escadas: [{ x0: 9.2, x1: 10.8, z0: -6.6, z1: -2.2, y0: 0, y1: 3.3 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-11, 2, -4, 7, 'sala'], [-4, 2, 4, 7, 'recepcao'], [4, 2, 11, 7, 'cozinha'], [-11, -1, 11, 2, 'corredor'], [-11, -7, -7, -1, 'quarto_ind', 'privado'], [-7, -7, -3, -1, 'quarto_ind', 'privado'], [-3, -7, 0, -1, 'banheiro', 'privado'], [0, -7, 3, -1, 'lavanderia'], [3, -7, 7, -1, 'deposito'], [7, -7, 11, -1, 'vazio']],
@@ -3868,7 +4060,9 @@ INT({
   raio: 24,
   cams: camsPredio(20, 14, AND, [['Estúdio', { pos: [-6.5, 1.8, 1.2], alvo: [-6.5, 1, -4] }], ['Sala técnica', { pos: [-1.5, 1.8, -2], alvo: [2, 1.2, -5] }], ['A antena', { pos: [4, 4, -8], alvo: [8.5, 6, -12] }]]),
   monta(c) {
-    montaPredio(c, { w: 20, d: 14, raio: 24, placa: ['RÁDIO VALE ALTO', 'AM 1350'], placaFundo: '#3a1210', parede: CX.matTex('reboco', 6, 1, 0xe8e2d4),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; const v = new THREE.Group(); v.position.set(5.5, 1.4, Z + 0.45); g.add(v); CX.caixa(v, 0.18, 2.4, 0.8, 0, 0, 0, new THREE.MeshStandardMaterial({ color: 0xf0e6cc, roughness: 0.7 })); for (const s of [-1, 1]) { const t = CX.letreiro(['R', 'Á', 'D', 'I', 'O'], { w: 0.7, h: 2.2, cor: '#b02a1e', fonte: 'bastao', tam: [1, 1, 1, 1, 1], desgaste: 0.15 }); t.position.set(s * 0.1, 1.2, 0); t.rotation.y = s * Math.PI / 2; v.add(t); }
+        const fe = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.6 }); for (const yy of [0.3, 2.1]) CX.caixa(g, 0.04, 0.04, 0.5, 5.5, 1.4 + yy, Z + 0.22, fe, 0, false); const t2 = CX.letreiro(['VALE ALTO', 'AM 1350'], { w: 3.8, h: 0.75, cor: '#b02a1e', cores: ['#b02a1e', '#3a2a1a'], fonte: 'bastao', tam: [1, 0.6], desgaste: 0.25 }); t2.position.set(0, 2.85, Z); g.add(t2); CX.lampiao(c, g, -1.2, 2.4, Z); },
+       w: 20, d: 14, raio: 24, parede: CX.matTex('reboco_pintado', 5, 0.8, 0xfff8ec),
       andares: [Object.assign(AND[0], { comodos: [[-10, 2, -3, 7, 'espera'], [-3, 2, 3, 7, 'recepcao'], [3, 2, 10, 7, 'escritorio'], [-10, -0.5, 10, 2, 'corredor'], [-10, -7, -3, -0.5, 'estudio'], [-3, -7, 0, -0.5, 'cabine', 'vidro'], [0, -7, 4, -0.5, 'tecnica', 'vidro'], [4, -7, 7, -0.5, 'arquivo'], [7, -7, 10, -3.5, 'deposito'], [7, -3.5, 10, -0.5, 'banheiro', 'privado']],
         portas: [{ lado: 's', pos: 10, l: 1.3, h: 2.5 }, { lado: 'n', pos: 18.5, l: 1.0, h: 2.2 }],
         extra(g, y) { const gr = CX.quadro(g, 6.5, y + 1.7, 6.88, Math.PI, 1.4, 0.9, (k, W, H) => { k.fillStyle = '#d8c8a0'; k.fillRect(0, 0, W, H); k.fillStyle = '#2a1a0a'; k.font = 'bold 22px sans-serif'; k.fillText('PROGRAMAÇÃO', 14, 30); k.font = '15px sans-serif'; ['05h Bom dia, Vale', '08h Hora do campo', '12h Notícias', '18h Ave Maria', '22h Música da noite'].forEach((s, i) => k.fillText(s, 14, 60 + i * 22)); }); } })],
@@ -3885,7 +4079,10 @@ INT({
   raio: 30,
   cams: camsPredio(22, 20, AND, [['O balcão', { pos: [0, 2, 9.4], alvo: [0, 1.1, 4] }], ['O escritório', { pos: [6, 1.8, 2.5], alvo: [8, 1, -1] }], ['O depósito', { pos: [-3, 2.6, 1], alvo: [-4, 1, -5] }], ['O pátio', { pos: [6, 4, -22], alvo: [4, 0.5, -13] }]]),
   monta(c) {
-    montaPredio(c, { w: 22, d: 20, raio: 30, placa: ['ARMAZÉM POZZOBON', 'secos e molhados · ferragem · farmácia'], placaFundo: '#2a3a24', parede: CX.matTex('reboco_amarelo', 7, 1, 0xe8d8b0),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; CX.toldo(g, 0, 3.15, Z, 9, 1.6, ['#2e5a3e', '#ece4c8']); const t = CX.letreiro(['ARMAZÉM POZZOBON'], { w: 13, h: 0.85, cor: '#7a1e14', contorno: '#f2e6c8', fonte: 'classica', desgaste: 0.55 }); t.position.set(0, 4.15, Z); g.add(t);
+        const a = CX.letreiro(['Secos & Molhados'], { w: 3.6, h: 0.5, cor: '#2e5a3e', fonte: 'script', desgaste: 0.5 }); a.position.set(-7.2, 2.6, Z); g.add(a); const b = CX.letreiro(['FERRAGEM · FARMÁCIA'], { w: 3.8, h: 0.4, cor: '#2a2a2a', fonte: 'condensada', desgaste: 0.5 }); b.position.set(7.0, 2.6, Z); g.add(b); CX.cruzVerde(c, g, 9.6, 2.65, Z + 0.06);
+        for (let i = 0; i < 4; i++) CX.saco(g, -3.4 + (i % 2) * 0.5, Math.floor(i / 2) * 0.32, r.D / 2 + 0.6, rnd()); CX.barril(g, 3.6, 0, r.D / 2 + 0.7); CX.barril(g, 4.3, 0, r.D / 2 + 0.6, 0.9); CX.modelo(g, 'u', 'detail-bench', -5.5, 0, r.D / 2 + 0.8, Math.PI, 0.9); },
+       w: 22, d: 20, raio: 30, parede: CX.matTex('reboco_pintado', 5.5, 0.8, 0xffeec0),
       escadas: [{ x0: 9.2, x1: 10.8, z0: -9.6, z1: -4.6, y0: 0, y1: 3.7 }, { x0: 7.8, x1: 9.0, z0: -9.0, z1: -4.6, y0: -2.7, y1: 0 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-11, -10, 7.5, 10, 'porao'], [7.5, -10, 11, 10, 'vazio', 'aberto']], extra(g, y) { for (let i = 0; i < 8; i++) CX.cil(g, 0.3, 0.3, 0.9, -9 + (i % 4) * 0.7, y, 6 + Math.floor(i / 4) * 2, CX.matTex('madeira', 1, 1, 0x6a4a30), 12); } }),
@@ -3909,7 +4106,9 @@ INT({
   nota: 'Térreo: o foyer de entrada, a bilheteria, a sala de equipamentos, a plateia, o palco grande com cortinas e as duas coxias, com os corredores de serviço dos lados. A escada desce da coxia direita. Embaixo: camarim masculino, camarim feminino, figurinos, depósito de cenários e o depósito subterrâneo do Caderno: os quatro manequins (três com o contorno das máscaras no rosto, um com coroa de flores), as quatro molduras de latão, o baú de ferro, os cartões de elenco, a faca de cena e a tigela de barro. O baú não abre com um clique: o enigma é dos jogadores.',
   cams: camsPredio(26, 22, AND, [['O palco', { pos: [0, 3, 4], alvo: [0, 1.8, -7] }], ['Bilheteria', { pos: [-6, 1.8, 9], alvo: [-10, 1, 8] }], ['Os manequins', { pos: [-4, -1, -3], alvo: [-7, -2.2, -8.5] }], ['Camarins', { pos: [4, -1, -2], alvo: [5, -2, -8] }]]),
   monta(c) {
-    montaPredio(c, { w: 26, d: 22, placa: ['SALÃO PAROQUIAL', 'Filodrammatica San Valentino'], placaFundo: '#3a2a1a', parede: CX.matTex('reboco_velho', 8, 1, 0xe8e0cc), telhadoH: 4,
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; CX.marquee(c, g, 0, 2.75, Z, 6.4, 1.15, ['FILODRAMMATICA', 'San Valentino'], { tam: [1, 0.55] }); const t = CX.letreiro(['SALÃO PAROQUIAL'], { w: 9, h: 0.75, cor: '#4a2a1a', fonte: 'classica', desgaste: 0.5 }); t.position.set(0, 4.45, Z); g.add(t); CX.lampiao(c, g, -2.2, 2.4, Z); CX.lampiao(c, g, 2.2, 2.4, Z);
+        for (const x of [-5.5, 5.5]) { const cz = CX.caixa(g, 1.0, 1.5, 0.05, x, 0.6, Z, CX.matTex('madeira', 1, 1, 0x3a2a1a), 0, false); const p = CX.letreiro(['HOJE', 'às 20h'], { w: 0.85, h: 1.2, cor: '#d8c8a0', fonte: 'classica', sombra: false, desgaste: 0.3 }); p.position.set(x, 1.35, Z + 0.03); g.add(p); } },
+       w: 26, d: 22, parede: CX.matTex('reboco_velho', 8, 1, 0xe8e0cc), telhadoH: 4,
       escadas: [{ x0: 11.2, x1: 12.6, z0: -10.0, z1: -5.2, y0: -2.8, y1: 0 }],
       relevo: (x, z, y) => (y === 0 && x > -10 && x < 10 && z > -11 && z < -3 ? 1.0 : y),
       andares: [
@@ -3961,7 +4160,10 @@ INT({
   raio: 34,
   cams: camsPredio(20, 12, AND, [['Engenharia', { pos: [5, 1.8, 2], alvo: [7, 1, 4.5] }], ['Pátio de máquinas', { pos: [4, 6, -24], alvo: [4, 0, -12] }]]),
   monta(c) {
-    montaPredio(c, { w: 20, d: 12, raio: 34, placa: ['CONSTRUTORA', 'obras e terraplenagem'], placaFundo: '#3a3a1a', parede: CX.matTex('reboco', 7, 1, 0xd8d4c4),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; const tz = r.D / 2 + 3.4; for (const x of [-7.6, -4.4]) CX.caixa(g, 0.16, 3.0, 0.16, x, 0, tz, matMetal); const pl = CX.caixa(g, 3.6, 1.3, 0.12, -6, 1.7, tz, new THREE.MeshStandardMaterial({ color: 0xe8c020, roughness: 0.6 }));
+        for (let i = 0; i < 9; i++) { const st = CX.caixa(g, 0.18, 0.2, 0.13, -7.7 + i * 0.42, 1.72, tz, new THREE.MeshStandardMaterial({ color: 0x1a1a1a }), 0, false); st.rotation.z = 0.6; } const t = CX.letreiro(['CONSTRUTORA', 'obras e terraplenagem'], { w: 3.3, h: 0.9, cor: '#1a1a1a', fonte: 'bastao', tam: [1, 0.45], desgaste: 0.1 }); t.position.set(-6, 2.42, tz + 0.08); g.add(t);
+        CX.letras(g, ['CONSTRUTORA'], 0, 3.05, Z, 5, 0.45, { fonte: 'bastao', cor: '#c8ccd0' }); CX.marquise(g, 0, 2.6, r.D / 2 + 0.1, 3.2, 1.3, matMetal); },
+       w: 20, d: 12, raio: 34, parede: CX.matTex('reboco_pintado', 5, 0.8, 0xf4f0e0),
       escadas: [{ x0: 8.2, x1: 9.6, z0: -5.6, z1: -1.4, y0: 0, y1: 3.4 }],
       andares: [
         Object.assign(AND[0], { comodos: [[-10, 1.5, -3, 6, 'escritorio'], [-3, 1.5, 3, 6, 'recepcao'], [3, 1.5, 10, 6, 'engenharia'], [-10, -1, 10, 1.5, 'corredor'], [-10, -6, -3, -1, 'reunioes'], [-3, -6, 2, -1, 'arquivo'], [2, -6, 4.5, -1, 'banheiro', 'privado'], [4.5, -6, 7, -1, 'deposito'], [7, -6, 10, -1, 'vazio']] }),
@@ -3981,7 +4183,9 @@ INT({
   raio: 34,
   cams: camsPredio(26, 16, AND, [['A serra', { pos: [-4, 3, 4], alvo: [-4, 1, 0] }], ['O pátio de toras', { pos: [-16, 5, 14], alvo: [-12, 0, 12] }]]),
   monta(c) {
-    montaPredio(c, { w: 26, d: 16, raio: 34, recuo: 3, placa: ['SERRARIA'], placaFundo: '#3a2a1a', parede: CX.matTex('tabua', 8, 1, 0x8a6a48), piso: CX.matTex('terra', 8, 5, 0x8a7a60), matRua: CX.matTex('terra', 12, 2), telha: new THREE.MeshStandardMaterial({ color: 0x6a6e70, roughness: 0.6, metalness: 0.4 }), telhadoH: 2.5,
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; CX.caixa(g, 6.4, 1.1, 0.08, -4, 4.35, Z + 0.02, CX.matTex('tabua', 3, 1, 0xa88a60), 0, false); const t = CX.letreiro(['SERRARIA'], { w: 6, h: 0.95, cor: '#f2ead8', fonte: 'condensada', desgaste: 0.7 }); t.position.set(-4, 4.9, Z + 0.08); g.add(t);
+        const t2 = CX.letreiro(['madeira serrada · tábuas · caibros'], { w: 4.5, h: 0.4, cor: '#3a2a1a', fonte: 'maquina', desgaste: 0.5 }); t2.position.set(7, 2.6, Z); g.add(t2); CX.lampiao(c, g, -1.2, 4.0, Z); },
+       w: 26, d: 16, raio: 34, recuo: 3, semCunhal: true, semFaixa: true, soco: 'concreto', socoCor: 0x8a857a, parede: (() => { const m = CX.matTex('tabua', 8, 1, 0xd8b890); m.color.multiplyScalar(1.6); return m; })(), piso: CX.matTex('terra', 8, 5, 0x8a7a60), matRua: CX.matTex('terra', 12, 2), telha: new THREE.MeshStandardMaterial({ color: 0x6a6e70, roughness: 0.6, metalness: 0.4 }), telhadoH: 2.5,
       andares: [Object.assign(AND[0], { comodos: [[-13, -8, 5, 8, 'serraria'], [5, -8, 13, 2, 'estoque_madeira'], [5, 2, 9, 8, 'escritorio'], [9, 2, 13, 8, 'oficina']], portas: [{ lado: 's', pos: 9, l: 4.5, h: 4.2 }, { lado: 'n', pos: 22, l: 3.6, h: 4.0 }] })],
       depois(c, g) { for (let i = 0; i < 4; i++) CX.toras(g, -18 + (i % 2) * 4.5, 0, 12 + Math.floor(i / 2) * 3.2, 10, 5, Math.PI / 2); CX.modelo(g, 'u', 'truck-green-cargo', 10, 0, -13, Math.PI / 2, 1); CX.tabuas(g, 4, 0, -12, 0, 16);
         for (let i = 0; i < 40; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(0.3 + rnd() * 0.7, 8), new THREE.MeshStandardMaterial({ color: 0xc8a878, roughness: 1 })); p.rotation.x = -Math.PI / 2; p.position.set(-20 + rnd() * 40, 0.008, 9 + rnd() * 10); g.add(p); } } });
@@ -3995,7 +4199,10 @@ INT({
   raio: 30,
   cams: camsPredio(22, 14, AND, [['Atendimento', { pos: [-7, 1.8, 6], alvo: [-7, 1, 3] }], ['Os silos', { pos: [12, 5, -10], alvo: [0, 5, -15] }]]),
   monta(c) {
-    montaPredio(c, { w: 22, d: 14, raio: 30, placa: ['COOPERATIVA AGRÍCOLA', 'do Vale Alto'], placaFundo: '#2a3a1a', parede: CX.matTex('reboco', 7, 1, 0xe0dccc),
+    montaPredio(c, { fachada(c, g, r) { const Z = r.D / 2 + 0.11; CX.letras(g, ['COOPERATIVA AGRÍCOLA', 'DO VALE ALTO'], 0, 2.95, Z, 9, 0.7, { fonte: 'bastao', cor: '#2e6a3a', tam: [1, 0.6], metal: 0.2 }); CX.marquise(g, 0, 2.62, r.D / 2 + 0.1, 3.4, 1.4);
+        { const t = CX.letreiro(['COOPERATIVA'], { w: 4.4, h: 0.8, cor: '#2e6a3a', fonte: 'bastao', desgaste: 0.5 }); t.position.set(0, 7.5, -16 + 2.67); g.add(t); }
+        const p = CX.letreiro(['PREÇOS DO DIA'], { w: 1.6, h: 0.3, cor: '#e8e2cc', fonte: 'bastao', sombra: false, desgaste: 0 }); CX.caixa(g, 1.8, 1.2, 0.06, -6.5, 0.9, Z + 0.01, new THREE.MeshStandardMaterial({ color: 0x1e2a1e }), 0, false); p.position.set(-6.5, 1.9, Z + 0.05); g.add(p); },
+       w: 22, d: 14, raio: 30, parede: CX.matTex('reboco_pintado', 5.5, 0.8, 0xfcf6e4),
       andares: [Object.assign(AND[0], { comodos: [[-11, 1.5, -4, 7, 'atendimento'], [-4, 1.5, 4, 7, 'recepcao'], [4, 1.5, 11, 7, 'escritorio'], [-11, -1, 11, 1.5, 'corredor'], [-11, -7, -5, -1, 'reunioes'], [-5, -7, -1, -1, 'arquivo'], [-1, -7, 1, -1, 'banheiro', 'privado'], [1, -7, 11, -1, 'deposito']], portas: [{ lado: 's', pos: 11, l: 1.6, h: 2.6 }, { lado: 'n', pos: 17, l: 3, h: 3 }] })],
       depois(c, g) { const m = new THREE.MeshStandardMaterial({ color: 0xb8bcbe, metalness: 0.6, roughness: 0.35 }); for (const x of [-7, 0, 7]) { CX.cil(g, 2.6, 2.6, 11, x, 0, -16, m, 24); const t = new THREE.Mesh(new THREE.ConeGeometry(2.7, 1.6, 24), m); t.position.set(x, 11.8, -16); g.add(t); }
         CX.caixa(g, 16, 0.3, 0.6, 0, 12.5, -16, matMetal); const pa = new THREE.Mesh(new THREE.PlaneGeometry(26, 14), CX.matTex('concreto', 8, 4, 0xa8a49a)); pa.rotation.x = -Math.PI / 2; pa.position.set(0, 0.006, -14); g.add(pa); CX.modelo(g, 'u', 'truck-green-cargo', 6, 0, -9.5, Math.PI / 2, 1); } });
@@ -4009,7 +4216,7 @@ INT({
   longe: 70, polar: 0.6,
   cams: [['Portaria', { pos: [8, 5, 44], alvo: [0, 1, 30] }], ['Escritório técnico', { pos: [-16, 2, 18], alvo: [-16, 1, 12] }], ['Pátio de máquinas', { pos: [20, 12, 10], alvo: [6, 0, -10] }], ['Acesso à barragem', { pos: [0, 8, -20], alvo: [0, 6, -45] }]],
   monta(c) {
-    const g = c.g; CX.nevoaEmVolta(c, g, 62, { mat: CX.matTex('terra', 20, 20, 0x9a8a70) });
+    const g = c.g; CX.nevoaEmVolta(c, g, 62, { mat: CX.matTex('chao_terra', 28, 28, 0xc8bcae) });
     const pt = new THREE.Mesh(new THREE.PlaneGeometry(10, 110), CX.matTex('concreto', 3, 30, 0x8a8a82)); pt.rotation.x = -Math.PI / 2; pt.position.set(0, 0.008, -5); g.add(pt);
     const am = new THREE.MeshStandardMaterial({ color: 0xd8b020, roughness: 0.6 });
     // a portaria
@@ -4124,6 +4331,7 @@ $('#painel-cen').addEventListener('click', e => {
   if (b.dataset.cemPortao) estCen('cemPortao', b.dataset.cemPortao);
   if (b.dataset.cemNum != null) { c.verRotulos = !c.verRotulos; painelCen(); }
   if (b.dataset.cemVela != null) estCen('cemVela', !CEN_EST.cemVela);
+  if (b.dataset.andar != null) { const v = b.dataset.andar === '' ? null : +b.dataset.andar; c.andarSel = v; if (v != null) { const dy = v + 1.2 - controls.target.y; controls.target.y += dy; camera.position.y += dy; controls.update(); } COL.lista.delete(c.cena); painelCen(); }
   c.botao?.(c, b);
 });
 $('#b-estr').onclick = () => entrarEstrada(!modoEstr);
