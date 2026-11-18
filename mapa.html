@@ -2888,6 +2888,10 @@ function quadroCen(t, dt) {
   for (const r of c.rotulosGM || []) r.visible = !SO_JOGADOR && !!c.verRotulos;
   if (c.andares) { // prédio de vários andares: olhando para um andar, os de cima somem (corte), para dar para ver dentro
     const a = controls.target, pg = c.pegada, dentro = pg && a.x > pg[0] - 0.5 && a.x < pg[2] + 0.5 && a.z > pg[1] - 0.5 && a.z < pg[3] + 0.5;
+    { const e = CEN_EST['and_' + c.id]; if (e !== undefined) c.andarSel = e === 'auto' ? null : +e; } // o andar que o mestre escolheu vale para todos
+    if (c.andarSel === undefined) c.andarSel = 0; // entrando no prédio: começa no térreo, vista de cima
+    if (c.andarSel != null) { const ty = c.andarSel + 1.2; if (Math.abs(a.y - ty) > 0.01) { const dy = ty - a.y; a.y = ty; camera.position.y += dy; } if (controls.maxPolarAngle !== Math.PI * 0.38) { controls.maxPolarAngle = Math.PI * 0.38; controls.minPolarAngle = 0.05; controls.update(); } }
+    else if (controls.maxPolarAngle === Math.PI * 0.38) { controls.maxPolarAngle = Math.PI * (c.polar ?? 0.62); controls.minPolarAngle = 0; }
     const yRef = c.andarSel != null ? c.andarSel : a.y; // o mestre escolheu o andar no painel: o corte fica preso nele
     let mud = false; for (const A of c.andares) { const v = c.andarSel != null ? A.y <= yRef + 0.1 : (!dentro || A.y <= yRef + 1.2); if (A.g.visible !== v) { A.g.visible = v; mud = true; } }
     if (mud) COL.lista.delete(c.cena);
@@ -2898,7 +2902,8 @@ function camerasDoCen(c) {
   const nav = $('#cams-cen'); nav.querySelectorAll('.btn').forEach(b => b.remove()); nav.querySelector('.lbl').textContent = c.curto || c.nome;
   for (const [nome, v] of c.cams) {
     const b = document.createElement('button'); b.className = 'btn'; b.type = 'button'; b.textContent = nome;
-    b.onclick = () => { voar(v, nome, v.nota); nav.querySelectorAll('.btn').forEach(x => x.classList.toggle('on', x === b)); };
+    b.onclick = () => { if (c.andares) { const yv = v.andar ?? (c.andares.filter(A => A.y <= v.alvo[1] + 0.6).sort((p, q) => q.y - p.y)[0] || { y: 0 }).y; c.andarSel = yv; CEN_EST['and_' + c.id] = yv; painelCen(); } // a câmera do andar já escolhe o andar
+      voar(v, nome, v.nota); nav.querySelectorAll('.btn').forEach(x => x.classList.toggle('on', x === b)); };
     nav.append(b);
   }
 }
@@ -3579,7 +3584,7 @@ function predio(c, o) {
   return { W, D };
 }
 /* câmeras padrão de um prédio: por fora e um corte em cada andar */
-const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.55, 6, D / 2 + 14], alvo: [0, 2, D / 2 + 1.5] }]].concat(AND.map(A => [A.nome, { pos: [0, A.y + 9, D * 0.55 + 3], alvo: [0, A.y, -0.5] }]), extras);
+const camsPredio = (W, D, AND, extras = []) => [['Por fora', { pos: [W * 0.55, 6, D / 2 + 14], alvo: [0, 2, D / 2 + 1.5] }]].concat(AND.map(A => [A.nome, { pos: [0, A.y + 11, D * 0.55 + 6], alvo: [0, A.y + 1.2, -0.5], andar: A.y }]), extras);
 
 
 /* ---------- mais tipos de cômodo e peças de construção (varanda, sacada, anexo, grades) ---------- */
@@ -4337,7 +4342,7 @@ $('#painel-cen').addEventListener('click', e => {
   if (b.dataset.cemPortao) estCen('cemPortao', b.dataset.cemPortao);
   if (b.dataset.cemNum != null) { c.verRotulos = !c.verRotulos; painelCen(); }
   if (b.dataset.cemVela != null) estCen('cemVela', !CEN_EST.cemVela);
-  if (b.dataset.andar != null) { const v = b.dataset.andar === '' ? null : +b.dataset.andar; c.andarSel = v; if (v != null) { const dy = v + 1.2 - controls.target.y; controls.target.y += dy; camera.position.y += dy; controls.update(); } COL.lista.delete(c.cena); painelCen(); }
+  if (b.dataset.andar != null) { const v = b.dataset.andar === '' ? null : +b.dataset.andar; c.andarSel = v; CEN_EST['and_' + c.id] = v === null ? 'auto' : v; if (PM && PM.isGM && PM.isGM()) PM.setCena(estadoCena()); if (v != null) { const dy = v + 1.2 - controls.target.y; controls.target.y += dy; camera.position.y += dy; controls.update(); } COL.lista.delete(c.cena); painelCen(); }
   c.botao?.(c, b);
 });
 $('#b-estr').onclick = () => entrarEstrada(!modoEstr);
@@ -4530,6 +4535,7 @@ function livreAteCamera(origAlvo, d, dist, lista) {
 /* calcula onde a câmera pode ficar, sem mexer na desejada */
 function colideCamera(raiz) {
   if (!COL.ligada || !raiz) return;
+  if (modoCen && CEN[modoCen].andares && CEN[modoCen].andarSel != null) return; // vista de cima do andar escolhido: a câmera não bate em parede nem entra na casa
   solidosDa(raiz);
   colideCamera0(raiz);
 }
