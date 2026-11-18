@@ -145,6 +145,7 @@ body { margin: 0; background: var(--night); color: var(--mist); font: 14px/1.45 
 .marc-dlg .nota { font-size: 12px; color: var(--mist-2); }
 .mk-dica { position: fixed; z-index: 60; max-width: 300px; padding: 10px 12px; border-radius: 12px; background: rgba(12, 14, 16, .94); border: 1px solid #4aa3ff; color: var(--mist); font: 500 12.5px var(--f-ui); pointer-events: none; box-shadow: 0 10px 30px rgba(0,0,0,.55); display: grid; gap: 5px; }
 .mk-dica[hidden] { display: none; }
+.mk-dica.npc { max-width: 340px; } .mk-dica .mk-d b { color: #fff; font-weight: 700; } .mk-dica .mk-i { color: var(--mist-2); font-style: italic; }
 .mk-t { display: flex; align-items: center; gap: 8px; } .mk-t b { font: 700 16px var(--f-ui); line-height: 1.2; } .mk-t .ponto { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .mk-dt { margin-left: auto; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.1); font: 700 12px var(--f-ui); white-space: nowrap; }
 .mk-d { line-height: 1.45; color: var(--mist); } .mk-l { font-size: 12px; color: var(--mist-2); }
@@ -4932,6 +4933,20 @@ function dadosMarc(h) {
   if (h.tipo === 'pista') { const o = (PM.pistas3d() || {})[h.id]; if (!o) return null; const [n, dt] = dtDe(resolve(o.titulo)), { r, loc } = resumo(resolve(o.texto)); return { o, cor: '#ffc040', nome: n, dt, desc: r, loc, teste: dt && !/sem/i.test(dt) ? 'Percepção ou Investigação' : '' }; }
   const o = (PM.objetos() || {})[h.id]; if (!o) return null; const [n, dt] = dtDe(o.nome), { r, loc } = resumo(o.desc); return { o, cor: '#4aa3ff', nome: n, dt: dt || (o.dt != null ? 'DT ' + o.dt : ''), desc: r || DESC_ITEM[String(n).trim()] || DESC_ITEM[(o.item && o.item.nome) || ''] || '', loc, teste: o.teste || 'Percepção ou Investigação' };
 }
+/* NPC: passar o mouse na figura mostra quem é, o que faz na vila e como interpretar (texto só do mestre, em mestre/textos/npcs_dica) */
+const semAc = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+let _npcDic = null, _npcSig = '';
+function npcDic() { const S = (PM && PM.segredos && PM.segredos()) || {}, raw = S.npcs_dica || ''; if (raw !== _npcSig) { _npcSig = raw; try { _npcDic = raw ? JSON.parse(raw) : []; } catch (e) { _npcDic = []; } } return _npcDic || []; }
+function dadosNPC(s) {
+  const d = s.dados || {}; if (d.tipo === 'pj') return null;
+  let f = null; try { f = d.ficha && (window.parent.SV.F.lista() || []).find(x => x.id === d.ficha); } catch (e) {}
+  const nomes = semAc((f && f.nome) || '') + ' ' + semAc(s.nome), pal = new Set(nomes.split(/[^a-z]+/).filter(Boolean));
+  const e = npcDic().find(n => (n.chaves || []).some(k => k.split(' ').every(w => pal.has(w))));
+  const nome = (f && f.nome) || s.nome, tag = d.tipo === 'inimigo' ? 'Ameaça' : 'NPC';
+  if (e) return { nome: e.nome || nome, tag, prof: e.prof, pers: e.pers, papel: e.papel, interp: e.interp };
+  return { nome, tag, prof: (f && f.ocupacao) || '', pers: (f && f.resumo) || '', vazio: !(f && (f.ocupacao || f.resumo)) };
+}
+const npcHTML = x => `<div class="mk-t"><b>${esc(x.nome)}</b><span class="mk-dt">${esc(x.tag)}</span></div>${x.prof ? `<div class="mk-l">🏘 ${esc(x.prof)}</div>` : ''}${x.pers ? `<div class="mk-d"><b>Personalidade:</b> ${esc(x.pers)}</div>` : ''}${x.papel ? `<div class="mk-d"><b>Na vila:</b> ${esc(x.papel)}</div>` : ''}${x.interp ? `<div class="mk-d mk-i">🎭 ${esc(x.interp)}</div>` : ''}${x.vazio ? `<div class="mk-l">Sem descrição: preencha Ocupação e Breve descrição na ficha.</div>` : ''}`;
 let _ultPos = { x: innerWidth / 2, y: 120 };
 function abreCartao(html) { const d = abreDlg(html); d.classList.add('mk-card'); const w = 300; d.style.left = Math.min(innerWidth - w - 12, Math.max(12, _ultPos.x + 14)) + 'px'; d.style.top = Math.min(innerHeight - 260, Math.max(64, _ultPos.y - 20)) + 'px'; d.style.right = 'auto'; return d; }
 function dlgPista(id) {
@@ -4958,8 +4973,10 @@ function dlgObjetoGM(id) {
 function iniciaDica() {
   const dica = document.createElement('div'); dica.className = 'mk-dica'; dica.hidden = true; document.body.append(dica); let pend = null, ultimo = '';
   canvas.addEventListener('pointermove', e => { _ultPos = { x: e.clientX, y: e.clientY }; if (pend) return; pend = requestAnimationFrame(() => { pend = null;
-    if (!PM || SO_JOGADOR || MARC.dlg) { dica.hidden = true; return; } const h = marcadorClicado(e); if (!h) { dica.hidden = true; ultimo = ''; canvas.style.cursor = ''; return; }
-    const k = h.tipo + h.id; if (k !== ultimo) { const x = dadosMarc(h); if (!x) return; dica.innerHTML = cartaoHTML(x.cor, x.nome, x.dt, x.desc, x.loc, x.teste); dica.style.borderColor = x.cor; ultimo = k; }
+    if (!PM || SO_JOGADOR || MARC.dlg) { dica.hidden = true; return; } const h = marcadorClicado(e);
+    if (!h) { const st = arrasto ? null : pegar(e), xn = st && dadosNPC(st); if (!xn) { dica.hidden = true; ultimo = ''; canvas.style.cursor = ''; return; }
+      const k = 'npc' + st.id + xn.nome; if (k !== ultimo) { dica.innerHTML = npcHTML(xn); dica.style.borderColor = st.dados?.tipo === 'inimigo' ? '#e0484f' : '#b9a6ff'; dica.classList.add('npc'); ultimo = k; } }
+    else { const k = h.tipo + h.id; if (k !== ultimo) { const x = dadosMarc(h); if (!x) return; dica.innerHTML = cartaoHTML(x.cor, x.nome, x.dt, x.desc, x.loc, x.teste); dica.style.borderColor = x.cor; dica.classList.remove('npc'); ultimo = k; } }
     dica.hidden = false; canvas.style.cursor = 'pointer'; const w = dica.offsetWidth, hh = dica.offsetHeight; dica.style.left = Math.min(innerWidth - w - 8, e.clientX + 16) + 'px'; dica.style.top = Math.max(8, Math.min(innerHeight - hh - 8, e.clientY - hh - 12)) + 'px'; }); });
   canvas.addEventListener('pointerleave', () => { dica.hidden = true; ultimo = ''; });
 }

@@ -389,6 +389,13 @@ button.pill:hover { border-color: var(--red); }
 .opc:hover { border-color: var(--red); }
 .opc.on { border-color: var(--red); box-shadow: inset 0 0 0 1px var(--red), 0 0 22px color-mix(in srgb, var(--blood) 22%, transparent); background: var(--panel-2); }
 .opc.on b { color: var(--red); }
+.cat-it { display: grid; gap: 10px; margin-top: 10px; padding: 12px; border: 1px solid var(--line-2); border-top: 2px solid var(--red); background: var(--panel-2); }
+.cat-topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; } .cat-topo b { font: 22px/1.1 var(--f-display); color: var(--paper); font-weight: normal; } .cat-topo span { color: var(--muted); font-size: 13px; flex: 1; min-width: 180px; }
+.cat-topo input { flex: 0 1 220px; min-width: 0; background: var(--panel); border: 1px solid var(--line-2); color: var(--paper); padding: 6px 8px; font: 13px var(--f-body); }
+.cat-abas { display: flex; flex-wrap: wrap; gap: 6px; } .cat-abas button { border: 1px solid var(--line-2); background: var(--panel); color: var(--paper-2); padding: 5px 10px; font: 12px var(--f-type); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; } .cat-abas button.on { border-color: var(--red); color: var(--paper); background: color-mix(in srgb, var(--blood) 35%, var(--panel)); }
+.cat-grade { max-height: 460px; overflow: auto; padding-right: 2px; } .cat-grade .opc b { font-size: 19px; }
+.cat-cab { display: flex; align-items: baseline; gap: 8px; } .cat-qtd { margin-left: auto; font: 12px var(--f-type); color: var(--red); }
+.cat-tag { font: 11px var(--f-type); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); } .cat-arma { font-size: 12.5px; color: var(--paper); } .opc .cat-arma b { color: var(--red); font: 700 13px var(--f-body); }
 .opc .hab { font-size: 12.5px; border-top: 1px dashed var(--line-2); padding-top: 6px; }
 .opc strong { color: var(--paper); }
 .cr-campo { display: grid; gap: 4px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
@@ -1547,11 +1554,32 @@ const ITEM_CAT = {
   'Gravador de voz': { txt: 'Grava conversas e sons. Ouvir de novo dá +1 passo em Recapitular sobre aquela cena.' },
   'Rádio de pilha': { txt: 'Pega as rádios da região. Às vezes, o que não devia estar no ar.' },
   'Corda': { txt: 'Amarrada lá em cima, quem vem depois sobe ou desce sem teste.' },
-  'Pé de cabra': { txt: 'Um aumento de passo para arrombar. Também serve de arma (RA+2).' },
+  'Pé de cabra': { txt: 'Um aumento de passo para arrombar. Também serve de arma: Físico + Luta, RA+2, impacto.', arma: { nome: 'Pé de cabra', bonus: 2, dtipo: 'Impacto', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
   'Sinalizador': { txt: 'Luz vermelha forte por uma cena inteira. Disparado contra alguém, é arma de fogo (RA+2).' },
   'Cuia de chimarrão': { txt: 'A roda de chimarrão acalma. Uma ação: Disciplina em você ou Persuasão em alguém; recupera PD igual ao total. Gasta a erva.', usar: 'acalmar' },
   'Cigarro de palha': { txt: 'Cachimbo. Uma vez por cena, uma ação: recupera 1 PD. Depois, Vigor DT 7; falhou, crise de tosse e −1 PV.', usar: 'fumo' },
   'Mochila impermeável': { txt: 'O que está dentro não molha. Em Remanso, isso salva a fita e a câmera.' },
+  /* achados na cidade: não entram na criação, só no inventário (o jogador adiciona o que encontrar). Armas: tabela geral do mestre */
+  'Faca': { cidade: true, txt: 'Faca comum. Arma: Físico + Luta, RA+1, cortante.', arma: { nome: 'Faca', bonus: 1, dtipo: 'Cortante', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
+  'Faca de cozinha': { cidade: true, txt: 'Faca de cozinha afiada. Arma: Físico + Luta, RA+1, cortante.', arma: { nome: 'Faca de cozinha', bonus: 1, dtipo: 'Cortante', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
+  'Machado': { cidade: true, txt: 'Machado de rachar lenha. Arma: Físico + Luta, RA+3, cortante.', arma: { nome: 'Machado', bonus: 3, dtipo: 'Cortante', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
+  'Bastão': { cidade: true, txt: 'Bastão ou porrete de madeira. Arma: Físico + Luta, RA+1, impacto.', arma: { nome: 'Bastão', bonus: 1, dtipo: 'Impacto', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
+  'Taco de beisebol': { cidade: true, txt: 'Taco de madeira maciça (bastão). Arma: Físico + Luta, RA+1, impacto.', arma: { nome: 'Taco de beisebol', bonus: 1, dtipo: 'Impacto', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
+  'Pá': { cidade: true, txt: 'Pá de cavar. Arma: Físico + Luta, RA+2, impacto.', arma: { nome: 'Pá', bonus: 2, dtipo: 'Impacto', tipo: 'corpo', per: 'luta', dano: 'RA', alcance: 'corpo a corpo' } },
+  'Pistola': { cidade: true, txt: 'Pistola (9 mm). Arma de fogo: Físico + Pontaria, RA+2, perfurante. Vem sem munição: só o mestre dá.', arma: { nome: 'Pistola', municao: '9 mm', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 2, dtipo: 'Perfurante', alcance: 'curto ou longo', mun: 0, munMax: 15 } },
+  'Espingarda': { cidade: true, txt: 'Espingarda calibre 12. Arma de fogo: Físico + Pontaria, RA+3, perfurante. Vem sem munição: só o mestre dá.', arma: { nome: 'Espingarda', municao: 'calibre 12', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 3, dtipo: 'Perfurante', alcance: 'curto', mun: 0, munMax: 2 } },
+  'Pomada de cicatrização': { cidade: true, txt: 'Bisnaga de pomada para cortes e queimaduras. Teste de Medicina: cura RA PV.', usar: 'cura', bonus: 0 },
+  'Incenso': { cidade: true, txt: 'Varetas de incenso, cheiro forte de igreja. O efeito, se houver, o mestre decide.' },
+  'Incenso antigo': { cidade: true, txt: 'Varetas de incenso velhas, guardadas há anos. O efeito, se houver, o mestre decide.' },
+  'Velas': { cidade: true, txt: 'Maço de velas brancas. Luz fraca por uma cena; não apaga com o vento de dentro de casa.' },
+  'Fones de ouvido': { cidade: true, txt: 'Fones de estúdio. Bons para escutar detalhes numa gravação ou no rádio.' },
+  'Mapa antigo da região': { cidade: true, mapa: true, txt: 'Mapa de papel com estradas e propriedades de antes da barragem.' },
+  'Mapa antigo do cemitério': { cidade: true, mapa: true, txt: 'Planta do cemitério com quadras e jazigos.' },
+  'Mapa antigo de Remanso': { cidade: true, mapa: true, txt: 'Mapa de papel da vila antes da inundação, com anotações.' },
+  'Mapa da cidade': { cidade: true, mapa: true, txt: 'Mapa simples de São Valentim do Vale.' },
+  'Mapa da região': { cidade: true, mapa: true, txt: 'Mapa escolar da região, com nomes antigos.' },
+  'Mapa topográfico': { cidade: true, mapa: true, txt: 'Mapa de campo dos topógrafos, com trilhas, desníveis e pontos da mata.' },
+  'Mapa da barragem': { cidade: true, mapa: true, txt: 'Planta da barragem e dos acessos da obra.' },
   /* munição: cada unidade é 1 tiro e só serve na arma do mesmo calibre. Só o mestre dá munição. */
   'Munição .38': { txt: 'Balas de revólver .38. Uma por tiro.', municao: '.38' },
   'Munição .32': { txt: 'Balas de revólver .32. Uma por tiro.', municao: '.32' },
@@ -1614,18 +1642,19 @@ const PRESETS = {
   cura: ['Cura', { per: 'medicina', dt: 0, cura: 0 }, 'Cura a RA em PV (+3 com Kit de primeiros socorros). Não precisa passar de DT.'],
 };
 const FASES = ['Fase geral', 'À distância', 'Corpo a corpo'];
-/* armas de 2016 (provisórias): bônus pela escala do beta, onde arco é RA+1, lança RA+2 e machado de batalha RA+3 */
+/* armas de 2016: a tabela geral do mestre (faca +1, machado +3, bastão +1, pé de cabra +2, pá +2, pistola +2, espingarda +3); o resto segue a escala do beta */
 const ARMAS_2016 = [
-  { nome: 'Faca ou canivete', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 1, alcance: 'corpo a corpo' },
-  { nome: 'Taco ou pedaço de pau', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 2, alcance: 'corpo a corpo' },
-  { nome: 'Pé de cabra', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 2, alcance: 'corpo a corpo' },
-  { nome: 'Facão ou machado', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 3, alcance: 'corpo a corpo' },
+  { nome: 'Faca', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 1, dtipo: 'Cortante', alcance: 'corpo a corpo' },
+  { nome: 'Machado', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 3, dtipo: 'Cortante', alcance: 'corpo a corpo' },
+  { nome: 'Bastão', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 1, dtipo: 'Impacto', alcance: 'corpo a corpo' },
+  { nome: 'Pé de cabra', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 2, dtipo: 'Impacto', alcance: 'corpo a corpo' },
+  { nome: 'Pá', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 2, dtipo: 'Impacto', alcance: 'corpo a corpo' },
   { nome: 'Pedra ou garrafa arremessada', tipo: 'disparo', per: 'pontaria', dano: 'RA', bonus: 0, alcance: 'curto' },
   { nome: 'Lança improvisada (faca na vara)', tipo: 'corpo', per: 'luta', dano: 'RA', bonus: 2, alcance: 'corpo a corpo, investida' },
   { nome: 'Estilingue', municao: 'estilingue', tipo: 'disparo', per: 'pontaria', dano: 'RA', bonus: 1, alcance: 'curto', mun: 10, munMax: 10 },
   { nome: 'Revólver .38', municao: '.38', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 3, alcance: 'curto ou longo', mun: 6, munMax: 6 },
-  { nome: 'Pistola 9 mm', municao: '9 mm', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 3, alcance: 'curto ou longo', mun: 15, munMax: 15 },
-  { nome: 'Espingarda calibre 12', municao: 'calibre 12', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 5, alcance: 'curto', mun: 2, munMax: 2 },
+  { nome: 'Pistola 9 mm', municao: '9 mm', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 2, dtipo: 'Perfurante', alcance: 'curto ou longo', mun: 15, munMax: 15 },
+  { nome: 'Espingarda calibre 12', municao: 'calibre 12', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 3, dtipo: 'Perfurante', alcance: 'curto', mun: 2, munMax: 2 },
   { nome: 'Rifle de caça', municao: 'rifle', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 4, alcance: 'longo', mun: 5, munMax: 5 },
   { nome: 'Sinalizador', municao: 'sinalizador', tipo: 'fogo', per: 'pontaria', dano: 'RA', bonus: 2, alcance: 'curto', mun: 1, munMax: 1 },
 ];
@@ -2445,7 +2474,7 @@ function linhaArma(f, a, i) {
       a.tipo !== 'corpo' && a.munMax ? h('span', { style: { fontSize: '12.5px', color: a.mun ? 'var(--paper-2)' : 'var(--red)' }, title: 'Na arma / capacidade · reserva compatível na mochila' }, (a.mun ?? 0) + '/' + a.munMax + ' · reserva ' + reservaDe(f, tipoMunicao(a)) + (tipoMunicao(a) ? ' (' + tipoMunicao(a) + ')' : '')) : null,
       a.tipo !== 'corpo' && a.munMax ? h('button', { class: 'mini', type: 'button', title: 'Recarregar com munição da mochila', 'aria-label': 'Recarregar ' + a.nome, disabled: (a.mun ?? 0) >= a.munMax || !reservaDe(f, tipoMunicao(a)) || null, onclick: () => recarregar(f, i) }, '↺') : null,
       h('button', { class: 'btn sm red', type: 'button', disabled: (a.tipo !== 'corpo' && a.munMax && !a.mun) || null, onclick: () => abrirRolagem(f, { per: a.per || (fogo ? 'pontaria' : 'luta'), dt: RG.combate === 'alpha' && !fogo && a.tipo === 'corpo' ? 0 : 7, arma: Object.assign({}, a, { idx: i, bonus }), semProf: fogo && casaAtiva() && !temHab(f, 'linha-de-tiro') && !temHab(f, 'para-bellum') }) }, 'Atacar')),
-    h('div', { class: 'meta' }, h('span', null, PER_N[a.per] || 'Luta'), h('span', null, 'dano ', h('b', null, (a.dano || 'RA') + (bonus ? ' + ' + bonus : ''))), h('span', null, a.alcance || ''), fogo && !temHab(f, 'linha-de-tiro') && !temHab(f, 'para-bellum') && !temHab(f, 'segredo-do-aco') ? h('span', { style: { color: 'var(--red)' }, title: 'Quem não sabe usar armas de fogo ataca com uma redução de passo' }, 'sem proficiência: −1 passo') : null)];
+    h('div', { class: 'meta' }, h('span', null, PER_N[a.per] || 'Luta'), h('span', null, 'dano ', h('b', null, (a.dano || 'RA') + (bonus ? ' + ' + bonus : ''))), a.dtipo ? h('span', null, a.dtipo) : null, h('span', null, a.alcance || ''), fogo && !temHab(f, 'linha-de-tiro') && !temHab(f, 'para-bellum') && !temHab(f, 'segredo-do-aco') ? h('span', { style: { color: 'var(--red)' }, title: 'Quem não sabe usar armas de fogo ataca com uma redução de passo' }, 'sem proficiência: −1 passo') : null)];
   if (UIS.edit && ehMestre()) kids.push(h('div', { class: 'edit-grid' },
     h('label', null, 'Nome', h('input', { id: `f-a${i}-nome`, value: a.nome, oninput: e => { a.nome = e.target.value; salvar(); } })),
     h('label', null, 'Tipo', h('select', { id: `f-a${i}-tipo`, onchange: e => { a.tipo = e.target.value; a.per = a.tipo === 'corpo' ? 'luta' : 'pontaria'; salvar(); renderFicha(); } }, [['corpo', 'Corpo a corpo'], ['disparo', 'Disparo / arremesso'], ['fogo', 'Arma de fogo']].map(([v, n]) => h('option', { value: v, selected: a.tipo === v || null }, n)))),
@@ -3045,13 +3074,35 @@ function cardItens(f) {
       h('span', { class: 'row' },
         cat?.usar && !MODO.narr ? h('button', { class: 'btn sm', type: 'button', disabled: !(it.qtd ?? 1) || null, onclick: () => usarItem(f, i) }, 'Usar') : null,
         h('button', { class: 'mini', type: 'button', 'aria-label': 'Menos', onclick: () => { const q = (it.qtd ?? 1) - 1; if (q <= 0 && !confirm('Tirar ' + (it.nome || 'este item') + ' da mochila?')) return; it.qtd = Math.max(0, q); salvar(); renderFicha(); } }, '−'), h('input', { class: 'qtd', type: 'number', min: 0, step: 1, value: it.qtd ?? 1, 'aria-label': 'Quantidade de ' + (it.nome || 'item'), style: { width: '46px', textAlign: 'center' }, onchange: e => { let v = Math.floor(+e.target.value); if (!Number.isFinite(v) || v < 0) v = 0; if (!ehMestre() && ehMunicao(it.nome) && v > (it.qtd ?? 1)) { toast('Munição só o mestre dá.'); renderFicha(); return; } if (v === 0 && !confirm('Tirar ' + (it.nome || 'este item') + ' da mochila?')) { renderFicha(); return; } it.qtd = v; salvar(); renderFicha(); } }), h('button', { class: 'mini', type: 'button', 'aria-label': 'Mais', disabled: (!ehMestre() && ehMunicao(it.nome)) || null, onclick: () => { if (!ehMestre() && ehMunicao(it.nome)) { toast('Munição só o mestre dá.'); return; } it.qtd = (it.qtd ?? 1) + 1; salvar(); renderFicha(); } }, '+'),
-        h('button', { class: 'btn sm ghost', type: 'button', 'aria-label': 'Remover ' + (it.nome || 'item') + ' do inventário', title: 'Remover do inventário', onclick: () => { if (!confirm('Remover ' + (it.nome || 'este item') + ' do inventário?')) return; f.itens.splice(i, 1); salvar(); renderFicha(); toast((it.nome || 'Item') + ' removido.'); } }, 'Remover')),
+        h('button', { class: 'btn sm ghost', type: 'button', 'aria-label': 'Remover ' + (it.nome || 'item') + ' do inventário', title: 'Remover do inventário', onclick: () => { if (!confirm('Remover ' + (it.nome || 'este item') + ' do inventário?')) return; f.itens.splice(i, 1); const ar = ITEM_CAT[it.nome]?.arma; if (ar && !f.itens.some(x => x.nome === it.nome)) { const k = (f.armas || []).findIndex(a => a.nome === ar.nome); if (k >= 0) f.armas.splice(k, 1); } salvar(); renderFicha(); toast((it.nome || 'Item') + ' removido.'); } }, 'Remover')),
       cat ? h('div', { class: 'desc' }, cat.txt) : null); }),
     h('div', { class: 'item' }, h('span', { class: 'row' },
       h('input', { id: 'f-novoit', placeholder: 'Novo item…', 'aria-label': 'Nome do novo item', style: { minWidth: '140px' }, onkeydown: e => { if (e.key === 'Enter') $('#f-addnovo')?.click(); } }),
       h('button', { class: 'btn sm ghost', type: 'button', id: 'f-addnovo', onclick: () => { const v = String($('#f-novoit')?.value || '').trim(); if (!v) { toast('Escreva o nome do item.'); return; } if (!ehMestre() && ehMunicao(v)) { toast('Munição só o mestre dá.'); return; } const ex = f.itens.find(x => x.nome === v); if (ex) ex.qtd = (ex.qtd ?? 1) + 1; else f.itens.push({ nome: v, qtd: 1 }); salvar(); renderFicha(); toast(v + ' no inventário.'); } }, 'Adicionar'),
-      h('select', { id: 'f-addit', 'aria-label': 'Adicionar item', onchange: e => { const v = e.target.value; if (!v) return; if (!ehMestre() && ehMunicao(v)) { toast('Munição só o mestre dá.'); renderFicha(); return; } const ex = f.itens.find(x => x.nome === v); if (ex) ex.qtd = (ex.qtd ?? 1) + 1; else f.itens.push({ nome: v, qtd: 1 }); salvar(); renderFicha(); toast(v + ' na mochila.'); } },
-        h('option', { value: '' }, 'Itens de 2016…'), Object.keys(ITEM_CAT).filter(k => ehMestre() || !ehMunicao(k)).map(k => h('option', { value: k }, k))))));
+      h('button', { class: 'btn sm', type: 'button', id: 'f-catit', 'aria-expanded': UIS.catIt ? 'true' : 'false', onclick: () => { UIS.catIt = !UIS.catIt; renderFicha(); if (UIS.catIt) setTimeout(() => $('#cat-busca')?.focus(), 30); } }, UIS.catIt ? 'Fechar catálogo' : '+ Adicionar item do catálogo'))),
+    UIS.catIt ? catalogoItens(f) : null);
+}
+/* catálogo de itens: o jogador adiciona o que encontrou (igual à escolha da criação, sem limite). Arma vai junto para a lista de armas */
+const grupoItem = x => x.municao ? 'Munição' : x.arma ? 'Armas' : x.mapa ? 'Mapas' : (x.usar === 'cura' || x.usar === 'pd' || x.usar === 'insp' || x.usar === 'acalmar' || /dor|curar|cura /i.test(x.txt)) ? 'Cura e fôlego' : 'Equipamento';
+const GRUPOS_IT = ['Todos', 'Armas', 'Cura e fôlego', 'Equipamento', 'Mapas', 'Munição'];
+function addItemCat(f, k) {
+  const x = ITEM_CAT[k]; if (!x) return; if (!ehMestre() && x.municao) { toast('Munição só o mestre dá.'); return; }
+  const ex = f.itens.find(y => y.nome === k); if (ex) ex.qtd = (ex.qtd ?? 1) + 1; else f.itens.push({ nome: k, qtd: 1 });
+  if (x.arma && !(f.armas ||= []).some(a => a.nome === x.arma.nome)) f.armas.push(clone(x.arma));
+  S.hist.unshift({ t: Date.now(), quem: f.nome, fid: f.id, cat: 'item', o: 'Pegou ' + k, tot: '+1', v: '' });
+  salvar(); renderFicha(); toast(k + (x.arma ? ' na mochila e nas armas.' : ' na mochila.'));
+}
+function catalogoItens(f) {
+  const g = UIS.catG || 'Todos', q = String(UIS.catQ || '').toLowerCase();
+  const lista = Object.entries(ITEM_CAT).filter(([k, x]) => (ehMestre() || !x.municao) && (g === 'Todos' || grupoItem(x) === g) && (!q || (k + ' ' + x.txt).toLowerCase().includes(q)));
+  const det = x => { const a = x.arma; if (!a) return null; return h('span', { class: 'cat-arma' }, (a.per === 'pontaria' ? 'Físico + Pontaria' : 'Físico + Luta') + ' · ', h('b', null, 'RA+' + a.bonus), a.dtipo ? ' · ' + a.dtipo : ''); };
+  return h('div', { class: 'cat-it', role: 'region', 'aria-label': 'Catálogo de itens' },
+    h('div', { class: 'cat-topo' }, h('b', null, 'Catálogo de itens'), h('span', null, 'Achou alguma coisa? Toque para pôr na mochila.'),
+      h('input', { id: 'cat-busca', type: 'search', placeholder: 'Procurar…', value: UIS.catQ || '', 'aria-label': 'Procurar item', oninput: e => { UIS.catQ = e.target.value; const pos = e.target.selectionStart; renderFicha(); const n = $('#cat-busca'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } } })),
+    h('div', { class: 'cat-abas', role: 'tablist' }, GRUPOS_IT.filter(n => n !== 'Munição' || ehMestre()).map(n => h('button', { type: 'button', role: 'tab', 'aria-selected': n === g ? 'true' : 'false', class: n === g ? 'on' : '', onclick: () => { UIS.catG = n; renderFicha(); } }, n))),
+    lista.length ? h('div', { class: 'opcoes cat-grade' }, lista.map(([k, x]) => { const tem = (f.itens.find(y => y.nome === k)?.qtd) || 0;
+      return opc(tem > 0, () => addItemCat(f, k), h('span', { class: 'cat-cab' }, h('b', null, k), tem ? h('span', { class: 'cat-qtd' }, '×' + tem) : null), h('span', { class: 'cat-tag' }, grupoItem(x) + (x.cidade ? ' · achado na cidade' : '')), det(x), h('span', null, x.txt)); }))
+      : h('p', { class: 'cr-dica' }, 'Nenhum item com esse nome. Use “Novo item…” acima para escrever um item que não está aqui.'));
 }
 /* ===================== relações: vínculos com o grupo e com a vila ===================== */
 const PTR = () => { try { return typeof PONTE !== 'undefined' && PONTE ? PONTE : null; } catch (e) { return null; } };
@@ -3615,7 +3666,7 @@ const CR_ETAPA = [
         h('textarea', { id: 'cr-relo-' + i, rows: 2, placeholder: 'Como se conhecem e de onde vem esse vínculo', 'aria-label': 'Origem da relação', oninput: e => { r.origem = e.target.value; } }, r.origem || '')))),
       h('div', null, h('button', { class: 'btn sm ghost', type: 'button', id: 'cr-rel-mais', onclick: () => { c.rel.push({ nome: '', pts: 0, quem: 'outro', fid: '', npc: '', tipo: '', origem: '' }); renderCriar(); setTimeout(() => $('#cr-relq-' + (c.rel.length - 1))?.focus(), 20); } }, '+ Adicionar vínculo')),
       h('div', { class: 'campo' }, 'Itens para começar (até 2)'),
-      h('div', { class: 'opcoes' }, Object.entries(ITEM_CAT).map(([k, x]) => opc(c.itens.includes(k), () => { if (c.itens.includes(k)) c.itens = c.itens.filter(y => y !== k); else if (c.itens.length < 2) c.itens.push(k); else { toast('Até 2 itens. Tire um antes.'); return; } renderCriar(); }, h('b', null, k), h('span', null, x.txt))))]; },
+      h('div', { class: 'opcoes' }, Object.entries(ITEM_CAT).filter(([, x]) => !x.cidade).map(([k, x]) => opc(c.itens.includes(k), () => { if (c.itens.includes(k)) c.itens = c.itens.filter(y => y !== k); else if (c.itens.length < 2) c.itens.push(k); else { toast('Até 2 itens. Tire um antes.'); return; } renderCriar(); }, h('b', null, k), h('span', null, x.txt))))]; },
   (c) => { const { p, a } = crPerFinal(c), s = crSug(c);
     const tr = [...PER.filter(([k]) => p[k] !== 'd4').map(([k, n]) => n + ' ' + p[k]), ...APT.filter(([k]) => a[k] !== 'd4').map(([k, n]) => 'Aptidão (' + n + ') ' + a[k])];
     const rels = c.rel.filter(r => r.nome.trim());
@@ -3697,7 +3748,7 @@ function blocoCasa() {
       linha('Pausa numa cena calma', sel('calma', ['d4', 'd6']), 'Recupera PD.'),
       linha('Noite de sono num lugar seguro', sel('noite', ['d4', 'd6', 'd8']), 'Recupera PV e PD, e o dado de pavor desce um passo.'),
       linha('Armas de fogo sem treino', 'uma redução de passo', 'Policial, militar e Segredo do Aço sabem usar; o resto ataca pior.'),
-      linha('Armas e itens de 2016', 'catálogo na ficha', 'Arco RA+1, machado RA+3, pistola RA+3, espingarda RA+5 de perto.'),
+      linha('Armas e itens de 2016', 'catálogo na ficha', 'Faca +1, machado +3, bastão +1, pé de cabra +2, pá +2 (Físico + Luta); pistola +2, espingarda +3 (Físico + Pontaria).'),
       linha('Falha em ritual cobra a RB em PD', h('input', { type: 'checkbox', id: 'g-ritfalha', checked: C.ritualFalhaCusto !== false || null, onchange: e => { C.ritualFalhaCusto = e.target.checked; up(); } }), 'Ligado: quem falha perde PD igual à RB (como sempre foi). Desligado: a falha só não faz efeito.'),
       linha('Mesa de Pontaria (×2)', h('span', { class: 'row' }, h('input', { type: 'checkbox', id: 'g-x2', checked: C.pontariaX2 !== false || null, onchange: e => { C.pontariaX2 = e.target.checked; up(); } }), ' alvo ', h('input', { type: 'number', id: 'g-x2r', min: 5, max: 50, value: C.alvoX2 ?? 25, onchange: e => { C.alvoX2 = Math.max(5, Math.min(50, +e.target.value || 25)); up(); } }), '% do raio'), 'Em ataque com Pontaria, o dado que cai no alvo do centro vale o dobro. Com 25% do raio, cada dado tem cerca de 8% de chance.'),
       linha('Rituais', 'teste estendido de Ocultismo, DT 7', 'Soma a RA até a pontuação alvo (10 simples, 20 médio, 30 grande). Falhou: a RB vira dano de PD em quem conjura.')),
